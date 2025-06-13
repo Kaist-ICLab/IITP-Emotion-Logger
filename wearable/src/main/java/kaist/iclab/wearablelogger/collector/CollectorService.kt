@@ -49,6 +49,7 @@ class CollectorService : Service() {
                     dataMap.putString("acc", Gson().toJson(db.accDao().getLast()))
                     dataMap.putString("hr", Gson().toJson(db.hrDao().getLast()))
                     dataMap.putString("ppg", Gson().toJson(db.ppgDao().getLast()))
+//                    dataMap.putString("skin", Gson().toJson(db.ppgDao().getLast()))
                 }.asPutDataRequest().setUrgent()
                 val result = dataClient.putDataItem(request).await()
                 Log.d(TAG, "COLLECTOR SEND  $result")

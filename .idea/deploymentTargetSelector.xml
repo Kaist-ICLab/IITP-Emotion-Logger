@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="deploymentTargetSelector">
+    <selectionStates>
+      <SelectionState runConfigName="smartphone">
+        <option name="selectionMode" value="DROPDOWN" />
+        <DropdownSelection timestamp="2025-06-13T07:37:00.835128500Z">
+          <Target type="DEFAULT_BOOT">
+            <handle>
+              <DeviceId pluginId="Default" identifier="serial=143.248.61.97:40499;connection=00c225f0" />
+            </handle>
+          </Target>
+        </DropdownSelection>
+        <DialogSelection />
+      </SelectionState>
+      <SelectionState runConfigName="wearable">
+        <option name="selectionMode" value="DROPDOWN" />
+        <DropdownSelection timestamp="2025-06-13T07:48:28.383921Z">
+          <Target type="DEFAULT_BOOT">
+            <handle>
+              <DeviceId pluginId="Default" identifier="serial=143.248.61.97:43357;connection=417e7d22" />
+            </handle>
+          </Target>
+        </DropdownSelection>
+        <DialogSelection />
+      </SelectionState>
+    </selectionStates>
+  </component>
+</project>

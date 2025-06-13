@@ -5,16 +5,16 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
 import com.google.gson.Gson
-import kaist.iclab.wearablelogger.collector.ACC.AccDao
-import kaist.iclab.wearablelogger.collector.ACC.AccEntity
-import kaist.iclab.wearablelogger.collector.HR.HRDao
-import kaist.iclab.wearablelogger.collector.HR.HREntity
-import kaist.iclab.wearablelogger.collector.PPGGreen.PpgDao
-import kaist.iclab.wearablelogger.collector.PPGGreen.PpgEntity
-import kaist.iclab.wearablelogger.collector.SkinTemp.SkinTempDao
-import kaist.iclab.wearablelogger.collector.SkinTemp.SkinTempEntity
-import kaist.iclab.wearablelogger.collector.Test.TestDao
-import kaist.iclab.wearablelogger.collector.Test.TestEntity
+import kaist.iclab.wearablelogger.collector.acceleration.AccDao
+import kaist.iclab.wearablelogger.collector.acceleration.AccEntity
+import kaist.iclab.wearablelogger.collector.heartRate.HRDao
+import kaist.iclab.wearablelogger.collector.heartRate.HREntity
+import kaist.iclab.wearablelogger.collector.ppgGreen.PpgDao
+import kaist.iclab.wearablelogger.collector.ppgGreen.PpgEntity
+import kaist.iclab.wearablelogger.collector.skinTemp.SkinTempDao
+import kaist.iclab.wearablelogger.collector.skinTemp.SkinTempEntity
+import kaist.iclab.wearablelogger.collector.test.TestDao
+import kaist.iclab.wearablelogger.collector.test.TestEntity
 
 @Database(
     version = 15,

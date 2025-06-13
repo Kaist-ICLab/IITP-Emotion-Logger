@@ -48,7 +48,8 @@ class CollectorRepository(
         CoroutineScope(Dispatchers.IO).launch{
             collectors.forEach {collector ->
                 val data = collector.stringifyData()
-                uploaderRepository.sync2Server(data)
+//                uploaderRepository.sync2Server(data)
+                uploaderRepository.upload2Phone(data, collector.TAG)
             }
         }
     }

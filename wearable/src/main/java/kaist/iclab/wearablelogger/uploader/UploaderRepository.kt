@@ -4,7 +4,6 @@ import android.content.Context
 import android.util.Log
 import com.google.android.gms.wearable.PutDataMapRequest
 import com.google.android.gms.wearable.Wearable
-import kaist.iclab.wearablelogger.collector.CollectorInterface
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -29,6 +28,7 @@ class UploaderRepository(
                     asPutDataRequest()
                 }
                 dataClient.putDataItem(request).await()
+                Log.d(TAG, data)
                 Log.d(TAG, "Data has been uploaded")
             } catch (exception: Exception) {
                 Log.e(TAG, "Saving DataItem failed: $exception")

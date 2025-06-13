@@ -20,7 +20,7 @@ class DataReceiver(
     override fun onDataChanged(dataEventBuffer: DataEventBuffer) {
         Log.d(TAG, "onDataChanged Called!")
         val recentEntities = dataEventBuffer.map { dataEvent ->
-            Log.d(TAG,dataEvent.dataItem.uri.toString())
+            Log.d(TAG, dataEvent.dataItem.uri.toString())
             val data = DataMapItem.fromDataItem(dataEvent.dataItem).dataMap
             Log.d(TAG, data.toString())
             RecentEntity(

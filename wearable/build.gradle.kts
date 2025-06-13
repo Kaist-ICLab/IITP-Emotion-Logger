@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "kaist.iclab.wearablelogger"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "kaist.iclab.wearablelogger"
@@ -57,6 +57,7 @@ dependencies {
     implementation("com.google.android.gms:play-services-wearable:18.1.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
     implementation("androidx.activity:activity-compose:1.8.2")
+    implementation(project(":logger-structure"))
 
 //  Include privileged SDK
     implementation(fileTree("libs"))
