@@ -6,6 +6,7 @@ import android.util.Log
 import com.google.gson.GsonBuilder
 import com.samsung.android.service.health.tracking.data.DataPoint
 import com.samsung.android.service.health.tracking.data.HealthTrackerType
+import com.samsung.android.service.health.tracking.data.PpgType
 import com.samsung.android.service.health.tracking.data.ValueKey
 import kaist.iclab.wearablelogger.collector.HealthTrackerCollector
 import kaist.iclab.wearablelogger.config.ConfigRepository
@@ -43,7 +44,8 @@ class PpgCollector(
 
     override fun initHealthTracker() {
         tracker = healthTrackerRepository.healthTrackingService
-            .getHealthTracker(HealthTrackerType.PPG_CONTINUOUS)
+            .getHealthTracker(HealthTrackerType.PPG_CONTINUOUS, setOf(PpgType.GREEN))
+        Log.v(TAG, tracker.toString())
     }
 
     override suspend fun getStatus(): Boolean {
