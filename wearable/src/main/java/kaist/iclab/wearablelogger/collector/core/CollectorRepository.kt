@@ -5,7 +5,6 @@ import android.content.Intent
 import android.util.Log
 import androidx.core.content.ContextCompat
 import kaist.iclab.loggerstructure.core.CollectorInterface
-import kaist.iclab.wearablelogger.collector.core.CollectorService
 import kaist.iclab.wearablelogger.uploader.UploaderRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

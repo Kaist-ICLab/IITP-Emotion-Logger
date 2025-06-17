@@ -1,11 +1,11 @@
-package kaist.iclab.wearablelogger.config
+package kaist.iclab.loggerstructure.core
 
 import android.content.Context
 import android.content.pm.PackageManager
 import android.util.Log
 import androidx.core.content.ContextCompat
 
-object Util {
+object PermissionUtil {
     private val TAG = javaClass.simpleName
     fun isPermissionAllowed(androidContext: Context, permissions: List<String>): Boolean {
         return permissions.all { permission ->
@@ -21,4 +21,3 @@ object Util {
         }
     }
 }
-

@@ -25,8 +25,6 @@ class DataReceiver(
 ) : DataClient.OnDataChangedListener {
 
     override fun onDataChanged(dataEventBuffer: DataEventBuffer) {
-        Log.d(TAG, "onDataChanged Called!")
-
         val recentEntities = mutableListOf<RecentEntity>()
 
         dataEventBuffer.forEach { dataEvent ->
@@ -36,7 +34,6 @@ class DataReceiver(
 
             val data = DataMapItem.fromDataItem(dataEvent.dataItem).dataMap
             if(dataType == "/WEARABLE"){
-                Log.d(TAG, data.toString())
                 recentEntities.add(
                     RecentEntity(
                         timestamp = data.getLong("timestamp"),
@@ -65,7 +62,7 @@ class DataReceiver(
                 assetFd.inputStream.use { inputStream ->
                     val json = String(inputStream.readBytes())
                     val daoWrapper = collectorDao[key]!!
-                    Log.v(TAG, "json: $json")
+
                     CoroutineScope(Dispatchers.IO).launch {
                         daoWrapper.insertEventsFromJson(json)
                     }

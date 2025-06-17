@@ -1,7 +1,5 @@
 package kaist.iclab.loggerstructure.core
 
-interface EntityBase
-
 interface DaoWrapper<T: EntityBase> {
     suspend fun getAll(): List<T>
 
@@ -15,3 +13,5 @@ interface DaoWrapper<T: EntityBase> {
 
     suspend fun insertEventsFromJson(json: String)
 }
+
+interface EntityBase

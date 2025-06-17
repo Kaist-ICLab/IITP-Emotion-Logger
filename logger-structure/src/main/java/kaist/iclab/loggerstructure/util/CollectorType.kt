@@ -5,5 +5,6 @@ enum class CollectorType(name: String) {
     HR("hr"),
     PPG("ppg"),
     SKINTEMP("skintemp"),
+    STEP("step"),
     TEST("test")
 }

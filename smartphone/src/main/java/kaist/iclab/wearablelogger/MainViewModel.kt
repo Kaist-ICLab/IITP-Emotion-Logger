@@ -1,5 +1,6 @@
 package kaist.iclab.wearablelogger
 
+import android.util.Log
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kaist.iclab.loggerstructure.core.DaoWrapper
@@ -8,6 +9,8 @@ import kaist.iclab.wearablelogger.db.EventDao
 import kaist.iclab.wearablelogger.db.EventEntity
 import kaist.iclab.wearablelogger.db.RecentDao
 import kaist.iclab.wearablelogger.db.RecentEntity
+import kaist.iclab.loggerstructure.dao.StepDao
+import kaist.iclab.loggerstructure.entity.StepEntity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
@@ -15,10 +18,11 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
-//private const val TAG = "MainViewModel"
+private const val TAG = "MainViewModel"
 
 class MainViewModel(
     val eventDao: EventDao,
+    stepDao: StepDao,
     recentDao: RecentDao,
     val daoWrappers: List<DaoWrapper<EntityBase>>
 ) : ViewModel(){
@@ -33,6 +37,7 @@ class MainViewModel(
 
     fun flush() {
         daoWrappers.forEach {
+            Log.v(TAG, "Flush all data of ${it.javaClass.name}")
             CoroutineScope(Dispatchers.IO).launch {
                 it.deleteAll()
             }
@@ -51,5 +56,12 @@ class MainViewModel(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000L),
             initialValue = RecentEntity(timestamp = -1, acc= "null", ppg="null", hr="null")
+        )
+
+    val stepsState: StateFlow<StepEntity?> =
+        stepDao.getLastByFlow().stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000L),
+            initialValue = StepEntity(dataReceived = -1, startTime = -1, endTime = -1, step = 0)
         )
 }

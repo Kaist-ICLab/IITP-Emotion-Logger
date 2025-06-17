@@ -4,7 +4,7 @@ import android.Manifest
 import android.os.Build
 import android.os.Bundle
 import androidx.activity.compose.setContent
-import kaist.iclab.wearablelogger.config.PermissionActivity
+import kaist.iclab.loggerstructure.core.PermissionActivity
 import kaist.iclab.wearablelogger.ui.SettingsScreen
 
 class MainActivity : PermissionActivity() {

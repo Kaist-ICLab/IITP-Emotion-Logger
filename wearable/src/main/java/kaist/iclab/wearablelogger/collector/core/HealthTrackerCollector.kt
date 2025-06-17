@@ -6,7 +6,7 @@ import android.os.Build
 import android.util.Log
 import com.samsung.android.service.health.tracking.HealthTracker
 import kaist.iclab.loggerstructure.core.CollectorInterface
-import kaist.iclab.wearablelogger.config.Util
+import kaist.iclab.loggerstructure.core.PermissionUtil
 
 
 private const val TAG = "HealthTrackerCollector"
@@ -21,7 +21,7 @@ abstract class HealthTrackerCollector(
 
     override fun setup() {}
     override fun isAvailable(): Boolean {
-            return Util.isPermissionAllowed(
+            return PermissionUtil.isPermissionAllowed(
                 context, listOfNotNull(
                     Manifest.permission.BODY_SENSORS,
                     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) Manifest.permission.BODY_SENSORS_BACKGROUND else null,

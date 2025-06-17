@@ -7,8 +7,10 @@ import kaist.iclab.loggerstructure.daowrapper.AccDaoWrapper
 import kaist.iclab.loggerstructure.daowrapper.HRDaoWrapper
 import kaist.iclab.loggerstructure.daowrapper.PpgDaoWrapper
 import kaist.iclab.loggerstructure.daowrapper.SkinTempDaoWrapper
+import kaist.iclab.loggerstructure.daowrapper.StepDaoWrapper
 import kaist.iclab.loggerstructure.util.CollectorType
 import kaist.iclab.wearablelogger.db.RoomDB
+import kaist.iclab.wearablelogger.step.StepCollector
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
@@ -41,6 +43,13 @@ val koinModule = module {
     single{
         get<RoomDB>().skinTempDao()
     }
+    single{
+        get<RoomDB>().stepDao()
+    }
+
+    single{
+        StepCollector(androidContext(),get<RoomDB>().stepDao())
+    }
 
     single{
         DataReceiver(androidContext(), get(), mapOf(
@@ -52,11 +61,12 @@ val koinModule = module {
     }
 
     viewModel {
-        MainViewModel(get(), get(), listOf(
+        MainViewModel(get<RoomDB>().eventDao(), get<RoomDB>().stepDao(), get<RoomDB>().recentDao(), listOf(
             AccDaoWrapper(get<RoomDB>().accDao()),
             PpgDaoWrapper(get<RoomDB>().ppgDao()),
             HRDaoWrapper(get<RoomDB>().hrDao()),
-            SkinTempDaoWrapper(get<RoomDB>().skinTempDao())
+            SkinTempDaoWrapper(get<RoomDB>().skinTempDao()),
+            StepDaoWrapper(get<RoomDB>().stepDao())
         ) as List<DaoWrapper<EntityBase>>)
     }
 }

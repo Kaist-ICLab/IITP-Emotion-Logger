@@ -47,6 +47,6 @@ class ConfigRepository(private val androidContext: Context) {
 
     suspend fun getSensorStatus(sensorName: String):Boolean{
         val preferences = androidContext.dataStore.data.first()
-        return preferences[booleanPreferencesKey(sensorName)] ?: false
+        return preferences[booleanPreferencesKey(sensorName)] == true
     }
 }
