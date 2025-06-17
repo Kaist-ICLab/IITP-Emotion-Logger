@@ -4,8 +4,9 @@ import android.util.Log
 import com.samsung.android.service.health.tracking.HealthTracker
 import com.samsung.android.service.health.tracking.HealthTracker.TrackerEventListener
 
+private const val TAG = "AbstractTrackerEventListener"
+
 abstract class AbstractTrackerEventListener: TrackerEventListener {
-    val TAG = javaClass.simpleName
 
     override fun onError(trackerError: HealthTracker.TrackerError) {
         Log.d(TAG, "onError")
@@ -20,7 +21,7 @@ abstract class AbstractTrackerEventListener: TrackerEventListener {
                 "ERROR: SDK Policy Error"
             )
 
-            else -> Log.e(TAG, "ERROR: Unknown ${trackerError.name}")
+//            else -> Log.e(TAG, "ERROR: Unknown ${trackerError.name}")
         }
     }
 

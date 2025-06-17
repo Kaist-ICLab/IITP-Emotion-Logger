@@ -1,13 +1,16 @@
-package kaist.iclab.wearablelogger.collector.acceleration
+package kaist.iclab.wearablelogger.collector
 
 import android.content.Context
 import android.util.Log
 import com.google.gson.GsonBuilder
-import com.samsung.android.service.health.tracking.HealthTracker.TrackerEventListener
+import com.samsung.android.service.health.tracking.HealthTracker
 import com.samsung.android.service.health.tracking.data.DataPoint
 import com.samsung.android.service.health.tracking.data.HealthTrackerType
 import com.samsung.android.service.health.tracking.data.ValueKey
-import kaist.iclab.wearablelogger.collector.HealthTrackerCollector
+import kaist.iclab.loggerstructure.dao.AccDao
+import kaist.iclab.loggerstructure.entity.AccEntity
+import kaist.iclab.loggerstructure.util.CollectorType
+import kaist.iclab.wearablelogger.collector.core.HealthTrackerCollector
 import kaist.iclab.wearablelogger.config.ConfigRepository
 import kaist.iclab.wearablelogger.healthtracker.AbstractTrackerEventListener
 import kaist.iclab.wearablelogger.healthtracker.HealthTrackerRepository
@@ -15,15 +18,17 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+private const val TAG = "AccCollector"
+
 class AccCollector(
     context: Context,
     private val healthTrackerRepository: HealthTrackerRepository,
     private val configRepository: ConfigRepository,
     private val accDao: AccDao,
 ) : HealthTrackerCollector(context){
-    override val TAG = javaClass.simpleName
+    override val key = CollectorType.ACC.name
 
-    override val trackerEventListener: TrackerEventListener = object :
+    override val trackerEventListener: HealthTracker.TrackerEventListener = object :
         AbstractTrackerEventListener() {
         override fun onDataReceived(data: List<DataPoint>) {
             val dataReceived = System.currentTimeMillis()
@@ -38,7 +43,7 @@ class AccCollector(
                 )
             }
             CoroutineScope(Dispatchers.IO).launch {
-                accDao.insertAccEvents(accEntities)
+                accDao.insertEvents(accEntities)
             }
         }
 
@@ -58,7 +63,7 @@ class AccCollector(
     override suspend fun stringifyData():String{
         val gson = GsonBuilder().setLenient().create()
 
-        return gson.toJson(mapOf(javaClass.simpleName to accDao.getAll()))
+        return gson.toJson(accDao.getAll())
     }
 
     override fun flush() {

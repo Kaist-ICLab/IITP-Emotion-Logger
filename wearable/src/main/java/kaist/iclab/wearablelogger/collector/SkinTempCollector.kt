@@ -1,4 +1,4 @@
-package kaist.iclab.wearablelogger.collector.skinTemp
+package kaist.iclab.wearablelogger.collector
 
 import android.content.Context
 import android.util.Log
@@ -6,13 +6,19 @@ import com.google.gson.GsonBuilder
 import com.samsung.android.service.health.tracking.data.DataPoint
 import com.samsung.android.service.health.tracking.data.HealthTrackerType
 import com.samsung.android.service.health.tracking.data.ValueKey
-import kaist.iclab.wearablelogger.collector.HealthTrackerCollector
+import kaist.iclab.loggerstructure.dao.SkinTempDao
+import kaist.iclab.loggerstructure.entity.SkinTempEntity
+import kaist.iclab.loggerstructure.util.CollectorType
+import kaist.iclab.wearablelogger.collector.core.HealthTrackerCollector
 import kaist.iclab.wearablelogger.config.ConfigRepository
 import kaist.iclab.wearablelogger.healthtracker.AbstractTrackerEventListener
 import kaist.iclab.wearablelogger.healthtracker.HealthTrackerRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlin.jvm.javaClass
+
+private const val TAG = "SkinTempCollector"
 
 class SkinTempCollector(
     context: Context,
@@ -20,7 +26,8 @@ class SkinTempCollector(
     private val configRepository: ConfigRepository,
     private val skinTempDao: SkinTempDao
 ) : HealthTrackerCollector(context) {
-    override val TAG = javaClass.simpleName
+    override val key = CollectorType.SKINTEMP.name
+
     override fun initHealthTracker() {
         tracker = healthTrackerRepository.healthTrackingService
             .getHealthTracker(HealthTrackerType.SKIN_TEMPERATURE_CONTINUOUS)
@@ -44,13 +51,13 @@ class SkinTempCollector(
                 )
             }
             CoroutineScope(Dispatchers.IO).launch {
-                skinTempDao.insertSkinTempEvents(skinTempData)
+                skinTempDao.insertEvents(skinTempData)
             }
         }
     }
     override suspend fun stringifyData():String{
         val gson = GsonBuilder().setLenient().create()
-        return gson.toJson(mapOf(javaClass.simpleName to skinTempDao.getAll()))
+        return gson.toJson(skinTempDao.getAll())
     }
 
     override fun flush() {

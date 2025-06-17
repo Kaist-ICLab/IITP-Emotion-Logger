@@ -1,15 +1,9 @@
 package kaist.iclab.wearablelogger
 
-import android.annotation.SuppressLint
-import android.util.Log
-import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.google.android.gms.wearable.DataClient
-import com.google.android.gms.wearable.DataEvent
-import com.google.android.gms.wearable.DataEventBuffer
-import com.google.android.gms.wearable.DataMapItem
+import kaist.iclab.loggerstructure.core.DaoWrapper
+import kaist.iclab.loggerstructure.core.EntityBase
 import kaist.iclab.wearablelogger.db.EventDao
 import kaist.iclab.wearablelogger.db.EventEntity
 import kaist.iclab.wearablelogger.db.RecentDao
@@ -21,17 +15,27 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
+//private const val TAG = "MainViewModel"
+
 class MainViewModel(
     val eventDao: EventDao,
-    val recentDao: RecentDao
+    recentDao: RecentDao,
+    val daoWrappers: List<DaoWrapper<EntityBase>>
 ) : ViewModel(){
-    private val TAG = javaClass.simpleName
 
     fun onClick() {
         CoroutineScope(Dispatchers.IO).launch {
             eventDao.insertEvent(
                 EventEntity(timestamp = System.currentTimeMillis())
             )
+        }
+    }
+
+    fun flush() {
+        daoWrappers.forEach {
+            CoroutineScope(Dispatchers.IO).launch {
+                it.deleteAll()
+            }
         }
     }
 

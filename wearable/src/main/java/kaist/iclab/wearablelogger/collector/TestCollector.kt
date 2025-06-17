@@ -1,8 +1,11 @@
-package kaist.iclab.wearablelogger.collector.test
+package kaist.iclab.wearablelogger.collector
 
 import android.util.Log
 import com.google.gson.Gson
-import kaist.iclab.wearablelogger.collector.CollectorInterface
+import kaist.iclab.loggerstructure.dao.TestDao
+import kaist.iclab.loggerstructure.entity.TestEntity
+import kaist.iclab.loggerstructure.util.CollectorType
+import kaist.iclab.loggerstructure.core.CollectorInterface
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -10,14 +13,16 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.util.concurrent.TimeUnit
 
+private const val TAG = "TestCollector"
+
 class TestCollector(
     val testDao: TestDao,
 ): CollectorInterface {
     override suspend fun getStatus(): Boolean {
         return false
     }
-
-    override val TAG = javaClass.simpleName
+    
+    override val key = CollectorType.TEST.name
     private var job: Job? = null
 
     override fun setup() {
@@ -31,10 +36,10 @@ class TestCollector(
     override fun startLogging() {
         Log.d(TAG, "startLogging()")
         if(job== null){
-            job = CoroutineScope(Dispatchers.IO).launch{
+            job = CoroutineScope(Dispatchers.IO).launch {
                 while(true){
                     delay(TimeUnit.SECONDS.toMillis(5))
-                    testDao.insertTestEvent(TestEntity(timestamp = System.currentTimeMillis()))
+                    testDao.insertEvent(TestEntity(timestamp = System.currentTimeMillis()))
                 }
             }
         }
@@ -47,7 +52,8 @@ class TestCollector(
     }
     override suspend fun stringifyData():String{
         val gson = Gson()
-        return gson.toJson(mapOf(javaClass.simpleName to testDao.getAll()))
+//        return gson.toJson(mapOf(javaClass.simpleName to testDao.getAll()))
+        return gson.toJson(testDao.getAll())
     }
     override fun flush() {
     }

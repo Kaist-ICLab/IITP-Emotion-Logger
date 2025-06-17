@@ -1,7 +1,7 @@
-package kaist.iclab.wearablelogger.collector
+package kaist.iclab.loggerstructure.core
 
 interface CollectorInterface {
-    val TAG: String
+    val key: String
     fun setup()
     suspend fun getStatus(): Boolean
     fun isAvailable():Boolean

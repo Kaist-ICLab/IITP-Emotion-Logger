@@ -53,6 +53,7 @@ android {
 
 dependencies {
     implementation(fileTree("libs"))
+    implementation(project(":logger-structure"))
 
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
@@ -76,4 +77,6 @@ dependencies {
     val koin_version = "3.5.0"
     implementation("io.insert-koin:koin-android:${koin_version}")
     implementation("io.insert-koin:koin-androidx-compose:${koin_version}")
+
+    implementation("com.google.code.gson:gson:2.10")
 }

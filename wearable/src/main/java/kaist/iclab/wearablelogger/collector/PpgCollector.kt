@@ -1,5 +1,4 @@
-package kaist.iclab.wearablelogger.collector.ppgGreen
-
+package kaist.iclab.wearablelogger.collector
 
 import android.content.Context
 import android.util.Log
@@ -8,7 +7,10 @@ import com.samsung.android.service.health.tracking.data.DataPoint
 import com.samsung.android.service.health.tracking.data.HealthTrackerType
 import com.samsung.android.service.health.tracking.data.PpgType
 import com.samsung.android.service.health.tracking.data.ValueKey
-import kaist.iclab.wearablelogger.collector.HealthTrackerCollector
+import kaist.iclab.loggerstructure.dao.PpgDao
+import kaist.iclab.loggerstructure.entity.PpgEntity
+import kaist.iclab.loggerstructure.util.CollectorType
+import kaist.iclab.wearablelogger.collector.core.HealthTrackerCollector
 import kaist.iclab.wearablelogger.config.ConfigRepository
 import kaist.iclab.wearablelogger.healthtracker.AbstractTrackerEventListener
 import kaist.iclab.wearablelogger.healthtracker.HealthTrackerRepository
@@ -16,6 +18,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+private const val TAG = "PpgCollector"
 
 class PpgCollector(
     context: Context,
@@ -23,7 +26,7 @@ class PpgCollector(
     private val configRepository: ConfigRepository,
     private val ppgDao: PpgDao,
 ): HealthTrackerCollector(context) {
-    override val TAG = javaClass.simpleName
+    override val key = CollectorType.PPG.name
 
     override val trackerEventListener = object : AbstractTrackerEventListener() {
         override fun onDataReceived(data: List<DataPoint>) {
@@ -36,8 +39,8 @@ class PpgCollector(
                     status = it.getValue(ValueKey.PpgSet.GREEN_STATUS)
                 )
             }
-            CoroutineScope(Dispatchers.IO).launch{
-                ppgDao.insertPpgEvents(ppgData)
+            CoroutineScope(Dispatchers.IO).launch {
+                ppgDao.insertEvents(ppgData)
             }
         }
     }
@@ -55,7 +58,7 @@ class PpgCollector(
     override suspend fun stringifyData():String{
         val gson = GsonBuilder().setLenient().create()
 
-        return gson.toJson(mapOf(javaClass.simpleName to ppgDao.getAll()))
+        return gson.toJson(ppgDao.getAll())
     }
     override fun flush() {
         Log.d(TAG, "Flush PPG Data")

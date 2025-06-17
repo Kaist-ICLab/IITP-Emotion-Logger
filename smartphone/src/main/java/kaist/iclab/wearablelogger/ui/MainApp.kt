@@ -29,6 +29,11 @@ fun MainApp(
         Column {
             CollectorStatus(recentData?: RecentEntity(timestamp = -1, acc = "null", hr = "null",ppg= "null"))
             HorizontalDivider()
+            Button(
+                onClick={ mainViewModel.flush() }
+            ) {
+                Text("Flush collected data")
+            }
             EventRecorder(events = events) {
                 mainViewModel.onClick()
             }

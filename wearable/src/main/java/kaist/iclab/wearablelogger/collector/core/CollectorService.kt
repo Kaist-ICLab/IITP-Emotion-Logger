@@ -1,4 +1,4 @@
-package kaist.iclab.wearablelogger.collector
+package kaist.iclab.wearablelogger.collector.core
 
 import android.app.Notification
 import android.app.NotificationChannel
@@ -21,10 +21,11 @@ import kotlinx.coroutines.tasks.await
 import org.koin.android.ext.android.inject
 import java.util.concurrent.TimeUnit
 
+private const val TAG = "CollectorService"
+
 class CollectorService : Service() {
     private val collectorRepository by inject<CollectorRepository>()
     private val db by inject<MyDataRoomDB>()
-    private val TAG = javaClass.simpleName
     private val channelId = TAG
     private val channelName = "ABCLogger"
     private val channelText = "ABCLogger is collecting your data"
@@ -49,7 +50,7 @@ class CollectorService : Service() {
                     dataMap.putString("acc", Gson().toJson(db.accDao().getLast()))
                     dataMap.putString("hr", Gson().toJson(db.hrDao().getLast()))
                     dataMap.putString("ppg", Gson().toJson(db.ppgDao().getLast()))
-//                    dataMap.putString("skin", Gson().toJson(db.ppgDao().getLast()))
+                    dataMap.putString("skin", Gson().toJson(db.skinTempDao().getLast()))
                 }.asPutDataRequest().setUrgent()
                 val result = dataClient.putDataItem(request).await()
                 Log.d(TAG, "COLLECTOR SEND  $result")

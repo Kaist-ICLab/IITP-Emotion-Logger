@@ -1,7 +1,8 @@
-package kaist.iclab.wearablelogger.collector.skinTemp
+package kaist.iclab.loggerstructure.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import kaist.iclab.loggerstructure.core.EntityBase
 
 @Entity(
     tableName = "skinTempEvent",
@@ -14,4 +15,4 @@ data class SkinTempEntity(
     val ambientTemp: Float,
     val objectTemp: Float,
     val status: Int
-)
+): EntityBase

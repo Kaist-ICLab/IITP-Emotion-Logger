@@ -4,8 +4,9 @@ import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.result.contract.ActivityResultContracts
 
-open class PermissionActivity:ComponentActivity() {
-    private val TAG = javaClass.simpleName
+private const val TAG = "PermissionActivity"
+
+open class PermissionActivity: ComponentActivity() {
 
     val requestPermissions = registerForActivityResult(
         ActivityResultContracts.RequestMultiplePermissions()

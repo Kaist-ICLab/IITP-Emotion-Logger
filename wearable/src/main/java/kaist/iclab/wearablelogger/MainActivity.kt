@@ -8,8 +8,6 @@ import kaist.iclab.wearablelogger.config.PermissionActivity
 import kaist.iclab.wearablelogger.ui.SettingsScreen
 
 class MainActivity : PermissionActivity() {
-    private val TAG = javaClass.simpleName
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         val permissionList = listOfNotNull(

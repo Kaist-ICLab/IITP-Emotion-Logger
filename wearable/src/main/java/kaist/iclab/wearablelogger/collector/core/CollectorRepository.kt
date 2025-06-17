@@ -1,20 +1,23 @@
-package kaist.iclab.wearablelogger.collector
+package kaist.iclab.wearablelogger.collector.core
 
 import android.content.Context
 import android.content.Intent
 import android.util.Log
 import androidx.core.content.ContextCompat
+import kaist.iclab.loggerstructure.core.CollectorInterface
+import kaist.iclab.wearablelogger.collector.core.CollectorService
 import kaist.iclab.wearablelogger.uploader.UploaderRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+
+private const val TAG = "CollectorRepository"
 
 class CollectorRepository(
     val collectors: List<CollectorInterface>,
     val uploaderRepository: UploaderRepository,
     val androidContext: Context
 ) {
-    private val TAG = javaClass.simpleName
 
     init {
         collectors.forEach {
@@ -45,11 +48,10 @@ class CollectorRepository(
     }
 
     fun upload(){
-        CoroutineScope(Dispatchers.IO).launch{
+        CoroutineScope(Dispatchers.IO).launch {
             collectors.forEach {collector ->
-                val data = collector.stringifyData()
 //                uploaderRepository.sync2Server(data)
-                uploaderRepository.upload2Phone(data, collector.TAG)
+                uploaderRepository.upload2Phone(collector)
             }
         }
     }

@@ -1,16 +1,20 @@
-package kaist.iclab.wearablelogger.collector
+package kaist.iclab.wearablelogger.collector.core
 
 import android.Manifest
 import android.content.Context
 import android.os.Build
 import android.util.Log
 import com.samsung.android.service.health.tracking.HealthTracker
+import kaist.iclab.loggerstructure.core.CollectorInterface
 import kaist.iclab.wearablelogger.config.Util
+
+
+private const val TAG = "HealthTrackerCollector"
 
 abstract class HealthTrackerCollector(
     private val context: Context
 ): CollectorInterface {
-    override val TAG = javaClass.simpleName
+
     var tracker: HealthTracker? = null
     abstract val trackerEventListener: HealthTracker.TrackerEventListener
     abstract fun initHealthTracker()

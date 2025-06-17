@@ -1,7 +1,8 @@
-package kaist.iclab.wearablelogger.collector.acceleration
+package kaist.iclab.loggerstructure.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import kaist.iclab.loggerstructure.core.EntityBase
 
 @Entity(
     tableName = "accEvent",
@@ -14,4 +15,4 @@ data class AccEntity(
     val x : Float,
     val y : Float,
     val z : Float,
-)
+): EntityBase

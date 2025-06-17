@@ -1,13 +1,13 @@
 package kaist.iclab.wearablelogger
 
 import androidx.room.Room
-import kaist.iclab.wearablelogger.collector.CollectorInterface
-import kaist.iclab.wearablelogger.collector.CollectorRepository
-import kaist.iclab.wearablelogger.collector.acceleration.AccCollector
-import kaist.iclab.wearablelogger.collector.heartRate.HRCollector
-import kaist.iclab.wearablelogger.collector.ppgGreen.PpgCollector
-import kaist.iclab.wearablelogger.collector.skinTemp.SkinTempCollector
-import kaist.iclab.wearablelogger.collector.test.TestCollector
+import kaist.iclab.loggerstructure.core.CollectorInterface
+import kaist.iclab.wearablelogger.collector.core.CollectorRepository
+import kaist.iclab.wearablelogger.collector.AccCollector
+import kaist.iclab.wearablelogger.collector.HRCollector
+import kaist.iclab.wearablelogger.collector.PpgCollector
+import kaist.iclab.wearablelogger.collector.SkinTempCollector
+import kaist.iclab.wearablelogger.collector.TestCollector
 import kaist.iclab.wearablelogger.config.ConfigRepository
 import kaist.iclab.wearablelogger.healthtracker.HealthTrackerRepository
 import kaist.iclab.wearablelogger.ui.SettingsViewModel

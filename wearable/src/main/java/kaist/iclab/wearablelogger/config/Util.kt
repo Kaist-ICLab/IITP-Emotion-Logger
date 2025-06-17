@@ -9,12 +9,12 @@ object Util {
     private val TAG = javaClass.simpleName
     fun isPermissionAllowed(androidContext: Context, permissions: List<String>): Boolean {
         return permissions.all { permission ->
-            val permission_status = ContextCompat.checkSelfPermission(androidContext, permission)
-            when (permission_status) {
+            val permissionStatus = ContextCompat.checkSelfPermission(androidContext, permission)
+            when (permissionStatus) {
                 PackageManager.PERMISSION_GRANTED -> true
                 PackageManager.PERMISSION_DENIED -> false
                 else -> {
-                    Log.d(TAG, "Unknown permission_status: $permission_status")
+                    Log.d(TAG, "Unknown permission_status: $permissionStatus")
                     false
                 }
             }

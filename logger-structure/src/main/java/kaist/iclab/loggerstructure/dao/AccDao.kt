@@ -1,8 +1,9 @@
-package kaist.iclab.wearablelogger.collector.acceleration
+package kaist.iclab.loggerstructure.dao
 
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import kaist.iclab.loggerstructure.entity.AccEntity
 
 @Dao
 interface AccDao {
@@ -10,10 +11,10 @@ interface AccDao {
     suspend fun getAll(): List<AccEntity>
 
     @Insert
-    suspend fun insertAccEvent(accEntity: AccEntity)
+    suspend fun insertEvent(accEntity: AccEntity)
 
     @Insert
-    suspend fun insertAccEvents(accEntities: List<AccEntity>)
+    suspend fun insertEvents(accEntities: List<AccEntity>)
 
     @Query("DELETE FROM accEvent")
     suspend fun deleteAll()

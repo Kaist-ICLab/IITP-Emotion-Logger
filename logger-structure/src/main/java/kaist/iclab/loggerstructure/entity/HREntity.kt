@@ -1,7 +1,8 @@
-package kaist.iclab.wearablelogger.collector.heartRate
+package kaist.iclab.loggerstructure.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import kaist.iclab.loggerstructure.core.EntityBase
 
 @Entity(
     tableName = "hrEvent",
@@ -15,4 +16,4 @@ data class HREntity(
     val hrStatus: Int,
     val ibi: List<Int>,
     val ibiStatus: List<Int>
-)
+): EntityBase

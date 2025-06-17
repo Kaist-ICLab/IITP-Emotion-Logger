@@ -5,7 +5,7 @@ import androidx.room.Insert
 import androidx.room.Query
 
 @Dao
-interface StepDAO {
+interface StepDao {
     @Query("SELECT * FROM stepEvent")
     suspend fun getAll(): List<StepEntity>
     @Insert

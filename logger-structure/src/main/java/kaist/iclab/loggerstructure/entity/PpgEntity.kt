@@ -1,7 +1,8 @@
-package kaist.iclab.wearablelogger.collector.ppgGreen
+package kaist.iclab.loggerstructure.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import kaist.iclab.loggerstructure.core.EntityBase
 
 @Entity(
     tableName = "ppgEvent",
@@ -13,4 +14,4 @@ data class PpgEntity(
     val timestamp: Long,
     val ppg : Int,
     val status: Int
-)
+): EntityBase

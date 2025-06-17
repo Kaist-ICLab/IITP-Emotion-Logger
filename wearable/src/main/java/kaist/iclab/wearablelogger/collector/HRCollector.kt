@@ -1,4 +1,4 @@
-package kaist.iclab.wearablelogger.collector.heartRate
+package kaist.iclab.wearablelogger.collector
 
 import android.content.Context
 import android.util.Log
@@ -6,7 +6,10 @@ import com.google.gson.GsonBuilder
 import com.samsung.android.service.health.tracking.data.DataPoint
 import com.samsung.android.service.health.tracking.data.HealthTrackerType
 import com.samsung.android.service.health.tracking.data.ValueKey
-import kaist.iclab.wearablelogger.collector.HealthTrackerCollector
+import kaist.iclab.loggerstructure.dao.HRDao
+import kaist.iclab.loggerstructure.entity.HREntity
+import kaist.iclab.loggerstructure.util.CollectorType
+import kaist.iclab.wearablelogger.collector.core.HealthTrackerCollector
 import kaist.iclab.wearablelogger.config.ConfigRepository
 import kaist.iclab.wearablelogger.healthtracker.AbstractTrackerEventListener
 import kaist.iclab.wearablelogger.healthtracker.HealthTrackerRepository
@@ -14,13 +17,16 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
+private const val TAG = "HRCollector"
+
 class HRCollector(
     context: Context,
     private val healthTrackerRepository: HealthTrackerRepository,
     private val configRepository: ConfigRepository,
     private val hrDao: HRDao,
 ) : HealthTrackerCollector(context) {
-    override val TAG = javaClass.simpleName
+    override val key = CollectorType.HR.name
+
     override val trackerEventListener = object :
         AbstractTrackerEventListener() {
         override fun onDataReceived(data: List<DataPoint>) {
@@ -37,14 +43,14 @@ class HRCollector(
                 )
             }
             CoroutineScope(Dispatchers.IO).launch {
-                hrDao.insertHREvents(hrEntities)
+                hrDao.insertEvents(hrEntities)
             }
         }
     }
 
     override fun initHealthTracker() {
         tracker = healthTrackerRepository.healthTrackingService
-            .getHealthTracker(HealthTrackerType.HEART_RATE)
+            .getHealthTracker(HealthTrackerType.HEART_RATE_CONTINUOUS)
     }
 
     override suspend fun getStatus(): Boolean {
@@ -54,7 +60,7 @@ class HRCollector(
     override suspend fun stringifyData():String{
         val gson = GsonBuilder().setLenient().create()
 
-        return gson.toJson(mapOf(javaClass.simpleName to hrDao.getAll()))
+        return gson.toJson(hrDao.getAll())
     }
     override fun flush() {
         Log.d(TAG, "Flush HR Data")
