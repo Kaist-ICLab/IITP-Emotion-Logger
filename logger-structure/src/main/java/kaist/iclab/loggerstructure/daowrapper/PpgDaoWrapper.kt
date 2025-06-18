@@ -24,7 +24,7 @@ class PpgDaoWrapper(
         ppgDao.deleteAll()
     }
 
-    override suspend fun getLast(): PpgEntity {
+    override suspend fun getLast(): PpgEntity? {
         return ppgDao.getLast()
     }
 

@@ -22,7 +22,7 @@ val koinModule = module {
             RoomDB::class.java,
             "RoomDB"
         )
-            .fallbackToDestructiveMigration() // For Dev Phase!
+            .fallbackToDestructiveMigration(true) // For Dev Phase!
             .build()
     }
     single{

@@ -1,0 +1,68 @@
+[versions]
+activityCompose = "1.10.1"
+androidGradePlugin = "8.9.3"
+appcompat = "1.7.1"
+composeBom = "2025.06.00"
+composeMaterial = "1.4.1"
+converterGson = "2.9.0"
+datastorePreferences = "1.1.7"
+espressoCore = "3.6.1"
+firebaseCrashlyticsBuildtools = "3.0.4"
+gson = "2.11.0"
+horologistComposeTools = "0.1.5"
+junit = "4.13.2"
+junitVersion = "1.2.1"
+koinAndroid = "3.5.0"
+kotlin = "2.0.21"
+kotlinxCoroutinesPlayServices = "1.8.0"
+ksp = "2.0.21-1.0.27" # First half should be same with Kotlin version!
+ktx = "1.16.0"
+lifecycleRuntimeKtx = "2.9.1"
+loggingInterceptor = "4.10.0"
+material = "1.12.0"
+okhttp = "4.10.0"
+playServicesWearable = "19.0.0"
+retrofit = "2.9.0"
+room = "2.7.1"
+
+[libraries]
+activity-compose = { module = "androidx.activity:activity-compose", version.ref = "activityCompose" }
+android-ktx = { group = "androidx.core", name="core-ktx", version.ref = "ktx" }
+compose-foundation = { module = "androidx.wear.compose:compose-foundation", version.ref = "composeMaterial" }
+compose-material = { module = "androidx.wear.compose:compose-material", version.ref = "composeMaterial" }
+converter-gson = { module = "com.squareup.retrofit2:converter-gson", version.ref = "converterGson" }
+datastore-preferences = { module = "androidx.datastore:datastore-preferences", version.ref = "datastorePreferences" }
+datastore-preferences-core = { module = "androidx.datastore:datastore-preferences-core", version.ref = "datastorePreferences" }
+firebase-crashlytics-buildtools = { module = "com.google.firebase:firebase-crashlytics-buildtools", version.ref = "firebaseCrashlyticsBuildtools" }
+horologist-compose-tools = { module = "com.google.android.horologist:horologist-compose-tools", version.ref = "horologistComposeTools" }
+logging-interceptor = { module = "com.squareup.okhttp3:logging-interceptor", version.ref = "loggingInterceptor" }
+material-icons-extended = { module = "androidx.compose.material:material-icons-extended" }
+okhttp = { module = "com.squareup.okhttp3:okhttp", version.ref = "okhttp" }
+retrofit = { module = "com.squareup.retrofit2:retrofit", version.ref = "retrofit" }
+room-compiler = { module = "androidx.room:room-compiler", version.ref = "room" }
+room-ktx = { module = "androidx.room:room-ktx", version.ref = "room" }
+room-runtime = { module = "androidx.room:room-runtime", version.ref = "room" }
+appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
+compose-bom = { module = "androidx.compose:compose-bom", version.ref = "composeBom" }
+espresso-core = { module = "androidx.test.espresso:espresso-core", version.ref = "espressoCore" }
+ext-junit = { module = "androidx.test.ext:junit", version.ref = "junitVersion" }
+gson = { module = "com.google.code.gson:gson", version.ref = "gson" }
+junit = { module = "junit:junit", version.ref = "junit" }
+koin-android = { module = "io.insert-koin:koin-android", version.ref = "koinAndroid" }
+koin-androidx-compose = { module = "io.insert-koin:koin-androidx-compose", version.ref = "koinAndroid" }
+kotlinx-coroutines-android = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-android", version.ref = "kotlinxCoroutinesPlayServices" }
+kotlinx-coroutines-play-services = { module = "org.jetbrains.kotlinx:kotlinx-coroutines-play-services", version.ref = "kotlinxCoroutinesPlayServices" }
+lifecycle-runtime-ktx = { module = "androidx.lifecycle:lifecycle-runtime-ktx", version.ref = "lifecycleRuntimeKtx" }
+material = { module = "com.google.android.material:material", version.ref = "material" }
+material3 = { module = "androidx.compose.material3:material3" }
+play-services-wearable = { module = "com.google.android.gms:play-services-wearable", version.ref = "playServicesWearable" }
+ui = { module = "androidx.compose.ui:ui" }
+ui-graphics = { module = "androidx.compose.ui:ui-graphics" }
+ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview" }
+
+[plugins]
+android-application = { id = "com.android.application", version.ref = "androidGradePlugin" }
+android-library = { id = "com.android.library", version.ref = "androidGradePlugin" }
+compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+google-devtools-ksp = { id = "com.google.devtools.ksp", version.ref = "ksp" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }

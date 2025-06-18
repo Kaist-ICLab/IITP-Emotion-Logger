@@ -17,5 +17,5 @@ interface HRDao {
      suspend fun deleteAll()
 
     @Query("SELECT * FROM hrEvent ORDER BY timestamp DESC LIMIT 1")
-     suspend fun getLast(): HREntity
+     suspend fun getLast(): HREntity?
 }

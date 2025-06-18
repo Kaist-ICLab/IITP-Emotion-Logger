@@ -19,8 +19,8 @@ interface StepDao {
     suspend fun deleteAll()
 
     @Query("SELECT * FROM stepEvent ORDER BY endTime DESC LIMIT 1")
-    suspend fun getLast(): StepEntity
+    suspend fun getLast(): StepEntity?
 
     @Query("SELECT * FROM stepEvent ORDER BY endTime DESC LIMIT 1")
-    fun getLastByFlow(): Flow<StepEntity>
+    fun getLastByFlow(): Flow<StepEntity?>
 }

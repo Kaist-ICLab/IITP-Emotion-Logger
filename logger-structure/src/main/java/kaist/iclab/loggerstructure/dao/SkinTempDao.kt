@@ -19,5 +19,5 @@ interface SkinTempDao {
      suspend fun deleteAll()
 
     @Query("SELECT * FROM skinTempEvent ORDER BY timestamp DESC LIMIT 1")
-     suspend fun getLast(): SkinTempEntity
+     suspend fun getLast(): SkinTempEntity?
 }

@@ -9,7 +9,7 @@ interface DaoWrapper<T: EntityBase> {
 
     suspend fun deleteAll()
 
-    suspend fun getLast(): T
+    suspend fun getLast(): T?
 
     suspend fun insertEventsFromJson(json: String)
 }

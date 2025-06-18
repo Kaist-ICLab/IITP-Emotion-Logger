@@ -19,5 +19,5 @@ interface PpgDao {
      suspend fun deleteAll()
 
     @Query("SELECT * FROM ppgEvent ORDER BY timestamp DESC LIMIT 1")
-     suspend fun getLast(): PpgEntity
+     suspend fun getLast(): PpgEntity?
 }

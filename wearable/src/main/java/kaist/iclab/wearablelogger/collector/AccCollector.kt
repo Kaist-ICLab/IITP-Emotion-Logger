@@ -3,6 +3,7 @@ package kaist.iclab.wearablelogger.collector
 import android.content.Context
 import android.util.Log
 import com.google.gson.GsonBuilder
+import com.google.gson.Strictness
 import com.samsung.android.service.health.tracking.HealthTracker
 import com.samsung.android.service.health.tracking.data.DataPoint
 import com.samsung.android.service.health.tracking.data.HealthTrackerType
@@ -61,8 +62,7 @@ class AccCollector(
         return configRepository.getSensorStatus("Accelerometer")
     }
     override suspend fun stringifyData():String{
-        val gson = GsonBuilder().setLenient().create()
-
+        val gson = GsonBuilder().setStrictness(Strictness.LENIENT).create()
         return gson.toJson(accDao.getAll())
     }
 

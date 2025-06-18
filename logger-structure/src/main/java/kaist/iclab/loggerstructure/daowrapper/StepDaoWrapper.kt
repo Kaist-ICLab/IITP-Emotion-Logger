@@ -24,7 +24,7 @@ class StepDaoWrapper(
         stepDao.deleteAll()
     }
 
-    override suspend fun getLast(): StepEntity {
+    override suspend fun getLast(): StepEntity? {
         return stepDao.getLast()
     }
 

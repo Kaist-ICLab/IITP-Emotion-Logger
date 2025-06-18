@@ -23,7 +23,7 @@ val koinModule = module {
             MyDataRoomDB::class.java,
             "MyDataRoomDB"
         )
-            .fallbackToDestructiveMigration() // For Dev Phase!
+            .fallbackToDestructiveMigration(true) // For Dev Phase!
             .build()
     }
 

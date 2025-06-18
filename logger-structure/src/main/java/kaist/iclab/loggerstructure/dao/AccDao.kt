@@ -20,5 +20,5 @@ interface AccDao {
     suspend fun deleteAll()
 
     @Query("SELECT * FROM accEvent ORDER BY timestamp DESC LIMIT 1")
-    suspend fun getLast(): AccEntity
+    suspend fun getLast(): AccEntity?
 }

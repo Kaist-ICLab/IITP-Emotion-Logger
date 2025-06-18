@@ -24,7 +24,7 @@ class SkinTempDaoWrapper(
         skinTempDao.deleteAll()
     }
 
-    override suspend fun getLast(): SkinTempEntity {
+    override suspend fun getLast(): SkinTempEntity? {
         return skinTempDao.getLast()
     }
 

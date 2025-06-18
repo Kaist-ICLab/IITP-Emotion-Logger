@@ -24,7 +24,7 @@ class HRDaoWrapper(
         hrDao.deleteAll()
     }
 
-    override suspend fun getLast(): HREntity {
+    override suspend fun getLast(): HREntity? {
         return hrDao.getLast()
     }
 

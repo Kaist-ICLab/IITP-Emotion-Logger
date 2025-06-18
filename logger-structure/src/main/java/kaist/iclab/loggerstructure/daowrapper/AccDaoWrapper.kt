@@ -2,7 +2,6 @@ package kaist.iclab.loggerstructure.daowrapper
 
 import com.google.gson.Gson
 import kaist.iclab.loggerstructure.core.DaoWrapper
-import kaist.iclab.loggerstructure.core.EntityBase
 import kaist.iclab.loggerstructure.dao.AccDao
 import kaist.iclab.loggerstructure.entity.AccEntity
 
@@ -25,7 +24,7 @@ class AccDaoWrapper(
         accDao.deleteAll()
     }
 
-    override suspend fun getLast(): AccEntity {
+    override suspend fun getLast(): AccEntity? {
         return accDao.getLast()
     }
 

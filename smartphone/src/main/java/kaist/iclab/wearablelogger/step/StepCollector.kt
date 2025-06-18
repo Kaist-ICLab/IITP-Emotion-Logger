@@ -3,6 +3,7 @@ package kaist.iclab.wearablelogger.step
 import android.content.Context
 import android.util.Log
 import com.google.gson.GsonBuilder
+import com.google.gson.Strictness
 import com.samsung.android.sdk.health.data.HealthDataStore
 import com.samsung.android.sdk.health.data.error.PlatformInternalException
 import com.samsung.android.sdk.health.data.request.DataType
@@ -15,9 +16,7 @@ import kaist.iclab.loggerstructure.entity.StepEntity
 import kaist.iclab.loggerstructure.util.CollectorType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
-import java.lang.Thread.sleep
 import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
@@ -93,7 +92,7 @@ class StepCollector(
     }
 
     override suspend fun stringifyData(): String {
-        val gson = GsonBuilder().setLenient().create()
+        val gson = GsonBuilder().setStrictness(Strictness.LENIENT).create()
         return gson.toJson(mapOf(javaClass.simpleName to stepDao.getAll()))
     }
 

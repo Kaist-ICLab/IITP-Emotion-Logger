@@ -3,6 +3,7 @@ package kaist.iclab.wearablelogger.collector
 import android.content.Context
 import android.util.Log
 import com.google.gson.GsonBuilder
+import com.google.gson.Strictness
 import com.samsung.android.service.health.tracking.data.DataPoint
 import com.samsung.android.service.health.tracking.data.HealthTrackerType
 import com.samsung.android.service.health.tracking.data.PpgType
@@ -56,8 +57,7 @@ class PpgCollector(
     }
 
     override suspend fun stringifyData():String{
-        val gson = GsonBuilder().setLenient().create()
-
+        val gson = GsonBuilder().setStrictness(Strictness.LENIENT).create()
         return gson.toJson(ppgDao.getAll())
     }
     override fun flush() {
