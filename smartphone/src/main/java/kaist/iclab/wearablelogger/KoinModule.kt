@@ -47,26 +47,46 @@ val koinModule = module {
         get<RoomDB>().stepDao()
     }
 
+    single {
+        AccDaoWrapper(get<RoomDB>().accDao())
+    }
+
+    single {
+        PpgDaoWrapper(get<RoomDB>().ppgDao())
+    }
+
+    single {
+        HRDaoWrapper(get<RoomDB>().hrDao())
+    }
+
+    single {
+        SkinTempDaoWrapper(get<RoomDB>().skinTempDao())
+    }
+
+    single {
+        StepDaoWrapper(get<RoomDB>().stepDao())
+    }
+
     single{
         StepCollector(androidContext(),get<RoomDB>().stepDao())
     }
 
     single{
         DataReceiver(androidContext(), get(), mapOf(
-            CollectorType.ACC.name to AccDaoWrapper(get<RoomDB>().accDao()),
-            CollectorType.PPG.name to PpgDaoWrapper(get<RoomDB>().ppgDao()),
-            CollectorType.HR.name to HRDaoWrapper(get<RoomDB>().hrDao()),
-            CollectorType.SKINTEMP.name to SkinTempDaoWrapper(get<RoomDB>().skinTempDao())
+            CollectorType.ACC.name to get<AccDaoWrapper>(),
+            CollectorType.PPG.name to get<PpgDaoWrapper>(),
+            CollectorType.HR.name to get<HRDaoWrapper>(),
+            CollectorType.SKINTEMP.name to get<SkinTempDaoWrapper>()
         ) as Map<String, DaoWrapper<EntityBase>>)
     }
 
     viewModel {
         MainViewModel(get<RoomDB>().eventDao(), get<RoomDB>().stepDao(), get<RoomDB>().recentDao(), listOf(
-            AccDaoWrapper(get<RoomDB>().accDao()),
-            PpgDaoWrapper(get<RoomDB>().ppgDao()),
-            HRDaoWrapper(get<RoomDB>().hrDao()),
-            SkinTempDaoWrapper(get<RoomDB>().skinTempDao()),
-            StepDaoWrapper(get<RoomDB>().stepDao())
+            get<AccDaoWrapper>(),
+            get<PpgDaoWrapper>(),
+            get<HRDaoWrapper>(),
+            get<SkinTempDaoWrapper>(),
+            get<StepDaoWrapper>()
         ) as List<DaoWrapper<EntityBase>>)
     }
 }
