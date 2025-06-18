@@ -1,12 +1,15 @@
 package kaist.iclab.loggerstructure.daowrapper
 
+import android.util.Log
 import com.google.gson.Gson
 import kaist.iclab.loggerstructure.core.DaoWrapper
 import kaist.iclab.loggerstructure.dao.StepDao
 import kaist.iclab.loggerstructure.entity.StepEntity
 
+private const val TAG = "StepDaoWrapper"
+
 class StepDaoWrapper(
-    val stepDao: StepDao
+    private val stepDao: StepDao
 ): DaoWrapper<StepEntity> {
     override suspend fun getAll(): List<StepEntity> {
         return stepDao.getAll()
@@ -21,6 +24,7 @@ class StepDaoWrapper(
     }
 
     override suspend fun deleteAll() {
+        Log.d(TAG, "deleteAll() for Step Data")
         stepDao.deleteAll()
     }
 

@@ -16,7 +16,7 @@ interface AccDao {
     @Insert
     suspend fun insertEvents(accEntities: List<AccEntity>)
 
-    @Query("DELETE FROM accEvent")
+    @Query("DELETE FROM accEvent WHERE 1")
     suspend fun deleteAll()
 
     @Query("SELECT * FROM accEvent ORDER BY timestamp DESC LIMIT 1")

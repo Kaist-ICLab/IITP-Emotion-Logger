@@ -1,12 +1,15 @@
 package kaist.iclab.loggerstructure.daowrapper
 
+import android.util.Log
 import com.google.gson.Gson
 import kaist.iclab.loggerstructure.core.DaoWrapper
 import kaist.iclab.loggerstructure.dao.HRDao
 import kaist.iclab.loggerstructure.entity.HREntity
 
+private const val TAG = "HRDaoWrapper"
+
 class HRDaoWrapper(
-    val hrDao: HRDao
+    private val hrDao: HRDao
 ): DaoWrapper<HREntity> {
     override suspend fun getAll(): List<HREntity> {
         return hrDao.getAll()
@@ -21,6 +24,7 @@ class HRDaoWrapper(
     }
 
     override suspend fun deleteAll() {
+        Log.d(TAG, "deleteAll() for HR Data")
         hrDao.deleteAll()
     }
 

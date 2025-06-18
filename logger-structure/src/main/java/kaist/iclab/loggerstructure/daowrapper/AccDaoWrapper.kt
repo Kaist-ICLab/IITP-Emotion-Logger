@@ -1,12 +1,15 @@
 package kaist.iclab.loggerstructure.daowrapper
 
+import android.util.Log
 import com.google.gson.Gson
 import kaist.iclab.loggerstructure.core.DaoWrapper
 import kaist.iclab.loggerstructure.dao.AccDao
 import kaist.iclab.loggerstructure.entity.AccEntity
 
+private const val TAG = "AccDaoWrapper"
+
 class AccDaoWrapper(
-    val accDao: AccDao
+    private val accDao: AccDao
 ): DaoWrapper<AccEntity> {
     override suspend fun getAll(): List<AccEntity> {
         return accDao.getAll()
@@ -21,6 +24,7 @@ class AccDaoWrapper(
     }
 
     override suspend fun deleteAll() {
+        Log.d(TAG, "deleteAll() for ACC Data")
         accDao.deleteAll()
     }
 

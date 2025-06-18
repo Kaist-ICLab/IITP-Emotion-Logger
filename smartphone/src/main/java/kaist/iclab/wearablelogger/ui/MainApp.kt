@@ -35,7 +35,7 @@ fun MainApp(
 
     MaterialTheme {
         Column {
-            CollectorStatus(recentData?: RecentEntity(timestamp = -1, acc = "null", hr = "null",ppg= "null"))
+            CollectorStatus(recentData?: RecentEntity(timestamp = -1, acc = "null", hr = "null",ppg= "null", skinTemp = "null"))
             HorizontalDivider()
             StepStatus(
                 stepData = stepData?: StepEntity(dataReceived = -1, startTime = -1, endTime = -1, step = 0)
@@ -70,6 +70,7 @@ fun CollectorStatus(recentData: RecentEntity) {
         Text("HR: ${recentData.hr}")
         Text("ACC: ${recentData.acc}")
         Text("PPG: ${recentData.ppg}")
+        Text("SkinTemp: ${recentData.skinTemp}")
     }
 }
 

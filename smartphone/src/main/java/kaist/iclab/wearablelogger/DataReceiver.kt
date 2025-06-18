@@ -47,7 +47,8 @@ class DataReceiver(
                 timestamp = data.getLong("timestamp"),
                 acc = data.getString("acc")?:"null",
                 ppg = data.getString("ppg")?:"null",
-                hr = data.getString("hr")?:"null"
+                hr = data.getString("hr")?:"null",
+                skinTemp = data.getString("skin")?:"null",
             )
         )
 

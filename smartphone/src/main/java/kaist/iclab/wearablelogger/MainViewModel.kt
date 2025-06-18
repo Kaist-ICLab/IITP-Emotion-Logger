@@ -36,8 +36,8 @@ class MainViewModel(
     }
 
     fun flush() {
+        Log.v(TAG, "Flush all data")
         daoWrappers.forEach {
-            Log.v(TAG, "Flush all data of ${it.javaClass.name}")
             CoroutineScope(Dispatchers.IO).launch {
                 it.deleteAll()
             }
@@ -55,7 +55,7 @@ class MainViewModel(
         recentDao.getLastEvent().stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000L),
-            initialValue = RecentEntity(timestamp = -1, acc= "null", ppg="null", hr="null")
+            initialValue = RecentEntity(timestamp = -1, acc= "null", ppg="null", hr="null", skinTemp = "null")
         )
 
     val stepsState: StateFlow<StepEntity?> =

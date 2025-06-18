@@ -1,12 +1,15 @@
 package kaist.iclab.loggerstructure.daowrapper
 
+import android.util.Log
 import com.google.gson.Gson
 import kaist.iclab.loggerstructure.core.DaoWrapper
 import kaist.iclab.loggerstructure.dao.SkinTempDao
 import kaist.iclab.loggerstructure.entity.SkinTempEntity
 
+private const val TAG = "SkinTempDaoWrapper"
+
 class SkinTempDaoWrapper(
-    val skinTempDao: SkinTempDao
+    private val skinTempDao: SkinTempDao
 ): DaoWrapper<SkinTempEntity> {
     override suspend fun getAll(): List<SkinTempEntity> {
         return skinTempDao.getAll()
@@ -21,6 +24,7 @@ class SkinTempDaoWrapper(
     }
 
     override suspend fun deleteAll() {
+        Log.d(TAG, "deleteAll() for SkinTemp Data")
         skinTempDao.deleteAll()
     }
 

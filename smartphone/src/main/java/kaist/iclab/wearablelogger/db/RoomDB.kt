@@ -17,7 +17,7 @@ import kaist.iclab.loggerstructure.entity.StepEntity
 
 
 @Database(
-    version = 16,
+    version = 17,
     entities = [
         EventEntity::class,
         RecentEntity::class,

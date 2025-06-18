@@ -10,5 +10,6 @@ data class RecentEntity(
     val timestamp: Long,
     val acc: String,
     val ppg: String,
-    val hr: String
+    val hr: String,
+    val skinTemp: String,
 )

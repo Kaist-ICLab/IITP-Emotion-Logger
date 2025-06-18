@@ -1,12 +1,15 @@
 package kaist.iclab.loggerstructure.daowrapper
 
+import android.util.Log
 import com.google.gson.Gson
 import kaist.iclab.loggerstructure.core.DaoWrapper
 import kaist.iclab.loggerstructure.dao.PpgDao
 import kaist.iclab.loggerstructure.entity.PpgEntity
 
+private const val TAG = "PpgDaoWrapper"
+
 class PpgDaoWrapper(
-    val ppgDao: PpgDao
+    private val ppgDao: PpgDao
 ): DaoWrapper<PpgEntity> {
     override suspend fun getAll(): List<PpgEntity> {
         return ppgDao.getAll()
@@ -21,6 +24,7 @@ class PpgDaoWrapper(
     }
 
     override suspend fun deleteAll() {
+        Log.d(TAG, "deleteAll() for PPG Data")
         ppgDao.deleteAll()
     }
 

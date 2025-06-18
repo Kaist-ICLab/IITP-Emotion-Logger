@@ -15,7 +15,7 @@ interface PpgDao {
     @Insert
      suspend fun insertEvents(ppgEntities: List<PpgEntity>)
 
-    @Query("DELETE FROM ppgEvent")
+    @Query("DELETE FROM ppgEvent WHERE 1")
      suspend fun deleteAll()
 
     @Query("SELECT * FROM ppgEvent ORDER BY timestamp DESC LIMIT 1")
