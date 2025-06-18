@@ -25,8 +25,6 @@ class DataReceiver(
 ) : DataClient.OnDataChangedListener {
 
     override fun onDataChanged(dataEventBuffer: DataEventBuffer) {
-        val recentEntities = mutableListOf<RecentEntity>()
-
         dataEventBuffer.forEach { dataEvent ->
             val dataType = dataEvent.dataItem.uri.path
             if(dataType == null)
@@ -34,26 +32,32 @@ class DataReceiver(
 
             val data = DataMapItem.fromDataItem(dataEvent.dataItem).dataMap
             if(dataType == "/WEARABLE"){
-                recentEntities.add(
-                    RecentEntity(
-                        timestamp = data.getLong("timestamp"),
-                        acc = data.getString("acc")?:"null",
-                        ppg = data.getString("ppg")?:"null",
-                        hr = data.getString("hr")?:"null"
-                    )
-                )
+                unpackRecentData(data)
             } else {
-                unpackAsset(data)
+                unpackDataAsset(data)
             }
         }
+    }
+
+    private fun unpackRecentData(data: DataMap) {
+        val recentEntities = mutableListOf<RecentEntity>()
+
+        recentEntities.add(
+            RecentEntity(
+                timestamp = data.getLong("timestamp"),
+                acc = data.getString("acc")?:"null",
+                ppg = data.getString("ppg")?:"null",
+                hr = data.getString("hr")?:"null"
+            )
+        )
 
         CoroutineScope(Dispatchers.IO).launch {
             recentDao.insertEvents(recentEntities)
         }
     }
 
-    private fun unpackAsset(data: DataMap) {
-        Log.v(TAG, "unpack: $data")
+    private fun unpackDataAsset(data: DataMap) {
+        Log.d(TAG, "unpack: $data")
         val key = data.getString("key")!!
         val asset = data.getAsset(key)!!
 
