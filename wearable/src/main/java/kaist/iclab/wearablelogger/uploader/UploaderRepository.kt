@@ -9,6 +9,7 @@ import kaist.iclab.loggerstructure.core.CollectorInterface
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.tasks.await
 import retrofit2.Call
 import retrofit2.Callback
@@ -24,7 +25,9 @@ class UploaderRepository(
     fun upload2Phone(collector: CollectorInterface) {
         Log.d(TAG, "sendData2Phone")
         val dataClient = Wearable.getDataClient(androidContext)
-        CoroutineScope(Dispatchers.IO).launch {
+
+        // Try one at a time
+        runBlocking {
             try {
                 // 1.5h worth of SQL is very likely to be >100KB
                 // So convert to Asset

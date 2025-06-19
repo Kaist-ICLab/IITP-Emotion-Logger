@@ -1,15 +1,26 @@
 package kaist.iclab.wearablelogger
 
 import android.Manifest
+import android.content.Context
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.compose.setContent
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
 import kaist.iclab.loggerstructure.core.PermissionActivity
 import kaist.iclab.wearablelogger.ui.SettingsScreen
+import kaist.iclab.wearablelogger.uploader.SensorDataUploadWorker
+import java.util.concurrent.TimeUnit
+
+private const val TAG = "MainActivity"
 
 class MainActivity : PermissionActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Setup required permissions
         val permissionList = listOfNotNull(
             Manifest.permission.FOREGROUND_SERVICE,
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) Manifest.permission.POST_NOTIFICATIONS else null,
@@ -19,8 +30,29 @@ class MainActivity : PermissionActivity() {
         )
         requestPermissions.launch(permissionList.toTypedArray())
 
+        // Setup periodic upload worker
+        scheduleSensorUploadWorker(this)
+
         setContent {
             SettingsScreen()
         }
     }
+
+    override fun onResume() {
+        super.onResume()
+        scheduleSensorUploadWorker(this)
+    }
+}
+
+fun scheduleSensorUploadWorker(context: Context) {
+    Log.v(TAG, "scheduleSensorUploadWorker()")
+    val workRequest = PeriodicWorkRequestBuilder<SensorDataUploadWorker>(
+        1, TimeUnit.MINUTES
+    ).build()
+
+    WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+        "sensor_data_sync",
+        ExistingPeriodicWorkPolicy.KEEP,
+        workRequest
+    )
 }

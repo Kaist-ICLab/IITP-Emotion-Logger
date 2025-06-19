@@ -79,7 +79,6 @@ dependencies {
     implementation(libs.koin.androidx.compose)
     implementation(libs.firebase.crashlytics.buildtools)
 
-
     implementation(libs.datastore.preferences)
     implementation(libs.datastore.preferences.core)
 
@@ -98,8 +97,11 @@ dependencies {
     implementation(libs.kotlinx.coroutines.play.services)
     implementation(libs.kotlinx.coroutines.android)
 
+    // For periodic upload
+    implementation(libs.work.runtime.ktx )
 
-// Retrofit
+
+    // Retrofit
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
 
