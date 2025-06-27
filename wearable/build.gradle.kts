@@ -86,8 +86,8 @@ dependencies {
     implementation(libs.room.runtime)
     implementation(libs.room.ktx)
     annotationProcessor(libs.room.compiler)
-    // To use Kotlin annotation processing tool (kapt)
     ksp(libs.room.compiler)
+
 //  Dependency for testing.
 //  2023-11-08: It is not required for current development progress, but should be added for future testing.
 //    androidTestImplementation(platform("androidx.compose:compose-bom:2022.10.00"))
@@ -98,8 +98,7 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
 
     // For periodic upload
-    implementation(libs.work.runtime.ktx )
-
+    implementation(libs.work.runtime.ktx)
 
     // Retrofit
     implementation(libs.retrofit)

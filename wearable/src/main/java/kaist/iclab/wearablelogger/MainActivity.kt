@@ -46,8 +46,10 @@ class MainActivity : PermissionActivity() {
 
 fun scheduleSensorUploadWorker(context: Context) {
     Log.v(TAG, "scheduleSensorUploadWorker()")
+
+    // Minimum period is 15 minutes
     val workRequest = PeriodicWorkRequestBuilder<SensorDataUploadWorker>(
-        1, TimeUnit.MINUTES
+        15, TimeUnit.MINUTES
     ).build()
 
     WorkManager.getInstance(context).enqueueUniquePeriodicWork(

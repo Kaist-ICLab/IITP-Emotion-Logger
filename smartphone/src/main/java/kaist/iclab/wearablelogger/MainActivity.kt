@@ -46,10 +46,10 @@ class MainActivity : PermissionActivity() {
         dataClient.addListener(dataReceiver)
     }
 
-    override fun onPause() {
-        super.onPause()
-        dataClient.removeListener(dataReceiver)
-    }
+//    override fun onPause() {
+//        super.onPause()
+//        dataClient.removeListener(dataReceiver)
+//    }
 }
 
 

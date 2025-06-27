@@ -68,12 +68,6 @@ val koinModule = module {
             androidContext()
         )
     }
-    single {
-        SensorDataUploadWorker(
-            get(),
-
-        )
-    }
 
     viewModel {
         SettingsViewModel(get(), get())

@@ -42,6 +42,7 @@ class CollectorService : Service() {
             }
         }
 
+        // Periodically send last data collected
         CoroutineScope(Dispatchers.IO).launch {
             while (true) {
                 delay(TimeUnit.SECONDS.toMillis(1))
@@ -53,7 +54,7 @@ class CollectorService : Service() {
                     dataMap.putString("skin", Gson().toJson(db.skinTempDao().getLast()))
                 }.asPutDataRequest().setUrgent()
                 val result = dataClient.putDataItem(request).await()
-                Log.d(TAG, "COLLECTOR SEND  $result")
+                Log.d(TAG, "COLLECTOR SEND $result")
             }
         }
 
