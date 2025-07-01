@@ -2,7 +2,9 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_HEALTH"/>
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
 
     <!-- Manual Permission Required-->
     <uses-permission android:name="android.permission.BODY_SENSORS" />
@@ -26,6 +28,10 @@
         <service
             android:name="kaist.iclab.wearablelogger.step.CollectorService"
             android:foregroundServiceType="health"
+            />
+        <service
+            android:name="kaist.iclab.wearablelogger.blu.BLEService"
+            android:foregroundServiceType="connectedDevice"
             />
     </application>
 </manifest>
