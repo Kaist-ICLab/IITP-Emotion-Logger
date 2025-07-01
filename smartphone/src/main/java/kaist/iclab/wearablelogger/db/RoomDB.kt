@@ -14,29 +14,33 @@ import kaist.iclab.loggerstructure.entity.SkinTempEntity
 import kaist.iclab.loggerstructure.util.Converter
 import kaist.iclab.loggerstructure.dao.StepDao
 import kaist.iclab.loggerstructure.entity.StepEntity
+import kaist.iclab.wearablelogger.dao.EnvironmentDao
+import kaist.iclab.wearablelogger.dao.RecentDao
+import kaist.iclab.wearablelogger.entity.EnvironmentEntity
+import kaist.iclab.wearablelogger.entity.RecentEntity
 
 
 @Database(
-    version = 17,
+    version = 19,
     entities = [
-        EventEntity::class,
         RecentEntity::class,
         PpgEntity::class,
         AccEntity::class,
         HREntity::class,
         SkinTempEntity::class,
         StepEntity::class,
+        EnvironmentEntity::class,
     ],
     exportSchema = false,
 )
 
 @TypeConverters(Converter::class)
 abstract class RoomDB : RoomDatabase() {
-    abstract fun eventDao(): EventDao
     abstract fun recentDao(): RecentDao
     abstract fun ppgDao(): PpgDao
     abstract fun accDao(): AccDao
     abstract fun hrDao(): HRDao
     abstract fun skinTempDao(): SkinTempDao
     abstract fun stepDao(): StepDao
+    abstract fun environmentDao(): EnvironmentDao
 }

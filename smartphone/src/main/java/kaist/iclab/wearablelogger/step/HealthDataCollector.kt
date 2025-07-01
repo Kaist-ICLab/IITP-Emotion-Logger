@@ -26,7 +26,7 @@ abstract class HealthDataCollector(
     abstract suspend fun CoroutineScope.logData()
     override fun setup() {
         store = HealthDataService.getStore(context)
-        Log.e(TAG, "HealthDataService setup")
+        Log.v(TAG, "HealthDataService setup")
     }
 
     override fun isAvailable(): Boolean {
@@ -57,5 +57,4 @@ abstract class HealthDataCollector(
         job?.cancel()
         job = null
     }
-
 }

@@ -9,8 +9,8 @@ import com.google.android.gms.wearable.DataMapItem
 import com.google.android.gms.wearable.Wearable
 import kaist.iclab.loggerstructure.core.DaoWrapper
 import kaist.iclab.loggerstructure.core.EntityBase
-import kaist.iclab.wearablelogger.db.RecentDao
-import kaist.iclab.wearablelogger.db.RecentEntity
+import kaist.iclab.wearablelogger.dao.RecentDao
+import kaist.iclab.wearablelogger.entity.RecentEntity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

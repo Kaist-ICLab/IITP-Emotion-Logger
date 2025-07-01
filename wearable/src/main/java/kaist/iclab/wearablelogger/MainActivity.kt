@@ -30,9 +30,6 @@ class MainActivity : PermissionActivity() {
         )
         requestPermissions.launch(permissionList.toTypedArray())
 
-        // Setup periodic upload worker
-        scheduleSensorUploadWorker(this)
-
         setContent {
             SettingsScreen()
         }
@@ -40,6 +37,7 @@ class MainActivity : PermissionActivity() {
 
     override fun onResume() {
         super.onResume()
+        // Setup periodic upload worker
         scheduleSensorUploadWorker(this)
     }
 }
@@ -54,7 +52,7 @@ fun scheduleSensorUploadWorker(context: Context) {
 
     WorkManager.getInstance(context).enqueueUniquePeriodicWork(
         "sensor_data_sync",
-        ExistingPeriodicWorkPolicy.KEEP,
+        ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE,
         workRequest
     )
 }

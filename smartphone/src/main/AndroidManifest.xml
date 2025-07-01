@@ -5,11 +5,14 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.BLUETOOTH_CONNECT" />
+    <uses-permission android:name="android.permission.BLUETOOTH_SCAN" />
 
     <!-- Manual Permission Required-->
     <uses-permission android:name="android.permission.BODY_SENSORS" />
     <uses-permission android:name="android.permission.BODY_SENSORS_BACKGROUND" />
     <uses-permission android:name="android.permission.ACTIVITY_RECOGNITION" />
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
+    <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
 
     <application
         android:name=".MainApplication"
@@ -26,11 +29,15 @@
             </intent-filter>
         </activity>
         <service
-            android:name="kaist.iclab.wearablelogger.step.CollectorService"
+            android:name="kaist.iclab.wearablelogger.step.StepCollectorService"
             android:foregroundServiceType="health"
             />
         <service
             android:name="kaist.iclab.wearablelogger.blu.BLEService"
+            android:foregroundServiceType="connectedDevice"
+            />
+        <service
+            android:name="kaist.iclab.wearablelogger.blu.DataCollectionService"
             android:foregroundServiceType="connectedDevice"
             />
     </application>

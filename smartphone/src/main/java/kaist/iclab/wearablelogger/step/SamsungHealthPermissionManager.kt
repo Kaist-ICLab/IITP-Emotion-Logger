@@ -26,7 +26,6 @@ class SamsungHealthPermissionManager(val activity: MainActivity) {
         store.getGrantedPermissionsAsync(permSet).setCallback(
             Looper.getMainLooper(),
             { res:Set<Permission> ->
-                //Log.d("TAG", "getPermissionSuccess")
                 if(!res.containsAll(permSet)){
                     store.requestPermissionsAsync(permSet, activity).setCallback(
                         Looper.getMainLooper(),
@@ -37,7 +36,6 @@ class SamsungHealthPermissionManager(val activity: MainActivity) {
                                 Toast.makeText(context, "권한을 허용해주세요.", Toast.LENGTH_SHORT).show()
                             }
                             onResult?.invoke(isGranted)
-                            //runnable.run()
                         },
                         { error:Throwable ->
                             if(error is ResolvablePlatformException && error.hasResolution){
@@ -68,7 +66,7 @@ class SamsungHealthPermissionManager(val activity: MainActivity) {
         )
     }
 
-    fun checkPermissions(){
+    fun checkPermissions() {
         //Not implemented
     }
 

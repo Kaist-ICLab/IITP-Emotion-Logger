@@ -20,9 +20,10 @@ import androidx.core.app.ActivityCompat
 import kaist.iclab.wearablelogger.blu.BluetoothHelper.UUID_DATA
 import java.util.UUID
 
+private const val TAG = "BLEService"
+
 open class BLEService : Service() {
     companion object {
-        private val TAG: String = BLEService::class.java.getSimpleName()
         private const val STATE_DISCONNECTED = 0
         private const val STATE_CONNECTING = 1
         private const val STATE_CONNECTED = 2
@@ -51,10 +52,7 @@ open class BLEService : Service() {
     // For example, connection change and services discovered.
     private val mGattCallback: BluetoothGattCallback = object : BluetoothGattCallback() {
         override fun onConnectionStateChange(gatt: BluetoothGatt?, status: Int, newState: Int) {
-            if (ActivityCompat.checkSelfPermission(
-                    this@BLEService,
-                    permissionBluetoothConnect
-                ) != PackageManager.PERMISSION_GRANTED
+            if (ActivityCompat.checkSelfPermission(this@BLEService, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED
             ) {
                 Log.i(TAG, "no permission to bluetooth_connect.")
                 return
@@ -93,11 +91,7 @@ open class BLEService : Service() {
 
             // To enable notification
             for (bluetoothGattCharacteristic in matchingCharacteristics) {
-                if (ActivityCompat.checkSelfPermission(
-                        this@BLEService,
-                        permissionBluetoothConnect
-                    ) != PackageManager.PERMISSION_GRANTED
-                ) {
+                if (ActivityCompat.checkSelfPermission(this@BLEService, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
                     // TODO: Consider calling
                     //    ActivityCompat#requestPermissions
                     // here to request the missing permissions, and then overriding
@@ -107,7 +101,13 @@ open class BLEService : Service() {
                     // for ActivityCompat#requestPermissions for more details.
                     return
                 }
+
                 gatt.setCharacteristicNotification(bluetoothGattCharacteristic, true)
+
+                val descriptor = bluetoothGattCharacteristic?.getDescriptor(UUID.fromString("00002902-0000-1000-8000-00805f9b34fb"))
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && descriptor != null) {
+                    gatt.writeDescriptor(descriptor, BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE)
+                }
             }
         }
 
@@ -164,8 +164,33 @@ open class BLEService : Service() {
             value: ByteArray,
         ) {
             super.onCharacteristicChanged(gatt, characteristic, value)
-            Log.d(TAG, "Characteristic read successfully")
+            Log.d(TAG, "Characteristic changed successfully")
             broadcastUpdate(characteristic)
+
+            if (UUID_DATA == characteristic.uuid) {
+                val sensorData = value
+
+                //TEMPERATURE (signed, factor 100)
+                val signedTemperature =
+                    ((sensorData[3].toInt() and 0xff) or ((sensorData[4].toInt() shl 8) and 0xff00)).toShort()
+                temperature = signedTemperature / 100.0
+
+                //HUMIDITY (unsigned, factor 100)
+                humidity =
+                    ((sensorData[5].toInt() and 0xff) or ((sensorData[6].toInt() shl 8) and 0xff00)) / 100.0
+
+                //CO2 (unsigned, factor 1)
+                cO2 = (sensorData[7].toInt() and 0xff) or ((sensorData[8].toInt() shl 8) and 0xff00)
+
+                //TVOC (unsigned, factor 1)
+                tVOC = (sensorData[9].toInt() and 0xff) or ((sensorData[10].toInt() shl 8) and 0xff00)
+            } else {
+                val data = value
+                if (data.isNotEmpty()) {
+                    val stringBuilder = StringBuilder(data.size)
+                    for (byteChar in data) stringBuilder.append(String.format("%02X ", byteChar))
+                }
+            }
         }
     }
 
@@ -191,16 +216,8 @@ open class BLEService : Service() {
             return
         }
 
-        if (UUID_DATA == characteristic.uuid) {
-            val flag: Int = characteristic.properties
-            val format = -1
-
-
-            mBluetoothGatt?.readCharacteristic(characteristic)
-        } else {
-            // For all other profiles, writes the data formatted in HEX.
-            mBluetoothGatt?.readCharacteristic(characteristic)
-        }
+        Log.d(TAG, "${characteristic.uuid}, ${characteristic.properties}")
+        mBluetoothGatt?.readCharacteristic(characteristic)
     }
 
     inner class LocalBinder : Binder() {
@@ -212,15 +229,13 @@ open class BLEService : Service() {
         return mBinder
     }
 
-
     /**
      * Initializes a reference to the local Bluetooth adapter.
      *
      * @return Return true if the initialization is successful.
      */
     fun initialize(): Boolean {
-        // For API level 18 and above, get a reference to BluetoothAdapter through
-        // BluetoothManager.
+        // For API level 18 and above, get a reference to BluetoothAdapter through BluetoothManager.
         if (mBluetoothManager == null) {
             mBluetoothManager = getSystemService(BLUETOOTH_SERVICE) as BluetoothManager?
             if (mBluetoothManager == null) {
@@ -250,8 +265,8 @@ open class BLEService : Service() {
      */
     fun connect(address: String?): Boolean {
         if (mBluetoothAdapter == null || address == null) {
+            Log.v(TAG, "adapter: $mBluetoothAdapter, address: $address")
             Log.w(TAG, "BluetoothAdapter not initialized or unspecified address.")
-
             return false
         }
 
@@ -336,11 +351,7 @@ open class BLEService : Service() {
         if (mBluetoothGatt == null) {
             return
         }
-        if (permissionBluetoothConnect == null || ActivityCompat.checkSelfPermission(
-                this,
-                permissionBluetoothConnect
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
+        if (permissionBluetoothConnect == null || ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
             // here to request the missing permissions, and then overriding
@@ -397,10 +408,7 @@ open class BLEService : Service() {
             Log.w(TAG, "BluetoothAdapter not initialized")
             return
         }
-        if (ActivityCompat.checkSelfPermission(
-                this,
-                permissionBluetoothConnect
-            ) != PackageManager.PERMISSION_GRANTED
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED
         ) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions

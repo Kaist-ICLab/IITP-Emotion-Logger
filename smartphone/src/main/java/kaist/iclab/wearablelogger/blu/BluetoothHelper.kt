@@ -16,7 +16,7 @@ object BluetoothHelper {
     const val REQUEST_FINE_LOCATION: Int = 2
 
     // scan period in milliseconds
-    const val SCAN_PERIOD: Int = 5000
+    const val SCAN_PERIOD: Int = 10000
 
     // service and uuid
     var BLUSENSOR_SERVICE_UUID: String = "a8a82630-10a4-11e3-ab8c-f23c91aec05e"

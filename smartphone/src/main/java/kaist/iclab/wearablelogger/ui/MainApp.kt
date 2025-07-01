@@ -1,134 +1,67 @@
 package kaist.iclab.wearablelogger.ui
 
-import android.content.Intent
-import android.util.Log
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.core.content.ContextCompat
-import kaist.iclab.wearablelogger.MainViewModel
-import kaist.iclab.wearablelogger.db.EventEntity
-import kaist.iclab.wearablelogger.db.RecentEntity
-import kaist.iclab.wearablelogger.step.CollectorService
-import kaist.iclab.loggerstructure.entity.StepEntity
+import androidx.compose.ui.unit.dp
+import androidx.navigation.NavController
+import androidx.navigation.compose.NavHost
+import androidx.navigation.compose.composable
+import androidx.navigation.compose.rememberNavController
 import org.koin.androidx.compose.koinViewModel
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
+
+enum class ScreenType {
+    MAIN,
+    BLUETOOTH_SCAN,
+    SENSOR_STATUS,
+}
 
 @Composable
 fun MainApp(
-    mainViewModel: MainViewModel = koinViewModel()
+    mainViewModel: MainViewModel = koinViewModel(),
+    bluetoothViewModel: BluetoothViewModel = koinViewModel()
 ) {
-    val events = mainViewModel.eventsState.collectAsState().value
-    val recentData = mainViewModel.recentDataState.collectAsState().value
-    val stepData = mainViewModel.stepsState.collectAsState().value
+    val navController = rememberNavController()
+
+    bluetoothViewModel.initBLEAdapter(LocalContext.current)
 
     MaterialTheme {
-        Column {
-            CollectorStatus(recentData?: RecentEntity(timestamp = -1, acc = "null", hr = "null",ppg= "null", skinTemp = "null"))
-            HorizontalDivider()
-            StepStatus(
-                stepData = stepData?: StepEntity(dataReceived = -1, startTime = -1, endTime = -1, step = 0)
-            )
-            HorizontalDivider()
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally,
-            ) {
-                Button(
-                    onClick={ mainViewModel.flush() }
-                ) {
-                    Text("Flush collected data")
-                }
-            }
-
-            EventRecorder(events = events) {
-                mainViewModel.onClick()
-            }
+        NavHost(navController = navController, startDestination = ScreenType.MAIN.name) {
+            composable(ScreenType.MAIN.name) { MainScreen(navController) }
+            composable(ScreenType.SENSOR_STATUS.name) { StatusScreen(mainViewModel) }
+            composable(ScreenType.BLUETOOTH_SCAN.name) { BluetoothScanScreen(bluetoothViewModel) }
         }
     }
 }
 
 @Composable
-fun CollectorStatus(recentData: RecentEntity) {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text("CURRENT STATUS")
-        Text("timestamp: ${recentData.timestamp}")
-        Text("HR: ${recentData.hr}")
-        Text("ACC: ${recentData.acc}")
-        Text("PPG: ${recentData.ppg}")
-        Text("SkinTemp: ${recentData.skinTemp}")
-    }
-}
-
-@Composable
-fun EventRecorder(events: List<EventEntity>, onClick: () -> Unit) {
-    Column {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Button(onClick = onClick) {
-                Text("RECORD EVENT")
-            }
-        }
-        LazyColumn(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            events.forEach {
-                item {
-                    Text("${it.id}: ${timestampToString(it.timestamp)}(${it.timestamp})")
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun StepStatus(
-    stepData: StepEntity,
+fun MainScreen(
+    navController: NavController,
     modifier: Modifier = Modifier
 ) {
-    val startTime = timestampToString(stepData.startTime)
-    val endTime = timestampToString(stepData.endTime)
-
-    val context = LocalContext.current
     Column(
-        modifier = modifier
-            .fillMaxWidth()
+        modifier = modifier.fillMaxSize().padding(16.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Button(
-            onClick={
-                val intent = Intent(context, CollectorService::class.java)
-                ContextCompat.startForegroundService(context, intent)
-                Log.d("MainApp", "start")
-            }
-        ) {
-            Text("Start Step Tracking")
+        Button(onClick = { navController.navigate(ScreenType.BLUETOOTH_SCAN.name) }) {
+            Text("Scan for sensor")
         }
-
-        Text (
-            "Last Step: start = ${startTime}, end = ${endTime}, steps = ${stepData.step}"
-        )
+        Spacer(modifier = Modifier.height(16.dp))
+        Button(onClick = { navController.navigate(ScreenType.SENSOR_STATUS.name) }) {
+            Text("View Sensor Status")
+        }
     }
 }
 
-fun timestampToString(timestamp: Long): String {
-    val sdf = SimpleDateFormat("MM-dd HH:mm:ss", Locale.getDefault())
-    return sdf.format(Date(timestamp))
-}
+

@@ -11,6 +11,8 @@ import kaist.iclab.loggerstructure.daowrapper.StepDaoWrapper
 import kaist.iclab.loggerstructure.util.CollectorType
 import kaist.iclab.wearablelogger.db.RoomDB
 import kaist.iclab.wearablelogger.step.StepCollector
+import kaist.iclab.wearablelogger.ui.BluetoothViewModel
+import kaist.iclab.wearablelogger.ui.MainViewModel
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
@@ -24,9 +26,6 @@ val koinModule = module {
         )
             .fallbackToDestructiveMigration(true) // For Dev Phase!
             .build()
-    }
-    single{
-        get<RoomDB>().eventDao()
     }
     single{
         get<RoomDB>().recentDao()
@@ -45,6 +44,9 @@ val koinModule = module {
     }
     single{
         get<RoomDB>().stepDao()
+    }
+    single{
+        get<RoomDB>().environmentDao()
     }
 
     single {
@@ -81,12 +83,20 @@ val koinModule = module {
     }
 
     viewModel {
-        MainViewModel(get<RoomDB>().eventDao(), get<RoomDB>().stepDao(), get<RoomDB>().recentDao(), listOf(
-            get<AccDaoWrapper>(),
-            get<PpgDaoWrapper>(),
-            get<HRDaoWrapper>(),
-            get<SkinTempDaoWrapper>(),
-            get<StepDaoWrapper>()
-        ) as List<DaoWrapper<EntityBase>>)
+        MainViewModel(
+            get<RoomDB>().stepDao(), get<RoomDB>().environmentDao(), get<RoomDB>().recentDao(), listOf(
+                get<AccDaoWrapper>(),
+                get<PpgDaoWrapper>(),
+                get<HRDaoWrapper>(),
+                get<SkinTempDaoWrapper>(),
+                get<StepDaoWrapper>()
+            ) as List<DaoWrapper<EntityBase>>
+        )
+    }
+
+    viewModel {
+        BluetoothViewModel(
+
+        )
     }
 }
