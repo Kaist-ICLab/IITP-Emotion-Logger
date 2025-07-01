@@ -14,4 +14,7 @@ interface RecentDao {
 
     @Query("SELECT * FROM recent ORDER BY timestamp DESC LIMIT 1")
     fun getLastEvent(): Flow<RecentEntity?>
+
+    @Query("DELETE FROM recent")
+    fun deleteAll()
 }

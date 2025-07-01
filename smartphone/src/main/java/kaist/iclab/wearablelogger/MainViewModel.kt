@@ -23,7 +23,7 @@ private const val TAG = "MainViewModel"
 class MainViewModel(
     val eventDao: EventDao,
     stepDao: StepDao,
-    recentDao: RecentDao,
+    val recentDao: RecentDao,
     val daoWrappers: List<DaoWrapper<EntityBase>>
 ) : ViewModel(){
 
@@ -41,6 +41,9 @@ class MainViewModel(
             CoroutineScope(Dispatchers.IO).launch {
                 it.deleteAll()
             }
+        }
+        CoroutineScope(Dispatchers.IO).launch {
+            recentDao.deleteAll()
         }
     }
 

@@ -25,15 +25,15 @@ class DataReceiver(
 
     override fun onDataChanged(dataEventBuffer: DataEventBuffer) {
         dataEventBuffer.forEach { dataEvent ->
-            val dataType = dataEvent.dataItem.uri.path
+            val dataType = dataEvent.dataItem.uri.path?.split("/")
             if(dataType == null)
                 return
 
             val data = DataMapItem.fromDataItem(dataEvent.dataItem).dataMap
-            if(dataType == "/WEARABLE"){
+            if(dataType[1] == "WEARABLE"){
                 unpackRecentData(data)
             } else {
-                unpackDataAsset(data)
+                unpackDataAsset(data, dataType[2])
             }
         }
     }
@@ -56,10 +56,9 @@ class DataReceiver(
         }
     }
 
-    private fun unpackDataAsset(data: DataMap) {
-        Log.d(TAG, "unpack: $data")
-        val key = data.getString("key")!!
-        val asset = data.getAsset(key)!!
+    private fun unpackDataAsset(data: DataMap, key: String) {
+        Log.d(TAG, "unpack($key): $data")
+        val asset = data.getAsset("data")!!
 
         Wearable.getDataClient(context).getFdForAsset(asset)
             .addOnSuccessListener { assetFd ->
