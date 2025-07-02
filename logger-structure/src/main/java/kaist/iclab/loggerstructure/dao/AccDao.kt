@@ -2,6 +2,7 @@ package kaist.iclab.loggerstructure.dao
 
 import androidx.room.Dao
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import kaist.iclab.loggerstructure.entity.AccEntity
 
@@ -10,10 +11,10 @@ interface AccDao {
     @Query("SELECT * FROM accEvent")
     suspend fun getAll(): List<AccEntity>
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.Companion.IGNORE)
     suspend fun insertEvent(accEntity: AccEntity)
 
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.Companion.IGNORE)
     suspend fun insertEvents(accEntities: List<AccEntity>)
 
     @Query("DELETE FROM accEvent WHERE 1")

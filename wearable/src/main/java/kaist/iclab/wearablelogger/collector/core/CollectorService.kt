@@ -14,6 +14,7 @@ import com.google.gson.Gson
 import kaist.iclab.wearablelogger.MyDataRoomDB
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -30,6 +31,8 @@ class CollectorService : Service() {
     private val channelName = "ABCLogger"
     private val channelText = "ABCLogger is collecting your data"
     private val dataClient by lazy { Wearable.getDataClient(this) }
+    private var job: Job? = null
+
     override fun onBind(intent: Intent?): IBinder? = null
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         createNotificationChannel()
@@ -42,10 +45,13 @@ class CollectorService : Service() {
             }
         }
 
+        // Cancel existing job
+        if(job != null) job?.cancel()
+
         // Periodically send last data collected
-        CoroutineScope(Dispatchers.IO).launch {
+        job = CoroutineScope(Dispatchers.IO).launch {
             while (true) {
-                delay(TimeUnit.SECONDS.toMillis(1))
+                delay(TimeUnit.SECONDS.toMillis(5))
                 val request = PutDataMapRequest.create("/WEARABLE").apply {
                     dataMap.putLong("timestamp", System.currentTimeMillis())
                     dataMap.putString("acc", Gson().toJson(db.accDao().getLast()))
@@ -78,5 +84,11 @@ class CollectorService : Service() {
             NotificationManager::class.java
         )
         manager.createNotificationChannel(channel)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        job?.cancel()
+        job = null
     }
 }

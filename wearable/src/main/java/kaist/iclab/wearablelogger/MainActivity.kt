@@ -11,12 +11,16 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import kaist.iclab.loggerstructure.core.PermissionActivity
 import kaist.iclab.wearablelogger.ui.SettingsScreen
+import kaist.iclab.wearablelogger.ui.SettingsViewModel
 import kaist.iclab.wearablelogger.uploader.SensorDataUploadWorker
+import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.concurrent.TimeUnit
 
 private const val TAG = "MainActivity"
 
 class MainActivity : PermissionActivity() {
+    private val settingsViewModel: SettingsViewModel by viewModel()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -31,7 +35,9 @@ class MainActivity : PermissionActivity() {
         requestPermissions.launch(permissionList.toTypedArray())
 
         setContent {
-            SettingsScreen()
+            SettingsScreen(
+                settingsViewModel = settingsViewModel
+            )
         }
     }
 
@@ -39,6 +45,10 @@ class MainActivity : PermissionActivity() {
         super.onResume()
         // Setup periodic upload worker
         scheduleSensorUploadWorker(this)
+
+        // (re)start job if it was configured to collect data
+        val isCollecting = settingsViewModel.isCollectorState.value
+        if(isCollecting) settingsViewModel.startLogging()
     }
 }
 

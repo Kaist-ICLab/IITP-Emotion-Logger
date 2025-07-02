@@ -2,6 +2,7 @@ package kaist.iclab.wearablelogger.ui
 
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
@@ -9,6 +10,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import kaist.iclab.loggerstructure.entity.StepEntity
 import kaist.iclab.wearablelogger.entity.EnvironmentEntity
 import kaist.iclab.wearablelogger.entity.RecentEntity
@@ -26,7 +28,7 @@ fun StatusScreen(
     val environmentData = statusViewModel.environmentState.collectAsState().value
 
     Column(
-        modifier = modifier
+        modifier = modifier.padding(8.dp)
     ) {
         CollectorStatus(recentData?: RecentEntity(timestamp = -1, acc = "null", hr = "null",ppg= "null", skinTemp = "null"))
         HorizontalDivider()
@@ -99,7 +101,7 @@ fun EnvironmentStatus(
             .fillMaxWidth()
     ) {
         Text (
-            "Environement(${timestampToString(timestamp)}): temperature=${temperature}, humidity=$humidity, CO2=$co2, tVOC=$tvoc "
+            "Environment(${timestampToString(timestamp)}): temperature=${temperature}, humidity=$humidity, CO2=$co2, tVOC=$tvoc "
         )
     }
 }

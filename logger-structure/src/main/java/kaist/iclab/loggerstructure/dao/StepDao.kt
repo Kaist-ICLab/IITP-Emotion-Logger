@@ -2,6 +2,7 @@ package kaist.iclab.loggerstructure.dao
 
 import androidx.room.Dao
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import kaist.iclab.loggerstructure.entity.StepEntity
 import kotlinx.coroutines.flow.Flow
@@ -10,9 +11,9 @@ import kotlinx.coroutines.flow.Flow
 interface StepDao {
     @Query("SELECT * FROM stepEvent")
     suspend fun getAll(): List<StepEntity>
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.Companion.IGNORE)
     suspend fun insertEvent(stepEntity: StepEntity)
-    @Insert
+    @Insert(onConflict = OnConflictStrategy.Companion.IGNORE)
     suspend fun insertEvents(stepEntity: List<StepEntity>)
 
     @Query("DELETE FROM stepEvent")

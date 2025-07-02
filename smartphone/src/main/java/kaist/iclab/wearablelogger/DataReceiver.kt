@@ -1,14 +1,14 @@
 package kaist.iclab.wearablelogger
 
+import android.annotation.SuppressLint
 import android.content.Context
+import android.provider.Settings
 import android.util.Log
 import com.google.android.gms.wearable.DataClient
 import com.google.android.gms.wearable.DataEventBuffer
 import com.google.android.gms.wearable.DataMap
 import com.google.android.gms.wearable.DataMapItem
 import com.google.android.gms.wearable.Wearable
-import com.google.gson.GsonBuilder
-import com.google.gson.Strictness
 import kaist.iclab.loggerstructure.core.DaoWrapper
 import kaist.iclab.loggerstructure.core.EntityBase
 import kaist.iclab.wearablelogger.dao.RecentDao
@@ -21,6 +21,7 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
+import org.json.JSONObject
 import java.io.IOException
 
 private const val TAG = "DataReceiver"
@@ -46,6 +47,7 @@ class DataReceiver(
         }
     }
 
+    @SuppressLint("HardwareIds")
     private fun unpackRecentData(data: DataMap) {
         val entity = RecentEntity(
             timestamp = data.getLong("timestamp"),
@@ -61,9 +63,20 @@ class DataReceiver(
         }
 
         // Send data immediately to the server
+        val deviceId = Settings.Secure.getString(
+            context.contentResolver,
+            Settings.Secure.ANDROID_ID
+        )
+
         val client = OkHttpClient()
-        val gson = GsonBuilder().setStrictness(Strictness.LENIENT).create()
-        val jsonBody = gson.toJson(entity).trimIndent()
+        val jsonBody = JSONObject().apply {
+            put("timestamp", data.getLong("timestamp"))
+            put("acc", data.getString("acc") ?: "null")
+            put("ppg", data.getString("ppg") ?: "null")
+            put("hr", data.getString("hr") ?: "null")
+            put("skinTemp", data.getString("skin") ?: "null")
+            put("device_id", deviceId)
+        }.toString()
 
         val jsonMediaType = "application/json; charset=utf-8".toMediaType()
         val requestBody = jsonBody.toRequestBody(jsonMediaType)
