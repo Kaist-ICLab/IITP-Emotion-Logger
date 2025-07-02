@@ -10,8 +10,8 @@ import com.google.android.gms.wearable.DataMapItem
 import com.google.android.gms.wearable.Wearable
 import kaist.iclab.loggerstructure.core.DaoWrapper
 import kaist.iclab.loggerstructure.core.EntityBase
-import kaist.iclab.wearablelogger.dao.RecentDao
-import kaist.iclab.wearablelogger.entity.RecentEntity
+import kaist.iclab.loggerstructure.dao.RecentDao
+import kaist.iclab.loggerstructure.entity.RecentEntity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -57,6 +57,11 @@ class DataReceiver(
             recentDao.insertEvents(recentEntities)
             dataUploaderRepository.uploadRecentData()
         }
+
+//        if(flag) {
+//            dataUploaderRepository.uploadFullData()
+//            flag = false
+//        }
     }
 
     private fun unpackDataAsset(data: DataMap, key: String) {

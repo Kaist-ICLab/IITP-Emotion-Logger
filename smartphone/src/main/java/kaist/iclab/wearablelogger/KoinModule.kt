@@ -4,9 +4,11 @@ import androidx.room.Room
 import kaist.iclab.loggerstructure.core.DaoWrapper
 import kaist.iclab.loggerstructure.core.EntityBase
 import kaist.iclab.loggerstructure.daowrapper.AccDaoWrapper
+import kaist.iclab.loggerstructure.daowrapper.EnvDaoWrapper
 import kaist.iclab.loggerstructure.daowrapper.HRDaoWrapper
 import kaist.iclab.loggerstructure.daowrapper.PpgDaoWrapper
 import kaist.iclab.loggerstructure.daowrapper.SkinTempDaoWrapper
+import kaist.iclab.loggerstructure.daowrapper.StepDaoWrapper
 import kaist.iclab.loggerstructure.util.CollectorType
 import kaist.iclab.wearablelogger.step.StepCollector
 import kaist.iclab.wearablelogger.ui.BluetoothViewModel
@@ -28,6 +30,8 @@ val koinModule = module {
             .fallbackToDestructiveMigration(true) // For Dev Phase!
             .build()
     }
+
+    // Dao
     single{
         get<RoomDB>().recentDao()
     }
@@ -50,6 +54,7 @@ val koinModule = module {
         get<RoomDB>().envDao()
     }
 
+    // DaoWrapper
     single {
         AccDaoWrapper(get<RoomDB>().accDao())
     }
@@ -61,11 +66,17 @@ val koinModule = module {
     single {
         HRDaoWrapper(get<RoomDB>().hrDao())
     }
-
     single {
         SkinTempDaoWrapper(get<RoomDB>().skinTempDao())
     }
+    single {
+        StepDaoWrapper(get<RoomDB>().stepDao())
+    }
+    single {
+        EnvDaoWrapper(get<RoomDB>().envDao())
+    }
 
+    // Others
     single{
         StepCollector(androidContext(),get<RoomDB>().stepDao())
     }
@@ -76,6 +87,14 @@ val koinModule = module {
             recentDao = get<RoomDB>().recentDao(),
             stepDao = get<RoomDB>().stepDao(),
             envDao = get<RoomDB>().envDao(),
+            dataDao = mapOf(
+                CollectorType.ACC.name to get<AccDaoWrapper>(),
+                CollectorType.PPG.name to get<PpgDaoWrapper>(),
+                CollectorType.HR.name to get<HRDaoWrapper>(),
+                CollectorType.SKINTEMP.name to get<SkinTempDaoWrapper>(),
+                CollectorType.ENV.name to get<EnvDaoWrapper>(),
+                CollectorType.STEP.name to get<StepDaoWrapper>(),
+            ) as Map<String, DaoWrapper<EntityBase>>,
         )
     }
 
@@ -93,8 +112,7 @@ val koinModule = module {
         )
     }
 
-
-
+    // ViewModel
     viewModel {
         StatusViewModel(
             get<RoomDB>().stepDao(), get<RoomDB>().envDao(), get<RoomDB>().recentDao(), listOf(

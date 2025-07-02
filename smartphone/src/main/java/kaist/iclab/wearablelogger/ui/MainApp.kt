@@ -16,11 +16,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import kaist.iclab.wearablelogger.R
 import org.koin.androidx.compose.koinViewModel
 
 enum class ScreenType {
@@ -62,7 +64,9 @@ fun MainScreen(
     val context = LocalContext.current
 
     Column(
-        modifier = modifier.fillMaxSize().padding(16.dp),
+        modifier = modifier
+            .fillMaxSize()
+            .padding(16.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -70,18 +74,20 @@ fun MainScreen(
             onClick = { navController.navigate(ScreenType.BLUETOOTH_SCAN.name) },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("Scan for sensor")
+            Text(stringResource(R.string.scan_for_blusensor))
         }
         Spacer(modifier = Modifier.height(8.dp))
         Button(
             onClick = { navController.navigate(ScreenType.SENSOR_STATUS.name) },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("View Sensor Status")
+            Text("View Galaxy Watch Data")
         }
         Spacer(modifier = Modifier.height(16.dp))
         Row(
-            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 8.dp)
         ) {
             Button(
                 onClick = { mainViewModel.toggleEnvRunning(context) },

@@ -1,14 +1,17 @@
-package kaist.iclab.wearablelogger.dao
+package kaist.iclab.loggerstructure.dao
 
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import kaist.iclab.wearablelogger.entity.EnvEntity
+import kaist.iclab.loggerstructure.entity.EnvEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface EnvDao {
+    @Query("SELECT * FROM envEvent")
+    suspend fun getAll(): List<EnvEntity>
+
     @Insert(onConflict = OnConflictStrategy.Companion.ABORT)
     suspend fun insertEvents(envEntity: List<EnvEntity>)
 

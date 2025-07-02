@@ -1,10 +1,10 @@
-package kaist.iclab.wearablelogger.dao
+package kaist.iclab.loggerstructure.dao
 
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
-import kaist.iclab.wearablelogger.entity.RecentEntity
+import kaist.iclab.loggerstructure.entity.RecentEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao

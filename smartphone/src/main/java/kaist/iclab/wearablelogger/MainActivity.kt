@@ -14,11 +14,15 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import androidx.work.ExistingPeriodicWorkPolicy
+import androidx.work.PeriodicWorkRequestBuilder
+import androidx.work.WorkManager
 import com.google.android.gms.wearable.Wearable
 import kaist.iclab.wearablelogger.step.SamsungHealthPermissionManager
 import kaist.iclab.wearablelogger.ui.MainApp
 import kaist.iclab.wearablelogger.ui.MainViewModel
 import kaist.iclab.wearablelogger.util.DataReceiver
+import kaist.iclab.wearablelogger.util.SensorDataUploadWorker
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.concurrent.TimeUnit
@@ -58,6 +62,9 @@ class MainActivity : ComponentActivity() {
     override fun onResume() {
         super.onResume()
         dataClient.addListener(dataReceiver)
+
+        // Setup periodic upload worker
+        scheduleSensorUploadWorker()
 
         Handler(Looper.getMainLooper()).post {
             checkAndRequestPermissions()
@@ -105,7 +112,7 @@ class MainActivity : ComponentActivity() {
         mainViewModel.enableEnv()
     }
 
-    private fun scheduleSensorUploadWorker(context: Context) {
+    private fun scheduleSensorUploadWorker() {
         Log.v(TAG, "scheduleSensorUploadWorker()")
 
         // Minimum period is 15 minutes
@@ -113,7 +120,7 @@ class MainActivity : ComponentActivity() {
             15, TimeUnit.MINUTES
         ).build()
 
-        WorkManager.getInstance(context).enqueueUniquePeriodicWork(
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
             "sensor_data_sync",
             ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE,
             workRequest

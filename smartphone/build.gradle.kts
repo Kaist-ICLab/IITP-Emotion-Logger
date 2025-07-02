@@ -71,6 +71,9 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.androidx.navigation.compose)
 
+    // For periodic upload
+    implementation(libs.work.runtime.ktx)
+
     implementation(libs.okhttp)
 
     implementation(libs.room.runtime)

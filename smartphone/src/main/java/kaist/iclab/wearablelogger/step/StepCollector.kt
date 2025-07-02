@@ -11,8 +11,8 @@ import com.samsung.android.sdk.health.data.request.LocalTimeFilter
 import com.samsung.android.sdk.health.data.request.LocalTimeGroup
 import com.samsung.android.sdk.health.data.request.LocalTimeGroupUnit
 import com.samsung.android.sdk.health.data.request.Ordering
-import kaist.iclab.wearablelogger.dao.StepDao
-import kaist.iclab.wearablelogger.entity.StepEntity
+import kaist.iclab.loggerstructure.dao.StepDao
+import kaist.iclab.loggerstructure.entity.StepEntity
 import kaist.iclab.loggerstructure.util.CollectorType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

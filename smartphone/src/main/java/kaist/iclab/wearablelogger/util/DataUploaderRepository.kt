@@ -7,9 +7,15 @@ import android.util.Log
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
 import com.google.gson.Strictness
-import kaist.iclab.wearablelogger.dao.EnvDao
-import kaist.iclab.wearablelogger.dao.RecentDao
-import kaist.iclab.wearablelogger.dao.StepDao
+import kaist.iclab.loggerstructure.core.DaoWrapper
+import kaist.iclab.loggerstructure.core.EntityBase
+import kaist.iclab.loggerstructure.dao.EnvDao
+import kaist.iclab.loggerstructure.dao.RecentDao
+import kaist.iclab.loggerstructure.dao.StepDao
+import kaist.iclab.loggerstructure.util.CollectorType
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import okhttp3.Call
 import okhttp3.Callback
@@ -18,6 +24,7 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
+import org.json.JSONObject
 import java.io.IOException
 
 class DataUploaderRepository(
@@ -25,14 +32,21 @@ class DataUploaderRepository(
     val recentDao: RecentDao,
     val stepDao: StepDao,
     val envDao: EnvDao,
+    val dataDao: Map<String, DaoWrapper<EntityBase>>
 ) {
     companion object {
-        private val TAG = this::class.simpleName
+        private val TAG = DataUploaderRepository::class.simpleName
     }
 
     private enum class LogType(val url: String) {
-        DATA("data"),
+        ERROR(""),
         RECENT("recent"),
+        ACC("acc"),
+        ENV("env"),
+        HR("hr"),
+        PPG("ppg"),
+        SKINTEMP("skintemp"),
+        STEP("step")
     }
 
     @SuppressLint("HardwareIds")
@@ -59,8 +73,41 @@ class DataUploaderRepository(
         uploadJSON(jsonObject.toString(), LogType.RECENT)
     }
 
+    fun uploadFullData() {
+        val gson = GsonBuilder().setStrictness(Strictness.LENIENT).create()
+        for(entry in dataDao){
+            val name = entry.key
+            val dao = entry.value
+            CoroutineScope(Dispatchers.IO).launch {
+                val data = gson.toJson(dao.getAll())
+                dao.deleteAll()
+
+                val json = JSONObject()
+                    .put("data", data)
+                    .put("device_id", deviceId)
+
+                val logType = when(name) {
+                    CollectorType.SKINTEMP.name -> LogType.SKINTEMP
+                    CollectorType.ACC.name -> LogType.ACC
+                    CollectorType.ENV.name -> LogType.ENV
+                    CollectorType.PPG.name -> LogType.PPG
+                    CollectorType.STEP.name -> LogType.STEP
+                    CollectorType.HR.name -> LogType.HR
+                    else -> LogType.ERROR
+                }
+
+                uploadJSON(json.toString(), logType)
+            }
+        }
+    }
+
     @SuppressLint("HardwareIds")
     private fun uploadJSON(jsonString: String, logType: LogType) {
+        if(logType == LogType.ERROR) {
+            Log.e(TAG, "Invalid LogType")
+            return
+        }
+
         val client = OkHttpClient()
         val jsonMediaType = "application/json; charset=utf-8".toMediaType()
         val requestBody = jsonString.toRequestBody(jsonMediaType)
@@ -78,7 +125,7 @@ class DataUploaderRepository(
             override fun onResponse(call: Call, response: Response) {
                 response.use {
                     if (!response.isSuccessful) {
-                        Log.e(TAG, "Error uploading recentEntity to server: ${response.message}")
+                        Log.e(TAG, "${logType.url}: Error uploading to server: ${response.message}")
                     }
                 }
             }

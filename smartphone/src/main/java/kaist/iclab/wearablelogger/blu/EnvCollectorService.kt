@@ -9,8 +9,8 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.Build
 import android.util.Log
-import kaist.iclab.wearablelogger.dao.EnvDao
-import kaist.iclab.wearablelogger.entity.EnvEntity
+import kaist.iclab.loggerstructure.dao.EnvDao
+import kaist.iclab.loggerstructure.entity.EnvEntity
 import kaist.iclab.wearablelogger.util.ForegroundNotification
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

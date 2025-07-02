@@ -44,25 +44,26 @@ class MainActivity : PermissionActivity() {
     override fun onResume() {
         super.onResume()
         // Setup periodic upload worker
-        scheduleSensorUploadWorker(this)
+        scheduleSensorUploadWorker()
 
         // (re)start job if it was configured to collect data
         val isCollecting = settingsViewModel.isCollectorState.value
         if(isCollecting) settingsViewModel.startLogging()
     }
+
+    private fun scheduleSensorUploadWorker() {
+        Log.v(TAG, "scheduleSensorUploadWorker()")
+
+        // Minimum period is 15 minutes
+        val workRequest = PeriodicWorkRequestBuilder<SensorDataUploadWorker>(
+            15, TimeUnit.MINUTES
+        ).build()
+
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+            "sensor_data_sync",
+            ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE,
+            workRequest
+        )
+    }
 }
 
-fun scheduleSensorUploadWorker(context: Context) {
-    Log.v(TAG, "scheduleSensorUploadWorker()")
-
-    // Minimum period is 15 minutes
-    val workRequest = PeriodicWorkRequestBuilder<SensorDataUploadWorker>(
-        15, TimeUnit.MINUTES
-    ).build()
-
-    WorkManager.getInstance(context).enqueueUniquePeriodicWork(
-        "sensor_data_sync",
-        ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE,
-        workRequest
-    )
-}

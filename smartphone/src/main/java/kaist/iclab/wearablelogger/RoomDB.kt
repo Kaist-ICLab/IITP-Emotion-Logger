@@ -7,17 +7,17 @@ import kaist.iclab.loggerstructure.dao.AccDao
 import kaist.iclab.loggerstructure.dao.HRDao
 import kaist.iclab.loggerstructure.dao.PpgDao
 import kaist.iclab.loggerstructure.dao.SkinTempDao
-import kaist.iclab.wearablelogger.dao.StepDao
+import kaist.iclab.loggerstructure.dao.StepDao
 import kaist.iclab.loggerstructure.entity.AccEntity
 import kaist.iclab.loggerstructure.entity.HREntity
 import kaist.iclab.loggerstructure.entity.PpgEntity
 import kaist.iclab.loggerstructure.entity.SkinTempEntity
-import kaist.iclab.wearablelogger.entity.StepEntity
+import kaist.iclab.loggerstructure.entity.StepEntity
 import kaist.iclab.loggerstructure.util.Converter
-import kaist.iclab.wearablelogger.dao.EnvDao
-import kaist.iclab.wearablelogger.dao.RecentDao
-import kaist.iclab.wearablelogger.entity.EnvEntity
-import kaist.iclab.wearablelogger.entity.RecentEntity
+import kaist.iclab.loggerstructure.dao.EnvDao
+import kaist.iclab.loggerstructure.dao.RecentDao
+import kaist.iclab.loggerstructure.entity.EnvEntity
+import kaist.iclab.loggerstructure.entity.RecentEntity
 
 @Database(
     version = 20,

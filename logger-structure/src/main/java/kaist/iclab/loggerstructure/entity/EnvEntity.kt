@@ -1,7 +1,8 @@
-package kaist.iclab.wearablelogger.entity
+package kaist.iclab.loggerstructure.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
+import kaist.iclab.loggerstructure.core.EntityBase
 
 @Entity(tableName= "envEvent")
 data class EnvEntity(
@@ -12,4 +13,4 @@ data class EnvEntity(
     val humidity: Double,
     val co2: Int,
     val tvoc: Int,
-)
+): EntityBase

@@ -1,9 +1,9 @@
-package kaist.iclab.wearablelogger.dao
+package kaist.iclab.loggerstructure.dao
 
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
-import kaist.iclab.wearablelogger.entity.StepEntity
+import kaist.iclab.loggerstructure.entity.StepEntity
 import kotlinx.coroutines.flow.Flow
 
 @Dao
