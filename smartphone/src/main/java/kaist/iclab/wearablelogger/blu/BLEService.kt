@@ -216,7 +216,6 @@ open class BLEService : Service() {
             return
         }
 
-        Log.d(TAG, "${characteristic.uuid}, ${characteristic.properties}")
         mBluetoothGatt?.readCharacteristic(characteristic)
     }
 
@@ -271,8 +270,7 @@ open class BLEService : Service() {
         }
 
         // Previously connected device.  Try to reconnect.
-        if (mBluetoothDeviceAddress != null && address == mBluetoothDeviceAddress
-            && mBluetoothGatt != null
+        if (mBluetoothDeviceAddress != null && address == mBluetoothDeviceAddress && mBluetoothGatt != null
         ) {
             Log.d(TAG, "Trying to use an existing mBluetoothGatt for connection.")
             if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED
@@ -287,6 +285,7 @@ open class BLEService : Service() {
                 // for ActivityCompat#requestPermissions for more details.
                 return false
             }
+
             if (mBluetoothGatt!!.connect()) {
                 Log.w(TAG, "mBluetoothGatt.connect: true")
                 mConnectionState = STATE_CONNECTING
@@ -359,31 +358,6 @@ open class BLEService : Service() {
     }
 
     /**
-     * Request a read on a given `BluetoothGattCharacteristic`. The read result is reported
-     * asynchronously through the `BluetoothGattCallback#onCharacteristicRead(android.bluetooth.BluetoothGatt, android.bluetooth.BluetoothGattCharacteristic, int)`
-     * callback.
-     *
-     * @param characteristic The characteristic to read from.
-     */
-    fun readCharacteristic(characteristic: BluetoothGattCharacteristic?) {
-        if (mBluetoothAdapter == null || mBluetoothGatt == null) {
-            Log.w(TAG, "BluetoothAdapter not initialized")
-            return
-        }
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
-            // TODO: Consider calling
-            //    ActivityCompat#requestPermissions
-            // here to request the missing permissions, and then overriding
-            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-            //                                          int[] grantResults)
-            // to handle the case where the user grants the permission. See the documentation
-            // for ActivityCompat#requestPermissions for more details.
-            return
-        }
-        mBluetoothGatt!!.readCharacteristic(characteristic)
-    }
-
-    /**
      * Enables or disables notification on a give characteristic.
      *
      * @param characteristic Characteristic to act on.
@@ -422,17 +396,9 @@ open class BLEService : Service() {
         }
     }
 
-
-//    val supportedGattServices: MutableList<BluetoothGattService>?
-//        /**
-//         * Retrieves a list of supported GATT services on the connected device. This should be
-//         * invoked only after `BluetoothGatt#discoverServices()` completes successfully.
-//         *
-//         * @return A `List` of supported services.
-//         */
-//        get() {
-//            if (mBluetoothGatt == null) return null
-//
-//            return mBluetoothGatt!!.getServices()
-//        }
+    override fun onDestroy() {
+        super.onDestroy()
+        disconnect()
+        close()
+    }
 }

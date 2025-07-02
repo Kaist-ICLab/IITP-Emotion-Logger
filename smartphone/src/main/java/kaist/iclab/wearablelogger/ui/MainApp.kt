@@ -81,7 +81,7 @@ fun MainScreen(
         }
         Spacer(modifier = Modifier.height(16.dp))
         Row(
-            modifier = Modifier.fillMaxWidth().padding(8.dp)
+            modifier = Modifier.fillMaxWidth().padding(vertical = 8.dp)
         ) {
             Button(
                 onClick = { mainViewModel.toggleEnvRunning(context) },

@@ -7,25 +7,30 @@ import android.bluetooth.BluetoothDevice
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.util.Log
+import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeContentPadding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
-import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults.contentPadding
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -57,21 +62,22 @@ fun BluetoothScanScreen(
     }
 
     Column(
-        modifier = modifier
-            .fillMaxSize(),
-        horizontalAlignment = Alignment.CenterHorizontally
+        modifier = modifier.fillMaxSize(),
     ) {
         Row (
+            verticalAlignment = Alignment.CenterVertically,
             modifier = modifier
                 .fillMaxWidth()
                 .padding(8.dp)
         ) {
-            TextField(
+            OutlinedTextField(
                 value = bluetoothViewModel.bluSensorAddress,
-                onValueChange = { it -> bluetoothViewModel.changeBluSensorAddress(it) },
-                label = { Text("Bluetooth Address") },
-                placeholder = { Text("XX:XX:XX:XX:XX:XX") },
-                modifier = Modifier.weight(1.0F)
+                onValueChange = { it: String -> bluetoothViewModel.changeBluSensorAddress(it) },
+                label = { Text("Bluetooth Address", style = MaterialTheme.typography.labelSmall) },
+                placeholder = { Text("XX:XX:XX:XX:XX:XX", style = MaterialTheme.typography.bodySmall) },
+                textStyle = MaterialTheme.typography.bodySmall,
+                modifier = Modifier
+                    .weight(1.0F),
             )
 
             Spacer(modifier = Modifier.width(8.dp))
@@ -79,7 +85,7 @@ fun BluetoothScanScreen(
             if(isScanning) {
                 Button(
                     onClick = { bluetoothViewModel.stopScan(context) },
-                    modifier = Modifier.wrapContentWidth()
+                    modifier = Modifier.width(90.dp)
                 ) {
                     Text(
                         "Stop",
@@ -93,19 +99,28 @@ fun BluetoothScanScreen(
                         val intent = Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE)
                         enableBLELauncher.launch(intent)
                     },
-                    modifier = Modifier.wrapContentWidth()
+                    modifier = Modifier.width(90.dp)
                 ) {
                     Text("Scan")
                 }
             }
         }
         Spacer(modifier = Modifier.height(8.dp))
-        BluetoothDeviceList(bluetoothList)
+        BluetoothDeviceList(
+            bluetoothList = bluetoothList,
+            connectStatus = bluetoothViewModel.bluetoothConnectStatus,
+            connectDevice = { device -> bluetoothViewModel.connectDevice(device, context) }
+        )
     }
 }
 
 @Composable
-fun BluetoothDeviceList(bluetoothList: Map<String, BluetoothDevice>) {
+fun BluetoothDeviceList(
+    bluetoothList: Map<String, BluetoothDevice>,
+    connectStatus: BluetoothConnectStatus,
+    connectDevice: (device: BluetoothDevice) -> Unit,
+    modifier: Modifier = Modifier
+) {
     if (ActivityCompat.checkSelfPermission(
             LocalContext.current,
             Manifest.permission.BLUETOOTH_CONNECT
@@ -121,28 +136,56 @@ fun BluetoothDeviceList(bluetoothList: Map<String, BluetoothDevice>) {
         return
     }
 
-    val list = bluetoothList.entries.toList()
-    LazyColumn {
-        items(list) { entry ->
+    val context = LocalContext.current
+    LaunchedEffect(connectStatus) {
+        val message = when(connectStatus){
+            BluetoothConnectStatus.ONGOING -> "Trying to connect to device..."
+            BluetoothConnectStatus.FAIL -> "Connection Failed"
+            BluetoothConnectStatus.SUCCESS -> "Connection successful"
+            else -> ""
+        }
+
+        if(connectStatus != BluetoothConnectStatus.IDLE) Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+    }
+
+    LazyColumn(
+        modifier = modifier.padding(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ){
+        items(bluetoothList.entries.toList()) { entry ->
             val address = entry.key
             val device = entry.value
-            BluetoothDeviceItem(name = device.name ?: "Unknown", address = address)
+            BluetoothDeviceItem(
+                name = device.name ?: "Unknown",
+                address = address,
+                connectStatus = connectStatus,
+                onClick = {
+                    if(connectStatus != BluetoothConnectStatus.ONGOING) connectDevice(device)
+                    else Toast.makeText(context, "Already trying to connect to other device!", Toast.LENGTH_SHORT).show()
+                }
+            )
         }
     }
 }
 
 @Composable
-fun BluetoothDeviceItem(name: String, address: String) {
-    Column(modifier = Modifier
-        .fillMaxWidth()
-        .padding(16.dp)
+fun BluetoothDeviceItem(
+    name: String,
+    address: String,
+    connectStatus: BluetoothConnectStatus,
+    onClick: () -> Unit
+) {
+    Card(modifier = Modifier
+        .fillMaxWidth(),
+        onClick = onClick
     ) {
-        Text(text = name, style = MaterialTheme.typography.bodyLarge)
-        Text(text = address, style = MaterialTheme.typography.bodySmall)
-        Modifier.padding(top = 8.dp)
-        HorizontalDivider(
-            modifier = Modifier,
-            thickness = 1.dp,
-        )
+        Column(
+            modifier = Modifier
+                .padding(8.dp)
+                .fillMaxWidth()
+        ) {
+            Text(text = name, style = MaterialTheme.typography.bodyLarge)
+            Text(text = address, style = MaterialTheme.typography.bodySmall)
+        }
     }
 }

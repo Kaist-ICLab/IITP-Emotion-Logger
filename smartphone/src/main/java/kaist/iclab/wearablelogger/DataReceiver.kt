@@ -49,6 +49,7 @@ class DataReceiver(
 
     @SuppressLint("HardwareIds")
     private fun unpackRecentData(data: DataMap) {
+        Log.d(TAG, "received RecentEntity data")
         val entity = RecentEntity(
             timestamp = data.getLong("timestamp"),
             acc = data.getString("acc")?:"null",

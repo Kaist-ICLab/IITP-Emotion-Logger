@@ -1,7 +1,5 @@
 package kaist.iclab.wearablelogger.step
 
-import android.app.NotificationChannel
-import android.app.NotificationManager
 import android.app.Service
 import android.content.Intent
 import android.os.IBinder
@@ -32,5 +30,10 @@ class StepCollectorService : Service() {
         Log.d(TAG, "onStartCommand")
         startForeground(2, notification)
         return START_STICKY
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        stepCollector.stopLogging()
     }
 }

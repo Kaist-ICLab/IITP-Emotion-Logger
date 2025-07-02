@@ -30,7 +30,7 @@ fun StatusScreen(
     Column(
         modifier = modifier.padding(8.dp)
     ) {
-        CollectorStatus(recentData?: RecentEntity(timestamp = -1, acc = "null", hr = "null",ppg= "null", skinTemp = "null"))
+        CollectorStatus(recentData?: RecentEntity(timestamp = -1, acc = "null", hr = "null", ppg= "null", skinTemp = "null"))
         HorizontalDivider()
         StepStatus(
             stepData = stepData?: StepEntity(dataReceived = -1, startTime = -1, endTime = -1, step = 0)

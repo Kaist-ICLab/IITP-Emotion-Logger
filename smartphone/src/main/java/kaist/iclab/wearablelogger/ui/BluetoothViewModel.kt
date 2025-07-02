@@ -32,6 +32,13 @@ import kaist.iclab.wearablelogger.blu.SharedPreferencesUtil
 
 private const val TAG = "BluetoothViewModel"
 
+enum class BluetoothConnectStatus {
+    IDLE,
+    ONGOING,
+    FAIL,
+    SUCCESS
+}
+
 class BluetoothViewModel() : ViewModel() {
     // flag for scanning
     var isScanning by mutableStateOf(false)
@@ -45,6 +52,9 @@ class BluetoothViewModel() : ViewModel() {
         private set
 
     var deviceAddress: String? = null
+        private set
+
+    var bluetoothConnectStatus by mutableStateOf(BluetoothConnectStatus.IDLE)
         private set
 
     // ble adapter
@@ -64,6 +74,10 @@ class BluetoothViewModel() : ViewModel() {
     fun initBLEAdapter(context: Context) {
         val bleManager: BluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         bleAdapter = bleManager.adapter
+
+        // Load previous saves
+        sharedPreferencesUtil = SharedPreferencesUtil.getInstance(context)
+        deviceAddress = sharedPreferencesUtil?.deviceAddress
     }
 
     fun changeBluSensorAddress(value: String) {
@@ -78,8 +92,6 @@ class BluetoothViewModel() : ViewModel() {
             Log.w(TAG, "Scanning Failed: ble not enabled")
             return
         }
-
-        sharedPreferencesUtil = SharedPreferencesUtil.getInstance(context)
 
         // setup scan filters
         val settings = ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build()
@@ -124,7 +136,6 @@ class BluetoothViewModel() : ViewModel() {
     fun stopScan(context: Context) {
         Log.d(TAG, "stopScan()")
         // check pre-conditions
-        Log.d(TAG, "isScanning: $isScanning, bleAdapter: $bleAdapter, isEnabled?: ${bleAdapter!!.isEnabled}, bleScanner: $bleScanner")
         if (isScanning && bleAdapter != null && bleAdapter!!.isEnabled && bleScanner != null) {
             // stop scanning
             if (ActivityCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_SCAN) != PackageManager.PERMISSION_GRANTED) {
@@ -143,41 +154,29 @@ class BluetoothViewModel() : ViewModel() {
             Log.d(TAG, "Manifest.permission.BLUETOOTH " + Manifest.permission.BLUETOOTH.javaClass.getName()
             )
             bleScanner!!.stopScan(scanCallback)
-            scanComplete(context)
+            scanComplete()
         }
+
         // reset flags
-        Log.d(TAG, "Reset flags")
         scanCallback = null
         isScanning = false
         scanHandler = null
     }
 
     /* Handle scan results after scan stopped */
-    private fun scanComplete(context: Context) {
+    private fun scanComplete() {
         // check if nothing found
         if (scanResults.isEmpty()) {
             Log.d(TAG, "scan result is empty")
             return
         }
-        // loop over the scan results and connect to them
+        // loop over the scan results
         for (deviceAddress in scanResults.keys) {
             Log.d(TAG, "Found device: $deviceAddress")
-
-            // get device instance using its MAC address
-            val device = scanResults[deviceAddress]
-            Log.d(TAG, "connecting device: $deviceAddress")
-
-            // connect to the device
-            if ((bluSensorAddress != deviceAddress) and (bluSensorAddress != "")) {
-                Log.d(TAG, "Filter out the device whose address: $deviceAddress")
-                scanResults.remove(deviceAddress)
-                continue
-            }
-            connectDevice(device!!, context)
         }
     }
 
-    private fun connectDevice(device: BluetoothDevice, context: Context) {
+    fun connectDevice(device: BluetoothDevice, context: Context) {
         val gattClientCallback = GattClientCallback(context)
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
@@ -191,8 +190,7 @@ class BluetoothViewModel() : ViewModel() {
         }
         deviceAddress = device.getAddress()
         Log.d(TAG, "connect to: $deviceAddress")
-
-
+        bluetoothConnectStatus = BluetoothConnectStatus.ONGOING
         bleGatt = device.connectGatt(context, true, gattClientCallback)
     }
 
@@ -215,11 +213,15 @@ class BluetoothViewModel() : ViewModel() {
 
         /* Add scan result */
         fun addScanResult(result: ScanResult) {
-            // get scanned device
             val device = result.device
-            // get scanned device MAC address
             val deviceAddress = device.getAddress()
-            // add the device to the result list
+
+            // filter device
+            if ((bluSensorAddress != deviceAddress) and (bluSensorAddress != "")) {
+                Log.d(TAG, "Filter out the device whose address: $deviceAddress")
+                return
+            }
+
             callbackScanResults.put(deviceAddress, device)
         }
     }
@@ -249,14 +251,19 @@ class BluetoothViewModel() : ViewModel() {
     private inner class GattClientCallback(val context: Context) : BluetoothGattCallback() {
         override fun onConnectionStateChange(gatt: BluetoothGatt, status: Int, newState: Int) {
             super.onConnectionStateChange(gatt, status, newState)
-            if (status == BluetoothGatt.GATT_FAILURE) {
-                disconnectGattServer(context)
-                return
-            } else if (status != BluetoothGatt.GATT_SUCCESS) {
+            if (status != BluetoothGatt.GATT_SUCCESS || newState == BluetoothProfile.STATE_DISCONNECTED) {
+                bluetoothConnectStatus = BluetoothConnectStatus.FAIL
                 disconnectGattServer(context)
                 return
             }
-            if (newState == BluetoothProfile.STATE_CONNECTED) {
+
+            if (newState != BluetoothProfile.STATE_CONNECTED) {
+                bluetoothConnectStatus = BluetoothConnectStatus.FAIL
+                return
+            }
+
+            // Now newState == BluetoothProfile.STATE_CONNECTED
+
                 // update the connection status message
 //                getActivity()!!.runOnUiThread(object : Runnable {
 //                    override fun run() {
@@ -267,25 +274,22 @@ class BluetoothViewModel() : ViewModel() {
 //                    }
 //                })
 
-                Log.d(TAG, "Connected to the GATT server")
-                if (ActivityCompat.checkSelfPermission(
-                        context,
-                        Manifest.permission.BLUETOOTH_CONNECT
-                    ) != PackageManager.PERMISSION_GRANTED
-                ) {
-                    // TODO: Consider calling
-                    //    ActivityCompat#requestPermissions
-                    // here to request the missing permissions, and then overriding
-                    //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
-                    //                                          int[] grantResults)
-                    // to handle the case where the user grants the permission. See the documentation
-                    // for ActivityCompat#requestPermissions for more details.
-                    return
-                }
-                gatt.discoverServices()
-            } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
-                disconnectGattServer(context)
+            Log.d(TAG, "Connected to the GATT server")
+            if (ActivityCompat.checkSelfPermission(
+                    context,
+                    Manifest.permission.BLUETOOTH_CONNECT
+                ) != PackageManager.PERMISSION_GRANTED
+            ) {
+                // TODO: Consider calling
+                //    ActivityCompat#requestPermissions
+                // here to request the missing permissions, and then overriding
+                //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+                //                                          int[] grantResults)
+                // to handle the case where the user grants the permission. See the documentation
+                // for ActivityCompat#requestPermissions for more details.
+                return
             }
+            gatt.discoverServices()
         }
 
         override fun onServicesDiscovered(gatt: BluetoothGatt, status: Int) {
@@ -293,12 +297,14 @@ class BluetoothViewModel() : ViewModel() {
             // check if the discovery failed
             if (status != BluetoothGatt.GATT_SUCCESS) {
                 Log.e(TAG, "Device service discovery failed, status: $status")
+                bluetoothConnectStatus = BluetoothConnectStatus.FAIL
                 return
             }
             // find discovered characteristics
             val matchingCharacteristics = findBLECharacteristics(gatt)
             if (matchingCharacteristics.isEmpty()) {
                 Log.e(TAG, "Unable to find characteristics")
+                bluetoothConnectStatus = BluetoothConnectStatus.FAIL
                 return
             }
 
@@ -324,6 +330,7 @@ class BluetoothViewModel() : ViewModel() {
                 gatt.setCharacteristicNotification(bluetoothGattCharacteristic, true)
             }
 
+            bluetoothConnectStatus = BluetoothConnectStatus.SUCCESS
             sharedPreferencesUtil?.deviceAddress = deviceAddress
         }
 

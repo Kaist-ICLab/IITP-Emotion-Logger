@@ -6,15 +6,9 @@ import android.bluetooth.BluetoothGattService
 import androidx.annotation.Nullable
 import java.util.UUID
 
-private const val TAG = "ClientActivity"
+//private const val TAG = "ClientActivity"
 
 object BluetoothHelper {
-    // used to identify adding bluetooth names
-    const val REQUEST_ENABLE_BT: Int = 1
-
-    // used to request fine location permission
-    const val REQUEST_FINE_LOCATION: Int = 2
-
     // scan period in milliseconds
     const val SCAN_PERIOD: Int = 10000
 
@@ -49,17 +43,6 @@ object BluetoothHelper {
         return matchingCharacteristics
     }
 
-
-    /**
-    Find logger_data characteristic of the peripheral device
-    @param gatt gatt instance
-    @return found characteristic
-     */
-    fun findDataCharacteristic(gatt: BluetoothGatt): BluetoothGattCharacteristic? {
-        //Log.d(TAG, "findDataCharacteristic SENSOR DATA " + SENSOR_DATA);
-        return findCharacteristic(gatt, SENSOR_DATA)
-    }
-
     /*
     Find the given uuid characteristic
     @param gatt gatt instance
@@ -79,7 +62,7 @@ object BluetoothHelper {
         }
 
 
-        val characteristicList: List<BluetoothGattCharacteristic?> = service.getCharacteristics()
+        val characteristicList: List<BluetoothGattCharacteristic?> = service.characteristics
         for (characteristic in characteristicList) {
             if (matchCharacteristic(characteristic, uuid)) {
                 //Log.d(TAG, "uuid string  "+_uuid_string);
@@ -137,11 +120,11 @@ object BluetoothHelper {
     Check if there is any matching characteristic
     @param characteristic query characteristic
      */
-    private fun isMatchingCharacteristic(_characteristic: BluetoothGattCharacteristic?): Boolean {
-        if (_characteristic == null) {
+    private fun isMatchingCharacteristic(characteristic: BluetoothGattCharacteristic?): Boolean {
+        if (characteristic == null) {
             return false
         }
-        val uuid: UUID = _characteristic.uuid
+        val uuid: UUID = characteristic.uuid
         return matchCharacteristicUUID(uuid.toString())
     }
 
