@@ -1,13 +1,11 @@
 package kaist.iclab.wearablelogger
 
 import android.Manifest
-import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.util.Log
 import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -15,26 +13,23 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import com.google.android.gms.wearable.Wearable
-import kaist.iclab.loggerstructure.core.PermissionActivity
-import kaist.iclab.wearablelogger.blu.DataCollectionService
 import kaist.iclab.wearablelogger.step.SamsungHealthPermissionManager
-import kaist.iclab.wearablelogger.step.StepCollectorService
 import kaist.iclab.wearablelogger.ui.MainApp
+import kaist.iclab.wearablelogger.ui.MainViewModel
 import org.koin.android.ext.android.inject
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
-private const val TAG = "MainActivity"
+//private const val TAG = "MainActivity"
 
 class MainActivity : ComponentActivity() {
     private val dataClient by lazy { Wearable.getDataClient(this) }
     private val dataReceiver: DataReceiver by inject()
     private lateinit var permissionLauncher: ActivityResultLauncher<Array<String>>
 
+    private val mainViewModel: MainViewModel by viewModel()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        setContent {
-            MainApp()
-        }
 
         permissionLauncher = registerForActivityResult(
             ActivityResultContracts.RequestMultiplePermissions()
@@ -43,16 +38,33 @@ class MainActivity : ComponentActivity() {
             if (allGranted) {
                 proceedAfterPermissionGranted()
             } else {
-                Toast.makeText(this, "일부 권한이 거부되어 기능이 제한됩니다.", Toast.LENGTH_LONG).show()
+                Toast.makeText(this, "일부 권한이 거부되었습니다. 모든 권한을 허용해주셔야 정상적인 실험이 가능합니다.", Toast.LENGTH_LONG).show()
             }
         }
+
+        setContent {
+            MainApp(
+                mainViewModel = mainViewModel
+            )
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        dataClient.addListener(dataReceiver)
 
         Handler(Looper.getMainLooper()).post {
             checkAndRequestPermissions()
         }
     }
 
+    override fun onPause() {
+        super.onPause()
+        dataClient.removeListener(dataReceiver)
+    }
+
     private fun checkAndRequestPermissions() {
+        mainViewModel.disableAll()
         // Request for android permission
         val permissionList = listOfNotNull(
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) Manifest.permission.POST_NOTIFICATIONS else null,
@@ -80,24 +92,11 @@ class MainActivity : ComponentActivity() {
         val permManager = SamsungHealthPermissionManager(this)
         permManager.request { res ->
             if (res) {
-                val intent = Intent(this, StepCollectorService::class.java)
-                ContextCompat.startForegroundService(this, intent)
+                mainViewModel.enableStep()
             }
         }
 
-        val intent = Intent(this, DataCollectionService::class.java)
-        ContextCompat.startForegroundService(this, intent)
-    }
-
-    override fun onResume() {
-        super.onResume()
-        Log.v(TAG, "add dataReceiver")
-        dataClient.addListener(dataReceiver)
-    }
-
-    override fun onPause() {
-        super.onPause()
-        dataClient.removeListener(dataReceiver)
+        mainViewModel.enableEnv()
     }
 }
 

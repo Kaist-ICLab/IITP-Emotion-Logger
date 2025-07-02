@@ -18,12 +18,12 @@ import java.util.Locale
 
 @Composable
 fun StatusScreen(
-    mainViewModel: MainViewModel,
+    statusViewModel: StatusViewModel,
     modifier: Modifier = Modifier
 ) {
-    val recentData = mainViewModel.recentDataState.collectAsState().value
-    val stepData = mainViewModel.stepsState.collectAsState().value
-    val environmentData = mainViewModel.environmentState.collectAsState().value
+    val recentData = statusViewModel.recentDataState.collectAsState().value
+    val stepData = statusViewModel.stepsState.collectAsState().value
+    val environmentData = statusViewModel.environmentState.collectAsState().value
 
     Column(
         modifier = modifier
@@ -42,7 +42,7 @@ fun StatusScreen(
             horizontalAlignment = Alignment.CenterHorizontally,
         ) {
             Button(
-                onClick={ mainViewModel.flush() }
+                onClick={ statusViewModel.flush() }
             ) {
                 Text("Flush collected data")
             }

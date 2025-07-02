@@ -2,10 +2,13 @@ package kaist.iclab.wearablelogger.ui
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -28,7 +31,8 @@ enum class ScreenType {
 
 @Composable
 fun MainApp(
-    mainViewModel: MainViewModel = koinViewModel(),
+    mainViewModel: MainViewModel,
+    statusViewModel: StatusViewModel = koinViewModel(),
     bluetoothViewModel: BluetoothViewModel = koinViewModel()
 ) {
     val navController = rememberNavController()
@@ -37,8 +41,13 @@ fun MainApp(
 
     MaterialTheme {
         NavHost(navController = navController, startDestination = ScreenType.MAIN.name) {
-            composable(ScreenType.MAIN.name) { MainScreen(navController) }
-            composable(ScreenType.SENSOR_STATUS.name) { StatusScreen(mainViewModel) }
+            composable(ScreenType.MAIN.name) {
+                MainScreen(
+                    mainViewModel = mainViewModel,
+                    navController = navController
+                )
+            }
+            composable(ScreenType.SENSOR_STATUS.name) { StatusScreen(statusViewModel) }
             composable(ScreenType.BLUETOOTH_SCAN.name) { BluetoothScanScreen(bluetoothViewModel) }
         }
     }
@@ -46,21 +55,53 @@ fun MainApp(
 
 @Composable
 fun MainScreen(
+    mainViewModel: MainViewModel,
     navController: NavController,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
+
     Column(
         modifier = modifier.fillMaxSize().padding(16.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Button(onClick = { navController.navigate(ScreenType.BLUETOOTH_SCAN.name) }) {
+        Button(
+            onClick = { navController.navigate(ScreenType.BLUETOOTH_SCAN.name) },
+            modifier = Modifier.fillMaxWidth()
+        ) {
             Text("Scan for sensor")
         }
-        Spacer(modifier = Modifier.height(16.dp))
-        Button(onClick = { navController.navigate(ScreenType.SENSOR_STATUS.name) }) {
+        Spacer(modifier = Modifier.height(8.dp))
+        Button(
+            onClick = { navController.navigate(ScreenType.SENSOR_STATUS.name) },
+            modifier = Modifier.fillMaxWidth()
+        ) {
             Text("View Sensor Status")
         }
+        Spacer(modifier = Modifier.height(16.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth().padding(8.dp)
+        ) {
+            Button(
+                onClick = { mainViewModel.toggleEnvRunning(context) },
+                modifier = Modifier.weight(1.0F)
+            ) {
+                if(!mainViewModel.isEnvRunning) Text("Run env Sensor")
+                else Text("Stop env Sensor")
+            }
+
+            Spacer(modifier = Modifier.width(8.dp))
+
+            Button(
+                onClick = { mainViewModel.toggleStepRunning(context) },
+                modifier = Modifier.weight(1.0F)
+            ) {
+                if(!mainViewModel.isStepRunning) Text("Run step Sensor")
+                else Text("Stop step Sensor")
+            }
+        }
+
     }
 }
 

@@ -69,7 +69,7 @@ class DataReceiver(
         val requestBody = jsonBody.toRequestBody(jsonMediaType)
 
         val request = Request.Builder()
-            .url("http://143.248.57.106:3000/data")
+            .url("http://logging.iclab.dev/data")
             .post(requestBody)
             .build()
 
@@ -81,7 +81,7 @@ class DataReceiver(
             override fun onResponse(call: Call, response: okhttp3.Response) {
                 response.use {
                     if (!response.isSuccessful) {
-                        Log.e(TAG, "Error uploading recentEntity to server")
+                        Log.e(TAG, "Error uploading recentEntity to server: ${response.message}")
                     }
                 }
             }

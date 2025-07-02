@@ -13,6 +13,7 @@ import kaist.iclab.wearablelogger.db.RoomDB
 import kaist.iclab.wearablelogger.step.StepCollector
 import kaist.iclab.wearablelogger.ui.BluetoothViewModel
 import kaist.iclab.wearablelogger.ui.MainViewModel
+import kaist.iclab.wearablelogger.ui.StatusViewModel
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
@@ -83,7 +84,7 @@ val koinModule = module {
     }
 
     viewModel {
-        MainViewModel(
+        StatusViewModel(
             get<RoomDB>().stepDao(), get<RoomDB>().environmentDao(), get<RoomDB>().recentDao(), listOf(
                 get<AccDaoWrapper>(),
                 get<PpgDaoWrapper>(),
@@ -95,8 +96,10 @@ val koinModule = module {
     }
 
     viewModel {
-        BluetoothViewModel(
+        BluetoothViewModel()
+    }
 
-        )
+    viewModel {
+        MainViewModel()
     }
 }

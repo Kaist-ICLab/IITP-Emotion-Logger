@@ -39,7 +39,7 @@
             android:foregroundServiceType="connectedDevice"
             />
         <service
-            android:name="kaist.iclab.wearablelogger.blu.DataCollectionService"
+            android:name="kaist.iclab.wearablelogger.blu.EnvCollectorService"
             android:foregroundServiceType="connectedDevice"
             />
     </application>

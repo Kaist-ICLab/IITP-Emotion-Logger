@@ -1,74 +1,67 @@
 package kaist.iclab.wearablelogger.ui
 
+import android.content.Context
+import android.content.Intent
 import android.util.Log
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import kaist.iclab.loggerstructure.core.DaoWrapper
-import kaist.iclab.loggerstructure.core.EntityBase
-import kaist.iclab.loggerstructure.dao.StepDao
-import kaist.iclab.loggerstructure.entity.StepEntity
-import kaist.iclab.wearablelogger.dao.EnvironmentDao
-import kaist.iclab.wearablelogger.dao.RecentDao
-import kaist.iclab.wearablelogger.entity.EnvironmentEntity
-import kaist.iclab.wearablelogger.entity.RecentEntity
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.stateIn
-import kotlinx.coroutines.launch
+import kaist.iclab.wearablelogger.blu.EnvCollectorService
+import kaist.iclab.wearablelogger.step.StepCollectorService
 
 private const val TAG = "MainViewModel"
 
-class MainViewModel(
-    stepDao: StepDao,
-    val environmentDao: EnvironmentDao,
-    val recentDao: RecentDao,
-    val daoWrappers: List<DaoWrapper<EntityBase>>
-) : ViewModel(){
-    fun flush() {
-        Log.v(TAG, "Flush all data")
-        daoWrappers.forEach {
-            CoroutineScope(Dispatchers.IO).launch {
-                it.deleteAll()
-            }
-        }
-        CoroutineScope(Dispatchers.IO).launch {
-            recentDao.deleteAll()
-            environmentDao.deleteAll()
-        }
+class MainViewModel(): ViewModel() {
+    var isStepAvailable by mutableStateOf(false)
+        private set
+
+    var isStepRunning by mutableStateOf(false)
+        private set
+
+    var isEnvAvailable by mutableStateOf(false)
+        private set
+
+    var isEnvRunning by mutableStateOf(false)
+        private set
+    
+    fun disableAll() {
+        isStepAvailable = false
+        isEnvAvailable = false
     }
 
-    val recentDataState: StateFlow<RecentEntity?> =
-        recentDao.getLastEvent().stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.Companion.WhileSubscribed(5_000L),
-            initialValue = RecentEntity(
-                timestamp = -1,
-                acc = "null",
-                ppg = "null",
-                hr = "null",
-                skinTemp = "null"
-            )
-        )
+    fun enableStep() {
+        isStepAvailable = true
+    }
 
-    val stepsState: StateFlow<StepEntity?> =
-        stepDao.getLastByFlow().stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.Companion.WhileSubscribed(5_000L),
-            initialValue = StepEntity(dataReceived = -1, startTime = -1, endTime = -1, step = 0)
-        )
+    fun enableEnv() {
+        isEnvAvailable = true
+    }
 
-    val environmentState: StateFlow<EnvironmentEntity?> =
-        environmentDao.getLastEvent().stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.Companion.WhileSubscribed(5_000L),
-            initialValue = EnvironmentEntity(
-                timestamp = -1,
-                temperature = 0.0,
-                humidity = 0.0,
-                co2 = 0,
-                tvoc = 0
-            )
-        )
+    fun toggleStepRunning(context: Context) {
+        val intent = Intent(context, StepCollectorService::class.java)
+        if(isStepRunning) {
+            context.stopService(intent)
+            Log.d(TAG, "Stop StepCollectorService")
+        } else {
+            ContextCompat.startForegroundService(context, intent)
+            Log.d(TAG, "Start StepCollectorService")
+        }
+
+        isStepRunning = !isStepRunning
+    }
+    
+    fun toggleEnvRunning(context: Context) {
+        val intent = Intent(context, EnvCollectorService::class.java)
+        if(isEnvRunning) {
+            context.stopService(intent)
+            Log.d(TAG, "Stop DataCollectionService")
+        } else {
+            ContextCompat.startForegroundService(context, intent)
+            Log.d(TAG, "Start DataCollectionService")
+        }
+
+        isEnvRunning = !isEnvRunning
+    }
 }

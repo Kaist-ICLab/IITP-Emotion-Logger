@@ -1,7 +1,6 @@
 package kaist.iclab.wearablelogger.blu
 
 import android.Manifest
-import android.app.Notification
 import android.bluetooth.BluetoothProfile
 import android.content.Intent
 import android.hardware.Sensor
@@ -10,7 +9,6 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.Build
 import android.util.Log
-import androidx.core.app.NotificationCompat
 import kaist.iclab.wearablelogger.dao.EnvironmentDao
 import kaist.iclab.wearablelogger.entity.EnvironmentEntity
 import kaist.iclab.wearablelogger.util.ForegroundNotification
@@ -23,7 +21,7 @@ import java.util.TimerTask
 
 private const val TAG = "DataCollectionService"
 
-class DataCollectionService : BLEService(), SensorEventListener {
+class EnvCollectorService : BLEService(), SensorEventListener {
     companion object {
         private var envSensorTimer: Timer? = null
     }
@@ -73,7 +71,6 @@ class DataCollectionService : BLEService(), SensorEventListener {
                     Log.v(TAG, "co2: $cO2")
                     Log.v(TAG, "tvoc: $tVOC")
 
-                    // TODO: Insert data here
                     CoroutineScope(Dispatchers.IO).launch {
                         environmentDao.insertEvent(EnvironmentEntity(
                             timestamp = timestamp,
@@ -99,7 +96,6 @@ class DataCollectionService : BLEService(), SensorEventListener {
 //            stopSelf();
             Log.v(TAG, "BluetoothDisconnected")
             deviceAddress = sharedPreferencesUtil?.deviceAddress
-            deviceAddress = "FC:F5:C4:6F:48:C6" // TODO
             initialize()
             connect(deviceAddress)
         }
@@ -107,8 +103,7 @@ class DataCollectionService : BLEService(), SensorEventListener {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         // SENSOR_DELAY_NORMAL : 20,000 msec delay
-//        deviceAddress = sharedPreferencesUtil?.deviceAddress
-        deviceAddress = "FC:F5:C4:6F:48:C6" // TODO
+        deviceAddress = sharedPreferencesUtil?.deviceAddress
         initialize()
         Log.v(TAG, "deviceAddress: $deviceAddress")
         connect(deviceAddress)

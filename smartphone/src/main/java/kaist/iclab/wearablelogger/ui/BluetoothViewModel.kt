@@ -41,6 +41,12 @@ class BluetoothViewModel() : ViewModel() {
     var scanResults = mutableStateMapOf<String, BluetoothDevice>()
         private set
 
+    var bluSensorAddress by mutableStateOf("")
+        private set
+
+    var deviceAddress: String? = null
+        private set
+
     // ble adapter
     private var bleAdapter: BluetoothAdapter? = null
 
@@ -50,20 +56,18 @@ class BluetoothViewModel() : ViewModel() {
     private var bleScanner: BluetoothLeScanner? = null
     // scan handler
     private var scanHandler: Handler? = null
-    private val sharedPreferencesUtil: SharedPreferencesUtil? = null
+    private var sharedPreferencesUtil: SharedPreferencesUtil? = null
 
     // BLE connected Gatt
     private var bleGatt: BluetoothGatt? = null
 
-    var deviceAddress: String? = null
-        private set
-
-    private var blusensorAddress: String? = "FC:F5:C4:6F:48:C6"
-//    private val deviceAddr: String? = null
-
     fun initBLEAdapter(context: Context) {
         val bleManager: BluetoothManager = context.getSystemService(Context.BLUETOOTH_SERVICE) as BluetoothManager
         bleAdapter = bleManager.adapter
+    }
+
+    fun changeBluSensorAddress(value: String) {
+        bluSensorAddress = value
     }
 
     fun startScan(context: Context) {
@@ -71,19 +75,19 @@ class BluetoothViewModel() : ViewModel() {
 
         // check ble adapter and ble enabled
         if (bleAdapter == null || !bleAdapter!!.isEnabled) {
-//            requestEnableBLE()
-//            tv_status_!!.setText("Scanning Failed: ble not enabled")
             Log.w(TAG, "Scanning Failed: ble not enabled")
             return
         }
 
+        sharedPreferencesUtil = SharedPreferencesUtil.getInstance(context)
+
         // setup scan filters
         val settings = ScanSettings.Builder().setScanMode(ScanSettings.SCAN_MODE_LOW_LATENCY).build()
         val filters: MutableList<ScanFilter?> = ArrayList<ScanFilter?>()
-//        val scanFilter = ScanFilter.Builder()
-//            .setServiceUuid(ParcelUuid(UUID_SERVICE))
-//            .build()
-//        filters.add(scanFilter)
+        val scanFilter = ScanFilter.Builder()
+            .setServiceUuid(ParcelUuid(UUID_SERVICE))
+            .build()
+        filters.add(scanFilter)
 
         scanResults = mutableStateMapOf()
         scanCallback = BLEScanCallback(scanResults as MutableMap<String, BluetoothDevice>)
@@ -153,25 +157,20 @@ class BluetoothViewModel() : ViewModel() {
         // check if nothing found
         if (scanResults.isEmpty()) {
             Log.d(TAG, "scan result is empty")
-//            tv_status_!!.setText("scan result is empty")
             return
         }
         // loop over the scan results and connect to them
         for (deviceAddress in scanResults.keys) {
             Log.d(TAG, "Found device: $deviceAddress")
-//            tv_status_!!.setText("Found device: $deviceAddress")
 
             // get device instance using its MAC address
             val device = scanResults[deviceAddress]
-
             Log.d(TAG, "connecting device: $deviceAddress")
-//            tv_status_!!.setText("connecting device: " + deviceAddress)
 
             // connect to the device
-            if ((blusensorAddress != deviceAddress) and (blusensorAddress != "null")) {
+            if ((bluSensorAddress != deviceAddress) and (bluSensorAddress != "")) {
                 Log.d(TAG, "Filter out the device whose address: $deviceAddress")
                 scanResults.remove(deviceAddress)
-//                tv_status_!!.setText("Filter out the device whose address: " + deviceAddress)
                 continue
             }
             connectDevice(device!!, context)
@@ -179,8 +178,6 @@ class BluetoothViewModel() : ViewModel() {
     }
 
     private fun connectDevice(device: BluetoothDevice, context: Context) {
-        // update the status
-//        tv_status_!!.setText("Connecting to " + _device.getAddress())
         val gattClientCallback = GattClientCallback(context)
         if (ActivityCompat.checkSelfPermission(context, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
@@ -192,17 +189,11 @@ class BluetoothViewModel() : ViewModel() {
             // for ActivityCompat#requestPermissions for more details.
             return
         }
-        this.deviceAddress = device.getAddress()
+        deviceAddress = device.getAddress()
+        Log.d(TAG, "connect to: $deviceAddress")
+
 
         bleGatt = device.connectGatt(context, true, gattClientCallback)
-//        String curr_status = tv_status_.getText().toString();
-//        if (curr_status.equals("Connected")){
-//            Log.d(TAG, "startDataCollection");
-//
-//        }
-//        else{
-//            Log.d(TAG, "not connected");
-//        }
     }
 
     /* BLE Scan Callback class */

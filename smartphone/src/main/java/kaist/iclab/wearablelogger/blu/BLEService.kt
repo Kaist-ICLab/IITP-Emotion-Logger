@@ -275,10 +275,7 @@ open class BLEService : Service() {
             && mBluetoothGatt != null
         ) {
             Log.d(TAG, "Trying to use an existing mBluetoothGatt for connection.")
-            if (ActivityCompat.checkSelfPermission(
-                    this,
-                    permissionBluetoothConnect
-                ) != PackageManager.PERMISSION_GRANTED
+            if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED
             ) {
                 Log.w(TAG, "Bluetooth permission issues.")
                 // TODO: Consider calling
@@ -326,11 +323,7 @@ open class BLEService : Service() {
             Log.w(TAG, "BluetoothAdapter not initialized")
             return
         }
-        if (ActivityCompat.checkSelfPermission(
-                this,
-                permissionBluetoothConnect
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
             // here to request the missing permissions, and then overriding
@@ -377,11 +370,7 @@ open class BLEService : Service() {
             Log.w(TAG, "BluetoothAdapter not initialized")
             return
         }
-        if (ActivityCompat.checkSelfPermission(
-                this,
-                permissionBluetoothConnect
-            ) != PackageManager.PERMISSION_GRANTED
-        ) {
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.BLUETOOTH_CONNECT) != PackageManager.PERMISSION_GRANTED) {
             // TODO: Consider calling
             //    ActivityCompat#requestPermissions
             // here to request the missing permissions, and then overriding
