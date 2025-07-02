@@ -22,7 +22,7 @@ private const val TAG = "MainViewModel"
 
 class MainViewModel(
     stepDao: StepDao,
-    environmentDao: EnvironmentDao,
+    val environmentDao: EnvironmentDao,
     val recentDao: RecentDao,
     val daoWrappers: List<DaoWrapper<EntityBase>>
 ) : ViewModel(){
