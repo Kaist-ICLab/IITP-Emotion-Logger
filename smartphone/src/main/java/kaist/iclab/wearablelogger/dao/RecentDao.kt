@@ -9,12 +9,14 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface RecentDao {
-
     @Insert(onConflict = OnConflictStrategy.Companion.ABORT)
     suspend fun insertEvents(recentEntity: List<RecentEntity>)
 
     @Query("SELECT * FROM recent ORDER BY timestamp DESC LIMIT 1")
-    fun getLastEvent(): Flow<RecentEntity?>
+    fun getLastByFlow(): Flow<RecentEntity?>
+
+    @Query("SELECT * FROM recent ORDER BY timestamp DESC LIMIT 1")
+    fun getLast(): RecentEntity?
 
     @Query("DELETE FROM recent")
     fun deleteAll()

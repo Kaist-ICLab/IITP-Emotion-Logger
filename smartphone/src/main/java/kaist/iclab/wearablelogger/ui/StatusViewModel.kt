@@ -5,11 +5,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kaist.iclab.loggerstructure.core.DaoWrapper
 import kaist.iclab.loggerstructure.core.EntityBase
-import kaist.iclab.loggerstructure.dao.StepDao
-import kaist.iclab.loggerstructure.entity.StepEntity
-import kaist.iclab.wearablelogger.dao.EnvironmentDao
+import kaist.iclab.wearablelogger.dao.StepDao
+import kaist.iclab.wearablelogger.entity.StepEntity
+import kaist.iclab.wearablelogger.dao.EnvDao
 import kaist.iclab.wearablelogger.dao.RecentDao
-import kaist.iclab.wearablelogger.entity.EnvironmentEntity
+import kaist.iclab.wearablelogger.entity.EnvEntity
 import kaist.iclab.wearablelogger.entity.RecentEntity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -21,10 +21,10 @@ import kotlinx.coroutines.launch
 private const val TAG = "MainViewModel"
 
 class StatusViewModel(
-    stepDao: StepDao,
-    val environmentDao: EnvironmentDao,
-    val recentDao: RecentDao,
-    val daoWrappers: List<DaoWrapper<EntityBase>>
+    private val stepDao: StepDao,
+    private val envDao: EnvDao,
+    private val recentDao: RecentDao,
+    private val daoWrappers: List<DaoWrapper<EntityBase>>
 ) : ViewModel(){
     fun flush() {
         Log.v(TAG, "Flush all data")
@@ -34,13 +34,14 @@ class StatusViewModel(
             }
         }
         CoroutineScope(Dispatchers.IO).launch {
+            stepDao.deleteAll()
             recentDao.deleteAll()
-            environmentDao.deleteAll()
+            envDao.deleteAll()
         }
     }
 
     val recentDataState: StateFlow<RecentEntity?> =
-        recentDao.getLastEvent().stateIn(
+        recentDao.getLastByFlow().stateIn(
             scope = viewModelScope,
             started = SharingStarted.Companion.WhileSubscribed(5_000L),
             initialValue = RecentEntity(
@@ -59,11 +60,11 @@ class StatusViewModel(
             initialValue = StepEntity(dataReceived = -1, startTime = -1, endTime = -1, step = 0)
         )
 
-    val environmentState: StateFlow<EnvironmentEntity?> =
-        environmentDao.getLastEvent().stateIn(
+    val environmentState: StateFlow<EnvEntity?> =
+        envDao.getLastByFlow().stateIn(
             scope = viewModelScope,
             started = SharingStarted.Companion.WhileSubscribed(5_000L),
-            initialValue = EnvironmentEntity(
+            initialValue = EnvEntity(
                 timestamp = -1,
                 temperature = 0.0,
                 humidity = 0.0,

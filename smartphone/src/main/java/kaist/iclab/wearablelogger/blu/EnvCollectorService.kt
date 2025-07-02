@@ -9,8 +9,8 @@ import android.hardware.SensorEventListener
 import android.hardware.SensorManager
 import android.os.Build
 import android.util.Log
-import kaist.iclab.wearablelogger.dao.EnvironmentDao
-import kaist.iclab.wearablelogger.entity.EnvironmentEntity
+import kaist.iclab.wearablelogger.dao.EnvDao
+import kaist.iclab.wearablelogger.entity.EnvEntity
 import kaist.iclab.wearablelogger.util.ForegroundNotification
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -26,7 +26,7 @@ class EnvCollectorService : BLEService(), SensorEventListener {
         private var envSensorTimer: Timer? = null
     }
 
-    private val environmentDao by inject<EnvironmentDao>()
+    private val envDao by inject<EnvDao>()
 
     private var deviceAddress: String? = null
     private var sensorManager: SensorManager? = null
@@ -72,7 +72,7 @@ class EnvCollectorService : BLEService(), SensorEventListener {
                     Log.v(TAG, "tvoc: $tVOC")
 
                     CoroutineScope(Dispatchers.IO).launch {
-                        environmentDao.insertEvent(EnvironmentEntity(
+                        envDao.insertEvent(EnvEntity(
                             timestamp = timestamp,
                             temperature = temperature,
                             humidity = humidity,

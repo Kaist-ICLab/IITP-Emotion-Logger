@@ -1,4 +1,4 @@
-package kaist.iclab.wearablelogger.db
+package kaist.iclab.wearablelogger
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
@@ -7,21 +7,20 @@ import kaist.iclab.loggerstructure.dao.AccDao
 import kaist.iclab.loggerstructure.dao.HRDao
 import kaist.iclab.loggerstructure.dao.PpgDao
 import kaist.iclab.loggerstructure.dao.SkinTempDao
+import kaist.iclab.wearablelogger.dao.StepDao
 import kaist.iclab.loggerstructure.entity.AccEntity
 import kaist.iclab.loggerstructure.entity.HREntity
 import kaist.iclab.loggerstructure.entity.PpgEntity
 import kaist.iclab.loggerstructure.entity.SkinTempEntity
+import kaist.iclab.wearablelogger.entity.StepEntity
 import kaist.iclab.loggerstructure.util.Converter
-import kaist.iclab.loggerstructure.dao.StepDao
-import kaist.iclab.loggerstructure.entity.StepEntity
-import kaist.iclab.wearablelogger.dao.EnvironmentDao
+import kaist.iclab.wearablelogger.dao.EnvDao
 import kaist.iclab.wearablelogger.dao.RecentDao
-import kaist.iclab.wearablelogger.entity.EnvironmentEntity
+import kaist.iclab.wearablelogger.entity.EnvEntity
 import kaist.iclab.wearablelogger.entity.RecentEntity
 
-
 @Database(
-    version = 19,
+    version = 20,
     entities = [
         RecentEntity::class,
         PpgEntity::class,
@@ -29,7 +28,7 @@ import kaist.iclab.wearablelogger.entity.RecentEntity
         HREntity::class,
         SkinTempEntity::class,
         StepEntity::class,
-        EnvironmentEntity::class,
+        EnvEntity::class,
     ],
     exportSchema = false,
 )
@@ -42,5 +41,5 @@ abstract class RoomDB : RoomDatabase() {
     abstract fun hrDao(): HRDao
     abstract fun skinTempDao(): SkinTempDao
     abstract fun stepDao(): StepDao
-    abstract fun environmentDao(): EnvironmentDao
+    abstract fun envDao(): EnvDao
 }

@@ -11,8 +11,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import kaist.iclab.loggerstructure.entity.StepEntity
-import kaist.iclab.wearablelogger.entity.EnvironmentEntity
+import kaist.iclab.wearablelogger.entity.StepEntity
+import kaist.iclab.wearablelogger.entity.EnvEntity
 import kaist.iclab.wearablelogger.entity.RecentEntity
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -37,7 +37,7 @@ fun StatusScreen(
         )
         HorizontalDivider()
         EnvironmentStatus(
-            environmentData = environmentData?: EnvironmentEntity(timestamp = -1, temperature = 0.0, humidity = 0.0, tvoc = 0, co2 = 0)
+            environmentData = environmentData?: EnvEntity(timestamp = -1, temperature = 0.0, humidity = 0.0, tvoc = 0, co2 = 0)
         )
         Column(
             modifier = Modifier.fillMaxWidth(),
@@ -87,7 +87,7 @@ fun StepStatus(
 
 @Composable
 fun EnvironmentStatus(
-    environmentData: EnvironmentEntity,
+    environmentData: EnvEntity,
     modifier: Modifier = Modifier
 ) {
     val timestamp = environmentData.timestamp

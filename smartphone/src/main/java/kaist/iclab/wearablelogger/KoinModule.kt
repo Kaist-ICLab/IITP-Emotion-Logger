@@ -7,13 +7,13 @@ import kaist.iclab.loggerstructure.daowrapper.AccDaoWrapper
 import kaist.iclab.loggerstructure.daowrapper.HRDaoWrapper
 import kaist.iclab.loggerstructure.daowrapper.PpgDaoWrapper
 import kaist.iclab.loggerstructure.daowrapper.SkinTempDaoWrapper
-import kaist.iclab.loggerstructure.daowrapper.StepDaoWrapper
 import kaist.iclab.loggerstructure.util.CollectorType
-import kaist.iclab.wearablelogger.db.RoomDB
 import kaist.iclab.wearablelogger.step.StepCollector
 import kaist.iclab.wearablelogger.ui.BluetoothViewModel
 import kaist.iclab.wearablelogger.ui.MainViewModel
 import kaist.iclab.wearablelogger.ui.StatusViewModel
+import kaist.iclab.wearablelogger.util.DataReceiver
+import kaist.iclab.wearablelogger.util.DataUploaderRepository
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
@@ -47,7 +47,7 @@ val koinModule = module {
         get<RoomDB>().stepDao()
     }
     single{
-        get<RoomDB>().environmentDao()
+        get<RoomDB>().envDao()
     }
 
     single {
@@ -66,31 +66,42 @@ val koinModule = module {
         SkinTempDaoWrapper(get<RoomDB>().skinTempDao())
     }
 
-    single {
-        StepDaoWrapper(get<RoomDB>().stepDao())
-    }
-
     single{
         StepCollector(androidContext(),get<RoomDB>().stepDao())
     }
 
-    single{
-        DataReceiver(androidContext(), get(), mapOf(
-            CollectorType.ACC.name to get<AccDaoWrapper>(),
-            CollectorType.PPG.name to get<PpgDaoWrapper>(),
-            CollectorType.HR.name to get<HRDaoWrapper>(),
-            CollectorType.SKINTEMP.name to get<SkinTempDaoWrapper>()
-        ) as Map<String, DaoWrapper<EntityBase>>)
+    single {
+        DataUploaderRepository(
+            androidContext(),
+            recentDao = get<RoomDB>().recentDao(),
+            stepDao = get<RoomDB>().stepDao(),
+            envDao = get<RoomDB>().envDao(),
+        )
     }
+
+    single{
+        DataReceiver(
+            androidContext(),
+            get(),
+            mapOf(
+                CollectorType.ACC.name to get<AccDaoWrapper>(),
+                CollectorType.PPG.name to get<PpgDaoWrapper>(),
+                CollectorType.HR.name to get<HRDaoWrapper>(),
+                CollectorType.SKINTEMP.name to get<SkinTempDaoWrapper>()
+            ) as Map<String, DaoWrapper<EntityBase>>,
+            get<DataUploaderRepository>()
+        )
+    }
+
+
 
     viewModel {
         StatusViewModel(
-            get<RoomDB>().stepDao(), get<RoomDB>().environmentDao(), get<RoomDB>().recentDao(), listOf(
+            get<RoomDB>().stepDao(), get<RoomDB>().envDao(), get<RoomDB>().recentDao(), listOf(
                 get<AccDaoWrapper>(),
                 get<PpgDaoWrapper>(),
                 get<HRDaoWrapper>(),
                 get<SkinTempDaoWrapper>(),
-                get<StepDaoWrapper>()
             ) as List<DaoWrapper<EntityBase>>
         )
     }

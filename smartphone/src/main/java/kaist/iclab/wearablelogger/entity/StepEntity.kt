@@ -1,4 +1,4 @@
-package kaist.iclab.loggerstructure.entity
+package kaist.iclab.wearablelogger.entity
 
 import androidx.room.Entity
 import androidx.room.PrimaryKey
