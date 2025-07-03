@@ -71,6 +71,10 @@ dependencies {
     implementation(libs.kotlinx.coroutines.android)
     implementation(libs.androidx.navigation.compose)
 
+    // For saving preferences
+    implementation(libs.datastore.preferences)
+    implementation(libs.datastore.preferences.core)
+
     // For periodic upload
     implementation(libs.work.runtime.ktx)
 

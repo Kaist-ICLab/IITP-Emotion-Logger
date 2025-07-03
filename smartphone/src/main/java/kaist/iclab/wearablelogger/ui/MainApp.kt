@@ -1,6 +1,7 @@
 package kaist.iclab.wearablelogger.ui
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -42,16 +44,26 @@ fun MainApp(
     bluetoothViewModel.initBLEAdapter(LocalContext.current)
 
     MaterialTheme {
-        NavHost(navController = navController, startDestination = ScreenType.MAIN.name) {
-            composable(ScreenType.MAIN.name) {
-                MainScreen(
-                    mainViewModel = mainViewModel,
-                    navController = navController
-                )
+        Scaffold {
+            innerPadding ->
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(innerPadding)
+            ) {
+                NavHost(navController = navController, startDestination = ScreenType.MAIN.name) {
+                    composable(ScreenType.MAIN.name) {
+                        MainScreen(
+                            mainViewModel = mainViewModel,
+                            navController = navController
+                        )
+                    }
+                    composable(ScreenType.SENSOR_STATUS.name) { StatusScreen(statusViewModel) }
+                    composable(ScreenType.BLUETOOTH_SCAN.name) { BluetoothScanScreen(bluetoothViewModel) }
+                }
             }
-            composable(ScreenType.SENSOR_STATUS.name) { StatusScreen(statusViewModel) }
-            composable(ScreenType.BLUETOOTH_SCAN.name) { BluetoothScanScreen(bluetoothViewModel) }
         }
+
     }
 }
 

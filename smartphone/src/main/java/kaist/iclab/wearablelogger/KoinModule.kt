@@ -16,6 +16,7 @@ import kaist.iclab.wearablelogger.ui.MainViewModel
 import kaist.iclab.wearablelogger.ui.StatusViewModel
 import kaist.iclab.wearablelogger.util.DataReceiver
 import kaist.iclab.wearablelogger.util.DataUploaderRepository
+import kaist.iclab.wearablelogger.util.StateRepository
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
 import org.koin.dsl.module
@@ -98,6 +99,12 @@ val koinModule = module {
         )
     }
 
+    single {
+        StateRepository(
+            androidContext()
+        )
+    }
+
     single{
         DataReceiver(
             androidContext(),
@@ -120,7 +127,8 @@ val koinModule = module {
                 get<PpgDaoWrapper>(),
                 get<HRDaoWrapper>(),
                 get<SkinTempDaoWrapper>(),
-            ) as List<DaoWrapper<EntityBase>>
+            ) as List<DaoWrapper<EntityBase>>,
+            get<StateRepository>()
         )
     }
 

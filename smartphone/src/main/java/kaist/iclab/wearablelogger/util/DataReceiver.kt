@@ -15,6 +15,7 @@ import kaist.iclab.loggerstructure.entity.RecentEntity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import org.koin.java.KoinJavaComponent.inject
 
 class DataReceiver(
     val context: Context,
@@ -25,6 +26,8 @@ class DataReceiver(
     companion object {
         private const val TAG = "DataReceiver"
     }
+
+    private val stateRepository by inject<StateRepository>(StateRepository::class.java)
 
     override fun onDataChanged(dataEventBuffer: DataEventBuffer) {
         dataEventBuffer.forEach { dataEvent ->
@@ -76,6 +79,7 @@ class DataReceiver(
 
                     CoroutineScope(Dispatchers.IO).launch {
                         daoWrapper.insertEventsFromJson(json)
+                        stateRepository.updateSyncTime(key, System.currentTimeMillis())
                     }
                 }
             }

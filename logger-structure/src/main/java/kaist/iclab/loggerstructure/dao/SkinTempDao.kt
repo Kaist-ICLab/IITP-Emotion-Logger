@@ -10,6 +10,7 @@ import kaist.iclab.loggerstructure.entity.SkinTempEntity
 interface SkinTempDao {
     @Query("SELECT * FROM skinTempEvent")
     suspend fun getAll(): List<SkinTempEntity>
+
     @Insert(onConflict = OnConflictStrategy.Companion.IGNORE)
     suspend fun insertEvent(skinTempEntity: SkinTempEntity)
 

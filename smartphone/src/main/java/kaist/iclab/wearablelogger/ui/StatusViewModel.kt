@@ -11,6 +11,8 @@ import kaist.iclab.loggerstructure.dao.EnvDao
 import kaist.iclab.loggerstructure.dao.RecentDao
 import kaist.iclab.loggerstructure.entity.EnvEntity
 import kaist.iclab.loggerstructure.entity.RecentEntity
+import kaist.iclab.loggerstructure.util.CollectorType
+import kaist.iclab.wearablelogger.util.StateRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.SharingStarted
@@ -24,21 +26,15 @@ class StatusViewModel(
     private val stepDao: StepDao,
     private val envDao: EnvDao,
     private val recentDao: RecentDao,
-    private val daoWrappers: List<DaoWrapper<EntityBase>>
+    private val daoWrappers: List<DaoWrapper<EntityBase>>,
+    stateRepository: StateRepository
 ) : ViewModel(){
-    fun flush() {
-        Log.v(TAG, "Flush all data")
-        daoWrappers.forEach {
-            CoroutineScope(Dispatchers.IO).launch {
-                it.deleteAll()
-            }
-        }
-        CoroutineScope(Dispatchers.IO).launch {
-            stepDao.deleteAll()
-            recentDao.deleteAll()
-            envDao.deleteAll()
-        }
-    }
+    val syncTime: StateFlow<Map<CollectorType, Long>> =
+        stateRepository.syncTimeFlow.stateIn(
+            scope = CoroutineScope(Dispatchers.IO),
+            started = SharingStarted.WhileSubscribed(5_000L),
+            initialValue = mapOf()
+        )
 
     val recentDataState: StateFlow<RecentEntity?> =
         recentDao.getLastByFlow().stateIn(
@@ -72,4 +68,18 @@ class StatusViewModel(
                 tvoc = 0
             )
         )
+
+    fun flush() {
+        Log.v(TAG, "Flush all data")
+        daoWrappers.forEach {
+            CoroutineScope(Dispatchers.IO).launch {
+                it.deleteAll()
+            }
+        }
+        CoroutineScope(Dispatchers.IO).launch {
+            stepDao.deleteAll()
+            recentDao.deleteAll()
+            envDao.deleteAll()
+        }
+    }
 }

@@ -10,6 +10,7 @@ import kaist.iclab.loggerstructure.entity.PpgEntity
 interface PpgDao {
     @Query("SELECT * FROM ppgEvent")
     suspend fun getAll(): List<PpgEntity>
+
     @Insert(onConflict = OnConflictStrategy.Companion.IGNORE)
     suspend fun insertEvent(ppgEntity: PpgEntity)
 

@@ -1,7 +1,6 @@
 package kaist.iclab.wearablelogger
 
 import android.Manifest
-import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -44,6 +43,7 @@ class MainActivity : ComponentActivity() {
         permissionLauncher = registerForActivityResult(
             ActivityResultContracts.RequestMultiplePermissions()
         ) { result: Map<String, Boolean> ->
+            Log.d(TAG, "$result")
             val allGranted = result.values.all { it }
             if (allGranted) {
                 proceedAfterPermissionGranted()
@@ -57,6 +57,10 @@ class MainActivity : ComponentActivity() {
                 mainViewModel = mainViewModel
             )
         }
+
+        Handler(Looper.getMainLooper()).post {
+            checkAndRequestPermissions()
+        }
     }
 
     override fun onResume() {
@@ -65,10 +69,6 @@ class MainActivity : ComponentActivity() {
 
         // Setup periodic upload worker
         scheduleSensorUploadWorker()
-
-        Handler(Looper.getMainLooper()).post {
-            checkAndRequestPermissions()
-        }
     }
 
     override fun onPause() {
@@ -78,20 +78,22 @@ class MainActivity : ComponentActivity() {
 
     private fun checkAndRequestPermissions() {
         mainViewModel.disableAll()
+
         // Request for android permission
         val permissionList = listOfNotNull(
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) Manifest.permission.POST_NOTIFICATIONS else null,
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) Manifest.permission.BODY_SENSORS_BACKGROUND else null,
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            Manifest.permission.ACTIVITY_RECOGNITION,
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) Manifest.permission.BLUETOOTH_CONNECT else null,
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) Manifest.permission.BLUETOOTH_SCAN else null,
-            Manifest.permission.ACCESS_FINE_LOCATION,
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) Manifest.permission.POST_NOTIFICATIONS else null,
             Manifest.permission.BODY_SENSORS,
-            Manifest.permission.ACTIVITY_RECOGNITION
+//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) Manifest.permission.BODY_SENSORS_BACKGROUND else null,
         )
 
         val permissionsToRequest = permissionList.filter {
             ContextCompat.checkSelfPermission(this, it) != PackageManager.PERMISSION_GRANTED
         }
+        Log.d(TAG, "permissionsToRequest: $permissionsToRequest")
 
         if (permissionsToRequest.isEmpty()) {
             proceedAfterPermissionGranted()

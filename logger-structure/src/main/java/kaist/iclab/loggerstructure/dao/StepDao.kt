@@ -10,6 +10,7 @@ import kotlinx.coroutines.flow.Flow
 interface StepDao {
     @Query("SELECT * FROM stepEvent")
     suspend fun getAll(): List<StepEntity>
+
     @Insert
     suspend fun insertEvent(stepEntity: StepEntity)
     @Insert

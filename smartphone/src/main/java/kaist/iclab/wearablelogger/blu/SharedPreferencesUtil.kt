@@ -8,7 +8,6 @@ class SharedPreferencesUtil {
     private val sharedPreferences: SharedPreferences?
         get() = Companion.sharedPreferences
 
-
     var deviceAddress: String?
         get() {
             val address = this.sharedPreferences!!.getString(
@@ -29,7 +28,6 @@ class SharedPreferencesUtil {
     companion object {
         private const val SHARED_PREFERENCES_NAME = "SHARED_PREFERENCES_NAME"
         private const val DEVICE_ADDRESS = "DEVICE_ADDRESS"
-
 
         private var sharedPreferences: SharedPreferences? = null
 

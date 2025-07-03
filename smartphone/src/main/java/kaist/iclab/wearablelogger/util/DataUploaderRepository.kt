@@ -6,6 +6,7 @@ import android.provider.Settings
 import android.util.Log
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
+import com.google.gson.JsonParser
 import com.google.gson.Strictness
 import kaist.iclab.loggerstructure.core.DaoWrapper
 import kaist.iclab.loggerstructure.core.EntityBase
@@ -24,7 +25,6 @@ import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
-import org.json.JSONObject
 import java.io.IOException
 
 class DataUploaderRepository(
@@ -61,12 +61,23 @@ class DataUploaderRepository(
         val recentEntity = recentDao.getLast()
         val jsonObject: JsonObject = gson.toJsonTree(recentEntity).asJsonObject
 
+        // Convert strings to JSON
+        val properties = listOf("acc", "ppg", "hr", "skinTemp")
+        for(key in properties) {
+            val rawInnerJSON = jsonObject.get(key).toString()
+            val innerJSON = rawInnerJSON.replace("\\", "").trim('"')
+            Log.d(TAG, innerJSON)
+
+            if(innerJSON == "null") jsonObject.add(key, null)
+            else jsonObject.add(key, JsonParser.parseString(innerJSON).asJsonObject)
+        }
+
         runBlocking {
             val stepEntity = stepDao.getLast()
             val envEntity = envDao.getLast()
 
-            jsonObject.addProperty("step", gson.toJson(stepEntity))
-            jsonObject.addProperty("env", gson.toJson(envEntity))
+            jsonObject.add("step", gson.toJsonTree(stepEntity))
+            jsonObject.add("env", gson.toJsonTree(envEntity))
         }
 
         jsonObject.addProperty("device_id", deviceId)
@@ -78,13 +89,14 @@ class DataUploaderRepository(
         for(entry in dataDao){
             val name = entry.key
             val dao = entry.value
+
             CoroutineScope(Dispatchers.IO).launch {
-                val data = gson.toJson(dao.getAll())
+                val data = gson.toJsonTree(dao.getAll())
                 dao.deleteAll()
 
-                val json = JSONObject()
-                    .put("data", data)
-                    .put("device_id", deviceId)
+                val json = JsonObject()
+                json.add("data", data)
+                json.addProperty("device_id", deviceId)
 
                 val logType = when(name) {
                     CollectorType.SKINTEMP.name -> LogType.SKINTEMP
