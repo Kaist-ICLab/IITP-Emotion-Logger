@@ -26,6 +26,9 @@ import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import java.io.IOException
+import java.time.ZoneId
+import java.time.ZonedDateTime
+import java.time.format.DateTimeFormatter
 
 class DataUploaderRepository(
     val context: Context,
@@ -61,6 +64,8 @@ class DataUploaderRepository(
         val recentEntity = recentDao.getLast()
         val jsonObject: JsonObject = gson.toJsonTree(recentEntity).asJsonObject
 
+
+
         // Convert strings to JSON
         val properties = listOf("acc", "ppg", "hr", "skinTemp")
         for(key in properties) {
@@ -81,6 +86,7 @@ class DataUploaderRepository(
         }
 
         jsonObject.addProperty("device_id", deviceId)
+        jsonObject.addProperty("timestamp", toTimestampz(jsonObject["timestamp"].asLong))
         uploadJSON(jsonObject.toString(), LogType.RECENT)
     }
 
@@ -91,8 +97,18 @@ class DataUploaderRepository(
             val dao = entry.value
 
             CoroutineScope(Dispatchers.IO).launch {
-                val data = gson.toJsonTree(dao.getAll())
+                val data = gson.toJsonTree(dao.getAll()).asJsonArray
                 dao.deleteAll()
+
+                val timeProperty = listOf("timestamp", "dataReceived", "startTime", "endTime")
+                for(elem in data) {
+                    val elemObject = elem.asJsonObject
+                    elemObject.addProperty("device_id", deviceId)
+                    for(prop in timeProperty) {
+                        if(elemObject.has(prop))
+                            elemObject.addProperty(prop, toTimestampz(elemObject[prop].asLong))
+                    }
+                }
 
                 val json = JsonObject()
                 json.add("data", data)
@@ -142,5 +158,17 @@ class DataUploaderRepository(
                 }
             }
         })
+    }
+
+    private fun toTimestampz(timeMillis: Long): String {
+
+        val kstTime = ZonedDateTime.ofInstant(
+            java.time.Instant.ofEpochMilli(timeMillis),
+            ZoneId.of("Asia/Seoul")
+        )
+
+        val string = kstTime.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+        Log.d(TAG, "Time: $timeMillis, Converted to: $string")
+        return string
     }
 }

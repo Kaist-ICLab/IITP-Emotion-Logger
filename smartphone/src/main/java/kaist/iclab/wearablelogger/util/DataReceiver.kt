@@ -60,11 +60,6 @@ class DataReceiver(
             recentDao.insertEvents(recentEntities)
             dataUploaderRepository.uploadRecentData()
         }
-
-//        if(flag) {
-//            dataUploaderRepository.uploadFullData()
-//            flag = false
-//        }
     }
 
     private fun unpackDataAsset(data: DataMap, key: String) {
