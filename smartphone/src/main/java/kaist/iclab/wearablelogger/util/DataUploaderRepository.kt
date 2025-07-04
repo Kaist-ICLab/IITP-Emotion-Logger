@@ -87,6 +87,7 @@ class DataUploaderRepository(
 
         jsonObject.addProperty("device_id", deviceId)
         jsonObject.addProperty("timestamp", toTimestampz(jsonObject["timestamp"].asLong))
+        jsonObject.remove("id")
         uploadJSON(jsonObject.toString(), LogType.RECENT)
     }
 
@@ -108,6 +109,8 @@ class DataUploaderRepository(
                         if(elemObject.has(prop))
                             elemObject.addProperty(prop, toTimestampz(elemObject[prop].asLong))
                     }
+
+                    elemObject.remove("id")
                 }
 
                 val json = JsonObject()
