@@ -49,7 +49,6 @@ class CollectorRepository(
     fun upload(){
         CoroutineScope(Dispatchers.IO).launch {
             collectors.forEach {collector ->
-//                uploaderRepository.sync2Server(data)
                 uploaderRepository.upload2Phone(collector)
             }
         }

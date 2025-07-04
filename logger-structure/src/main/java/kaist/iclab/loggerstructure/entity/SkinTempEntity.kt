@@ -16,3 +16,12 @@ data class SkinTempEntity(
     val objectTemp: Float,
     val status: Int
 ): EntityBase
+
+val defaultSkinTempEntity = SkinTempEntity(
+    id = 0,
+    dataReceived = -1,
+    timestamp = -1,
+    ambientTemp = 0.0F,
+    objectTemp = 0.0F,
+    status = 0,
+)

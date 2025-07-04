@@ -8,6 +8,9 @@ import kaist.iclab.loggerstructure.entity.AccEntity
 
 @Dao
 interface AccDao {
+    @Query("SELECT * FROM accEvent WHERE timestamp <= :timestamp")
+    suspend fun getBefore(timestamp: Long): List<AccEntity>
+
     @Query("SELECT * FROM accEvent")
     suspend fun getAll(): List<AccEntity>
 
@@ -16,6 +19,9 @@ interface AccDao {
 
     @Insert(onConflict = OnConflictStrategy.Companion.IGNORE)
     suspend fun insertEvents(accEntities: List<AccEntity>)
+
+    @Query("DELETE FROM accEvent WHERE timestamp <= :timestamp")
+    suspend fun deleteBefore(timestamp: Long)
 
     @Query("DELETE FROM accEvent WHERE 1")
     suspend fun deleteAll()

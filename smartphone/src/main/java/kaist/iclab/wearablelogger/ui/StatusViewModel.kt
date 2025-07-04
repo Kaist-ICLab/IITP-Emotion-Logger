@@ -5,13 +5,16 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import kaist.iclab.loggerstructure.core.DaoWrapper
 import kaist.iclab.loggerstructure.core.EntityBase
-import kaist.iclab.loggerstructure.dao.StepDao
-import kaist.iclab.loggerstructure.entity.StepEntity
 import kaist.iclab.loggerstructure.dao.EnvDao
-import kaist.iclab.loggerstructure.dao.RecentDao
+import kaist.iclab.loggerstructure.dao.StepDao
+import kaist.iclab.loggerstructure.entity.AccEntity
 import kaist.iclab.loggerstructure.entity.EnvEntity
-import kaist.iclab.loggerstructure.entity.RecentEntity
+import kaist.iclab.loggerstructure.entity.HREntity
+import kaist.iclab.loggerstructure.entity.PpgEntity
+import kaist.iclab.loggerstructure.entity.SkinTempEntity
+import kaist.iclab.loggerstructure.entity.StepEntity
 import kaist.iclab.loggerstructure.util.CollectorType
+import kaist.iclab.wearablelogger.util.DataReceiver
 import kaist.iclab.wearablelogger.util.StateRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -25,9 +28,8 @@ private const val TAG = "MainViewModel"
 class StatusViewModel(
     private val stepDao: StepDao,
     private val envDao: EnvDao,
-    private val recentDao: RecentDao,
     private val daoWrappers: List<DaoWrapper<EntityBase>>,
-    stateRepository: StateRepository
+    stateRepository: StateRepository,
 ) : ViewModel(){
     val syncTime: StateFlow<Map<CollectorType, Long>> =
         stateRepository.syncTime.stateIn(
@@ -36,18 +38,35 @@ class StatusViewModel(
             initialValue = mapOf()
         )
 
-    val recentDataState: StateFlow<RecentEntity?> =
-        recentDao.getLastByFlow().stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.Companion.WhileSubscribed(5_000L),
-            initialValue = RecentEntity(
-                timestamp = -1,
-                acc = "null",
-                ppg = "null",
-                hr = "null",
-                skinTemp = "null"
-            )
-        )
+    val recentTimestamp: StateFlow<Long> = DataReceiver.recentTimestamp.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Companion.WhileSubscribed(5_000L),
+        initialValue = -1
+    )
+
+    val recentHREntity: StateFlow<HREntity?> = DataReceiver.recentHREntity.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Companion.WhileSubscribed(5_000L),
+        initialValue = null
+    )
+
+    val recentAccEntity: StateFlow<AccEntity?> = DataReceiver.recentAccEntity.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Companion.WhileSubscribed(5_000L),
+        initialValue = null
+    )
+
+    val recentPpgEntity: StateFlow<PpgEntity?> = DataReceiver.recentPpgEntity.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Companion.WhileSubscribed(5_000L),
+        initialValue = null
+    )
+
+    val recentSkinTempEntity: StateFlow<SkinTempEntity?> = DataReceiver.recentSkinTempEntity.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.Companion.WhileSubscribed(5_000L),
+        initialValue = null
+    )
 
     val stepsState: StateFlow<StepEntity?> =
         stepDao.getLastByFlow().stateIn(
@@ -78,7 +97,6 @@ class StatusViewModel(
         }
         CoroutineScope(Dispatchers.IO).launch {
             stepDao.deleteAll()
-            recentDao.deleteAll()
             envDao.deleteAll()
         }
     }

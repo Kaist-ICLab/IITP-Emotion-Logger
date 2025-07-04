@@ -56,15 +56,25 @@ class PpgCollector(
         return configRepository.getSensorStatus("PPG Green")
     }
 
-    override suspend fun stringifyData():String{
+    override suspend fun stringifyData(): Pair<String, Long>{
         val gson = GsonBuilder().setStrictness(Strictness.LENIENT).create()
-        return gson.toJson(ppgDao.getAll())
+        val lastEntity = ppgDao.getLast()
+        val lastTimestamp = lastEntity?.timestamp ?: 0L
+
+        return Pair(gson.toJson(ppgDao.getBefore(lastTimestamp)), lastTimestamp)
     }
+
+    override fun flushBefore(timestamp: Long) {
+        CoroutineScope(Dispatchers.IO).launch {
+            ppgDao.deleteBefore(timestamp)
+            Log.d(TAG, "Flush $TAG Data before $timestamp")
+        }
+    }
+
     override fun flush() {
-        Log.d(TAG, "Flush PPG Data")
         CoroutineScope(Dispatchers.IO).launch {
             ppgDao.deleteAll()
-            Log.d(TAG, "deleteAll() for PPG Data")
+            Log.d(TAG, "Flush $TAG Data")
         }
     }
 }

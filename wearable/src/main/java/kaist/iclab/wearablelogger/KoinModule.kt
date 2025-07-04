@@ -2,16 +2,14 @@ package kaist.iclab.wearablelogger
 
 import androidx.room.Room
 import kaist.iclab.loggerstructure.core.CollectorInterface
-import kaist.iclab.wearablelogger.collector.core.CollectorRepository
 import kaist.iclab.wearablelogger.collector.AccCollector
 import kaist.iclab.wearablelogger.collector.HRCollector
 import kaist.iclab.wearablelogger.collector.PpgCollector
 import kaist.iclab.wearablelogger.collector.SkinTempCollector
-import kaist.iclab.wearablelogger.collector.TestCollector
+import kaist.iclab.wearablelogger.collector.core.CollectorRepository
 import kaist.iclab.wearablelogger.config.ConfigRepository
 import kaist.iclab.wearablelogger.healthtracker.HealthTrackerRepository
 import kaist.iclab.wearablelogger.ui.SettingsViewModel
-import kaist.iclab.wearablelogger.uploader.SensorDataUploadWorker
 import kaist.iclab.wearablelogger.uploader.UploaderRepository
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
@@ -48,14 +46,13 @@ val koinModule = module {
     single {
         SkinTempCollector(androidContext(), get(), get(), get<MyDataRoomDB>().skinTempDao())
     }
-    single {
-        TestCollector(get<MyDataRoomDB>().testDao())
-    }
+
     single {
         UploaderRepository(
             androidContext()
         )
     }
+
     single {
         CollectorRepository(
             listOf<CollectorInterface>(

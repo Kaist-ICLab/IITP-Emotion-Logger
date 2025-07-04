@@ -17,3 +17,13 @@ data class HREntity(
     val ibi: List<Int>,
     val ibiStatus: List<Int>
 ): EntityBase
+
+val defaultHREntity = HREntity(
+    id = 0,
+    dataReceived = -1,
+    timestamp = -1,
+    hr = -1,
+    hrStatus = 0,
+    ibi = listOf(),
+    ibiStatus = listOf()
+)

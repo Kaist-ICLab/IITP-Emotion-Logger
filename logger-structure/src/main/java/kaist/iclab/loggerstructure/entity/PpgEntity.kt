@@ -15,3 +15,11 @@ data class PpgEntity(
     val ppg : Int,
     val status: Int
 ): EntityBase
+
+val defaultPpgEntity = PpgEntity(
+    id = 0,
+    dataReceived = -1,
+    timestamp = -1,
+    ppg = -1,
+    status = 0
+)

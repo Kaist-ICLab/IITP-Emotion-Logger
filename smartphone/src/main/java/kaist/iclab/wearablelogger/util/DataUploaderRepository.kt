@@ -10,7 +10,6 @@ import com.google.gson.Strictness
 import kaist.iclab.loggerstructure.core.DaoWrapper
 import kaist.iclab.loggerstructure.core.EntityBase
 import kaist.iclab.loggerstructure.dao.EnvDao
-import kaist.iclab.loggerstructure.dao.RecentDao
 import kaist.iclab.loggerstructure.dao.StepDao
 import kaist.iclab.loggerstructure.util.CollectorType
 import kotlinx.coroutines.CoroutineScope
@@ -29,7 +28,6 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
 class DataUploaderRepository(
-    private val recentDao: RecentDao,
     private val stepDao: StepDao,
     private val envDao: EnvDao,
     private val dataDao: Map<String, DaoWrapper<EntityBase>>,
@@ -52,36 +50,32 @@ class DataUploaderRepository(
         STEP("step")
     }
 
-    fun uploadRecentData() {
+    fun uploadRecentData(recentEntity: JsonObject) {
         Log.d(TAG, "Upload recent Data")
         val gson = GsonBuilder().setStrictness(Strictness.LENIENT).create()
-        val recentEntity = recentDao.getLast()
-        val jsonObject: JsonObject = gson.toJsonTree(recentEntity).asJsonObject
-
-
 
         // Convert strings to JSON
-        val properties = listOf("acc", "ppg", "hr", "skinTemp")
+        val properties = listOf("acc", "ppg", "hr", "skin")
         for(key in properties) {
-            val rawInnerJSON = jsonObject.get(key).toString()
+            val rawInnerJSON = recentEntity.get(key).toString()
             val innerJSON = rawInnerJSON.replace("\\", "").trim('"')
 
-            if(innerJSON == "null") jsonObject.add(key, null)
-            else jsonObject.add(key, JsonParser.parseString(innerJSON).asJsonObject)
+            if(innerJSON == "null") recentEntity.add(key, null)
+            else recentEntity.add(key, JsonParser.parseString(innerJSON).asJsonObject)
         }
 
         runBlocking {
             val stepEntity = stepDao.getLast()
             val envEntity = envDao.getLast()
 
-            jsonObject.add("step", gson.toJsonTree(stepEntity))
-            jsonObject.add("env", gson.toJsonTree(envEntity))
+            recentEntity.add("step", gson.toJsonTree(stepEntity))
+            recentEntity.add("env", gson.toJsonTree(envEntity))
         }
 
-        jsonObject.addProperty("device_id", deviceId)
-        jsonObject.addProperty("timestamp", toTimestampz(jsonObject["timestamp"].asLong))
-        jsonObject.remove("id")
-        uploadJSON(jsonObject.toString(), LogType.RECENT)
+        recentEntity.addProperty("device_id", deviceId)
+        recentEntity.addProperty("timestamp", toTimestampz(recentEntity["timestamp"].asLong))
+        recentEntity.remove("id")
+        uploadJSON(recentEntity.toString(), LogType.RECENT)
     }
 
     fun uploadFullData() {
@@ -104,10 +98,11 @@ class DataUploaderRepository(
                     else -> LogType.ERROR
                 }
 
-                val data = gson.toJsonTree(dao.getAll()).asJsonArray
-                dao.deleteAll()
+                val pair = dao.getBeforeLast()
+                val threshold = pair.first
+                val entries = pair.second
 
-                Log.d(TAG, "${logType.url} data length: ${data.size()}")
+                val data = gson.toJsonTree(entries).asJsonArray
 
                 for(elem in data) {
                     val elemObject = elem.asJsonObject
@@ -130,6 +125,8 @@ class DataUploaderRepository(
                     uploadJSON(json.toString(), logType)
                     sleep(9000)
                 }
+
+                dao.deleteBefore(threshold)
             }
         }
     }
@@ -153,29 +150,35 @@ class DataUploaderRepository(
             .build()
 
         var shouldTryUpload = true
-        while(shouldTryUpload) {
+        var timeoutMillis = 5000L
+        val maxTimeoutMillis = 20000L
+
+        while(true) {
             try {
                 val response = client.newCall(request).execute()
                 response.use {
                     if (!response.isSuccessful) {
                         Log.e(TAG, "${logType.url}: Error uploading to server: ${response.message}")
-                        sleep(5000)
                     } else {
                         Log.d(TAG, "${logType.url}: Upload successful")
                     }
 
                     shouldTryUpload = retryAtTimeout && !response.isSuccessful
                 }
+
+                if(!shouldTryUpload) break
+
             } catch (e: IOException) {
                 Log.e(TAG, "${logType.url}: Upload failed - ${e.message}")
                 e.printStackTrace()
-                sleep(5000)
             }
+
+            sleep(timeoutMillis)
+            timeoutMillis = (timeoutMillis * 2).coerceAtMost(maxTimeoutMillis)
         }
     }
 
     private fun toTimestampz(timeMillis: Long): String {
-
         val kstTime = ZonedDateTime.ofInstant(
             java.time.Instant.ofEpochMilli(timeMillis),
             ZoneId.of("Asia/Seoul")

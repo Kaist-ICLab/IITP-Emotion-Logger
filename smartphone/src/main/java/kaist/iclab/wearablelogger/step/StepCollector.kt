@@ -91,16 +91,25 @@ class StepCollector(
 //        return configRepository.getSensorStatus("Step")
     }
 
-    override suspend fun stringifyData(): String {
+    override suspend fun stringifyData(): Pair<String, Long> {
         val gson = GsonBuilder().setStrictness(Strictness.LENIENT).create()
-        return gson.toJson(mapOf(javaClass.simpleName to stepDao.getAll()))
+        val lastEntity = stepDao.getLast()
+        val lastId = lastEntity?.id ?: 0L
+
+        return Pair(gson.toJson(stepDao.getBefore(lastId)), lastId)
+    }
+
+    override fun flushBefore(id: Long) {
+        CoroutineScope(Dispatchers.IO).launch {
+            stepDao.deleteBefore(id)
+            Log.d(TAG, "Flush Step Data")
+        }
     }
 
     override fun flush() {
-        Log.d(TAG, "Flush Step Data")
         CoroutineScope(Dispatchers.IO).launch {
             stepDao.deleteAll()
-            Log.d(TAG, "deleteAll() for Step Data")
+            Log.d(TAG, "Flush Step Data")
         }
     }
 }

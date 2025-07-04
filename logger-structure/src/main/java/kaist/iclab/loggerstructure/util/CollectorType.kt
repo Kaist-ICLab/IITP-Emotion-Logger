@@ -7,5 +7,4 @@ enum class CollectorType {
     SKINTEMP,
     STEP,
     ENV,
-    TEST
 }

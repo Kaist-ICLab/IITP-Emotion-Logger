@@ -6,11 +6,20 @@ import kaist.iclab.loggerstructure.core.DaoWrapper
 import kaist.iclab.loggerstructure.dao.HRDao
 import kaist.iclab.loggerstructure.entity.HREntity
 
-private const val TAG = "HRDaoWrapper"
-
 class HRDaoWrapper(
     private val hrDao: HRDao
 ): DaoWrapper<HREntity> {
+    companion object {
+        private val TAG = HRDaoWrapper::class.simpleName
+    }
+
+    override suspend fun getBeforeLast(): Pair<Long, List<HREntity>> {
+        val lastTimestamp = hrDao.getLast()?.timestamp ?: 0
+        val entries = hrDao.getBefore(lastTimestamp)
+
+        return Pair(lastTimestamp, entries)
+    }
+
     override suspend fun getAll(): List<HREntity> {
         return hrDao.getAll()
     }
@@ -21,6 +30,10 @@ class HRDaoWrapper(
 
     override suspend fun insertEvents(entities: List<HREntity>) {
         hrDao.insertEvents(entities)
+    }
+
+    override suspend fun deleteBefore(timestamp: Long) {
+        hrDao.deleteBefore(timestamp)
     }
 
     override suspend fun deleteAll() {

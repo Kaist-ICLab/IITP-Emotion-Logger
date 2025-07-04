@@ -55,16 +55,26 @@ class SkinTempCollector(
             }
         }
     }
-    override suspend fun stringifyData():String{
+    override suspend fun stringifyData(): Pair<String, Long>{
         val gson = GsonBuilder().setStrictness(Strictness.LENIENT).create()
-        return gson.toJson(skinTempDao.getAll())
+        val lastEntity = skinTempDao.getLast()
+        val lastTimestamp = lastEntity?.timestamp ?: 0L
+
+        return Pair(gson.toJson(skinTempDao.getBefore(lastTimestamp)), lastTimestamp)
+    }
+
+
+    override fun flushBefore(timestamp: Long) {
+        CoroutineScope(Dispatchers.IO).launch {
+            skinTempDao.deleteBefore(timestamp)
+            Log.d(TAG, "Flush $TAG Data before $timestamp")
+        }
     }
 
     override fun flush() {
-        Log.d(TAG, "Flush SkinTemp Data")
         CoroutineScope(Dispatchers.IO).launch {
             skinTempDao.deleteAll()
-            Log.d(TAG, "deleteAll() for SkinTemp Data")
+            Log.d(TAG, "Flush $TAG Data")
         }
     }
 }

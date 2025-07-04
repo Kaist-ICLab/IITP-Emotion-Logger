@@ -6,11 +6,20 @@ import kaist.iclab.loggerstructure.core.DaoWrapper
 import kaist.iclab.loggerstructure.dao.PpgDao
 import kaist.iclab.loggerstructure.entity.PpgEntity
 
-private const val TAG = "PpgDaoWrapper"
-
 class PpgDaoWrapper(
     private val ppgDao: PpgDao
 ): DaoWrapper<PpgEntity> {
+    companion object {
+        private val TAG = PpgDaoWrapper::class.simpleName
+    }
+
+    override suspend fun getBeforeLast(): Pair<Long, List<PpgEntity>> {
+        val lastTimestamp = ppgDao.getLast()?.timestamp ?: 0
+        val entries = ppgDao.getBefore(lastTimestamp)
+
+        return Pair(lastTimestamp, entries)
+    }
+
     override suspend fun getAll(): List<PpgEntity> {
         return ppgDao.getAll()
     }
@@ -21,6 +30,10 @@ class PpgDaoWrapper(
 
     override suspend fun insertEvents(entities: List<PpgEntity>) {
         ppgDao.insertEvents(entities)
+    }
+
+    override suspend fun deleteBefore(timestamp: Long) {
+        ppgDao.deleteBefore(timestamp)
     }
 
     override suspend fun deleteAll() {

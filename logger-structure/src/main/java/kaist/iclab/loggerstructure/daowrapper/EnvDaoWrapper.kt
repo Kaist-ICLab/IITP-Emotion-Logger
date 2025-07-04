@@ -7,31 +7,42 @@ import kaist.iclab.loggerstructure.dao.EnvDao
 import kaist.iclab.loggerstructure.entity.EnvEntity
 
 class EnvDaoWrapper(
-    private val EnvDao: EnvDao
+    private val envDao: EnvDao
 ): DaoWrapper<EnvEntity> {
     companion object {
-        private val TAG = this::class.simpleName
+        private val TAG = EnvDaoWrapper::class.simpleName
+    }
+
+    override suspend fun getBeforeLast(): Pair<Long, List<EnvEntity>> {
+        val lastTimestamp = envDao.getLast()?.timestamp ?: 0
+        val entries = envDao.getBefore(lastTimestamp)
+
+        return Pair(lastTimestamp, entries)
     }
     
     override suspend fun getAll(): List<EnvEntity> {
-        return EnvDao.getAll()
+        return envDao.getAll()
     }
 
     override suspend fun insertEvent(entity: EnvEntity) {
-        EnvDao.insertEvent(entity)
+        envDao.insertEvent(entity)
     }
 
     override suspend fun insertEvents(entities: List<EnvEntity>) {
-        EnvDao.insertEvents(entities)
+        envDao.insertEvents(entities)
+    }
+
+    override suspend fun deleteBefore(id: Long) {
+        envDao.deleteBefore(id)
     }
 
     override suspend fun deleteAll() {
         Log.d(TAG, "deleteAll() for Env Data")
-        EnvDao.deleteAll()
+        envDao.deleteAll()
     }
 
     override suspend fun getLast(): EnvEntity? {
-        return EnvDao.getLast()
+        return envDao.getLast()
     }
 
     override suspend fun insertEventsFromJson(json: String) {

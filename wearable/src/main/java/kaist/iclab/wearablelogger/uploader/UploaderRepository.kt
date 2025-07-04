@@ -22,42 +22,28 @@ class UploaderRepository(
         // Try one at a time
         runBlocking {
             try {
+                val pair = collector.stringifyData()
+                val stringData = pair.first
+                val lastTimestamp = pair.second
+
                 // 1.5h worth of SQL is very likely to be >100KB
                 // So convert to Asset
-                Log.d(TAG, "${collector.key} data: ${collector.stringifyData()}")
-                val asset = Asset.createFromBytes(collector.stringifyData().toByteArray())
+                Log.d(TAG, "${collector.key} data: $stringData")
+                val asset = Asset.createFromBytes(stringData.toByteArray())
 
                 // Unique dataPath for each collector for individual robustness
                 val request = PutDataMapRequest.create("$dataPath/${collector.key}/${System.currentTimeMillis()}").run {
                     dataMap.putAsset("data", asset)
                     asPutDataRequest()
                 }
+
                 dataClient.putDataItem(request).await()
                 Log.d(TAG, "${collector.key} Data has been uploaded")
-                collector.flush()
+                collector.flushBefore(lastTimestamp)
+
             } catch (exception: Exception) {
                 Log.e(TAG, "Saving DataItem failed: $exception")
             }
         }
     }
-
-//    suspend fun sync2Server(data: String) {
-//        Log.d(TAG, "sync2Server")
-//
-//        val api = RetrofitClient.getRetrofit().create(ServerAPIInterface::class.java)
-//        try{
-//            api.postData(data).enqueue(object : Callback<String> {
-//                override fun onResponse(call: Call<String>, response: Response<String>) {
-//                    Log.d(TAG, response.message())
-//                }
-//
-//                override fun onFailure(call: Call<String>, t: Throwable) {
-//                    Log.d(TAG, "onFailure: ${t.message}")
-//                }
-//            })
-//        } catch (e: Exception){
-//            Log.e(TAG, "$e")
-//        }
-//
-//    }
 }

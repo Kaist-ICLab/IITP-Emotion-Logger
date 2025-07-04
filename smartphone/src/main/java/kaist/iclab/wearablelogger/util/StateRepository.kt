@@ -22,10 +22,10 @@ class StateRepository(private val context: Context) {
     val syncTime: Flow<Map<CollectorType, Long>> = context.dataStore.data
         .map { pref ->
             mapOf(
-                CollectorType.SKINTEMP to (pref[longPreferencesKey(CollectorType.SKINTEMP.name)] ?: -1),
                 CollectorType.HR to (pref[longPreferencesKey(CollectorType.HR.name)] ?: -1),
                 CollectorType.ACC to (pref[longPreferencesKey(CollectorType.ACC.name)] ?: -1),
                 CollectorType.PPG to (pref[longPreferencesKey(CollectorType.PPG.name)] ?: -1),
+                CollectorType.SKINTEMP to (pref[longPreferencesKey(CollectorType.SKINTEMP.name)] ?: -1),
             )
         }
 

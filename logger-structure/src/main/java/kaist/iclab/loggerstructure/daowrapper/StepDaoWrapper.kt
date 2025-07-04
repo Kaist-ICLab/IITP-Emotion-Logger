@@ -7,31 +7,42 @@ import kaist.iclab.loggerstructure.dao.StepDao
 import kaist.iclab.loggerstructure.entity.StepEntity
 
 class StepDaoWrapper(
-    private val StepDao: StepDao
+    private val stepDao: StepDao
 ): DaoWrapper<StepEntity> {
     companion object {
-        private val TAG = this::class.simpleName
+        private val TAG = StepDaoWrapper::class.simpleName
+    }
+
+    override suspend fun getBeforeLast(): Pair<Long, List<StepEntity>> {
+        val lastId = stepDao.getLast()?.id ?: 0
+        val entries = stepDao.getBefore(lastId)
+
+        return Pair(lastId, entries)
     }
     
     override suspend fun getAll(): List<StepEntity> {
-        return StepDao.getAll()
+        return stepDao.getAll()
     }
 
     override suspend fun insertEvent(entity: StepEntity) {
-        StepDao.insertEvent(entity)
+        stepDao.insertEvent(entity)
     }
 
     override suspend fun insertEvents(entities: List<StepEntity>) {
-        StepDao.insertEvents(entities)
+        stepDao.insertEvents(entities)
+    }
+
+    override suspend fun deleteBefore(timestamp: Long) {
+        stepDao.deleteBefore(timestamp)
     }
 
     override suspend fun deleteAll() {
         Log.d(TAG, "deleteAll() for Step Data")
-        StepDao.deleteAll()
+        stepDao.deleteAll()
     }
 
     override suspend fun getLast(): StepEntity? {
-        return StepDao.getLast()
+        return stepDao.getLast()
     }
 
     override suspend fun insertEventsFromJson(json: String) {

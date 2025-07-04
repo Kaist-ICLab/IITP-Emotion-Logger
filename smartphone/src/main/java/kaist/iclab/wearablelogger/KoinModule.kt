@@ -35,9 +35,6 @@ val koinModule = module {
 
     // Dao
     single{
-        get<RoomDB>().recentDao()
-    }
-    single{
         get<RoomDB>().accDao()
     }
     single{
@@ -91,7 +88,6 @@ val koinModule = module {
 
     single {
         DataUploaderRepository(
-            recentDao = get<RoomDB>().recentDao(),
             stepDao = get<RoomDB>().stepDao(),
             envDao = get<RoomDB>().envDao(),
             dataDao = mapOf(
@@ -114,7 +110,6 @@ val koinModule = module {
     single{
         DataReceiver(
             androidContext(),
-            get(),
             mapOf(
                 CollectorType.ACC.name to get<AccDaoWrapper>(),
                 CollectorType.PPG.name to get<PpgDaoWrapper>(),
@@ -128,13 +123,13 @@ val koinModule = module {
     // ViewModel
     viewModel {
         StatusViewModel(
-            get<RoomDB>().stepDao(), get<RoomDB>().envDao(), get<RoomDB>().recentDao(), listOf(
+            get<RoomDB>().stepDao(), get<RoomDB>().envDao(), listOf(
                 get<AccDaoWrapper>(),
                 get<PpgDaoWrapper>(),
                 get<HRDaoWrapper>(),
                 get<SkinTempDaoWrapper>(),
             ) as List<DaoWrapper<EntityBase>>,
-            get<StateRepository>()
+            get<StateRepository>(),
         )
     }
 

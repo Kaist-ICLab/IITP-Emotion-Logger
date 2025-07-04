@@ -6,11 +6,20 @@ import kaist.iclab.loggerstructure.core.DaoWrapper
 import kaist.iclab.loggerstructure.dao.AccDao
 import kaist.iclab.loggerstructure.entity.AccEntity
 
-private const val TAG = "AccDaoWrapper"
-
 class AccDaoWrapper(
     private val accDao: AccDao
 ): DaoWrapper<AccEntity> {
+    companion object {
+        private val TAG = AccDaoWrapper::class.simpleName
+    }
+
+    override suspend fun getBeforeLast(): Pair<Long, List<AccEntity>> {
+        val lastTimestamp = accDao.getLast()?.timestamp ?: 0
+        val entries = accDao.getBefore(lastTimestamp)
+
+        return Pair(lastTimestamp, entries)
+    }
+
     override suspend fun getAll(): List<AccEntity> {
         return accDao.getAll()
     }
@@ -21,6 +30,10 @@ class AccDaoWrapper(
 
     override suspend fun insertEvents(entities: List<AccEntity>) {
         accDao.insertEvents(entities)
+    }
+
+    override suspend fun deleteBefore(id: Long) {
+        accDao.deleteBefore(id)
     }
 
     override suspend fun deleteAll() {

@@ -8,6 +8,9 @@ import kaist.iclab.loggerstructure.entity.SkinTempEntity
 
 @Dao
 interface SkinTempDao {
+    @Query("SELECT * FROM skinTempEvent WHERE timestamp <= :timestamp")
+    suspend fun getBefore(timestamp: Long): List<SkinTempEntity>
+
     @Query("SELECT * FROM skinTempEvent")
     suspend fun getAll(): List<SkinTempEntity>
 
@@ -16,6 +19,9 @@ interface SkinTempDao {
 
     @Insert(onConflict = OnConflictStrategy.Companion.IGNORE)
     suspend fun insertEvents(skinTempEntities: List<SkinTempEntity>)
+
+    @Query("DELETE FROM skinTempEvent WHERE timestamp <= :timestamp")
+    suspend fun deleteBefore(timestamp: Long)
 
     @Query("DELETE FROM skinTempEvent")
     suspend fun deleteAll()

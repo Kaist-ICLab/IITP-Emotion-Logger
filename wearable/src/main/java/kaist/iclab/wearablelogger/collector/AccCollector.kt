@@ -61,16 +61,25 @@ class AccCollector(
     override suspend fun getStatus(): Boolean {
         return configRepository.getSensorStatus("Accelerometer")
     }
-    override suspend fun stringifyData():String{
+    override suspend fun stringifyData(): Pair<String, Long> {
         val gson = GsonBuilder().setStrictness(Strictness.LENIENT).create()
-        return gson.toJson(accDao.getAll())
+        val lastEntity = accDao.getLast()
+        val lastTimestamp = lastEntity?.timestamp ?: 0L
+
+        return Pair(gson.toJson(accDao.getBefore(lastTimestamp)), lastTimestamp)
+    }
+
+    override fun flushBefore(timestamp: Long) {
+        CoroutineScope(Dispatchers.IO).launch {
+            accDao.deleteBefore(timestamp)
+            Log.d(TAG, "Flush $TAG Data before $timestamp")
+        }
     }
 
     override fun flush() {
-        Log.d(TAG, "Flush ACC Data")
         CoroutineScope(Dispatchers.IO).launch {
             accDao.deleteAll()
-            Log.d(TAG, "deleteAll() for ACC Data")
+            Log.d(TAG, "Flush $TAG Data")
         }
     }
 }

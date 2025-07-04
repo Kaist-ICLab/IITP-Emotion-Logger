@@ -8,23 +8,34 @@ import com.google.android.gms.wearable.DataEventBuffer
 import com.google.android.gms.wearable.DataMap
 import com.google.android.gms.wearable.DataMapItem
 import com.google.android.gms.wearable.Wearable
+import com.google.gson.GsonBuilder
+import com.google.gson.JsonObject
+import com.google.gson.Strictness
 import kaist.iclab.loggerstructure.core.DaoWrapper
 import kaist.iclab.loggerstructure.core.EntityBase
-import kaist.iclab.loggerstructure.dao.RecentDao
-import kaist.iclab.loggerstructure.entity.RecentEntity
+import kaist.iclab.loggerstructure.entity.AccEntity
+import kaist.iclab.loggerstructure.entity.HREntity
+import kaist.iclab.loggerstructure.entity.PpgEntity
+import kaist.iclab.loggerstructure.entity.SkinTempEntity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import org.koin.java.KoinJavaComponent.inject
 
 class DataReceiver(
     val context: Context,
-    val recentDao: RecentDao,
     val collectorDao: Map<String, DaoWrapper<EntityBase>>,
     val dataUploaderRepository: DataUploaderRepository
 ) : DataClient.OnDataChangedListener {
     companion object {
         private const val TAG = "DataReceiver"
+
+        val recentTimestamp = MutableSharedFlow<Long>()
+        val recentHREntity = MutableSharedFlow<HREntity?>()
+        val recentAccEntity = MutableSharedFlow<AccEntity?>()
+        val recentPpgEntity = MutableSharedFlow<PpgEntity?>()
+        val recentSkinTempEntity = MutableSharedFlow<SkinTempEntity?>()
     }
 
     private val stateRepository by inject<StateRepository>(StateRepository::class.java)
@@ -39,7 +50,9 @@ class DataReceiver(
             if(dataType[1] == "WEARABLE"){
                 unpackRecentData(data)
             } else {
-                unpackDataAsset(data, dataType[2])
+                CoroutineScope(Dispatchers.IO).launch {
+                    unpackDataAsset(data, dataType[2])
+                }
             }
         }
     }
@@ -47,18 +60,24 @@ class DataReceiver(
     @SuppressLint("HardwareIds")
     private fun unpackRecentData(data: DataMap) {
         Log.d(TAG, "received RecentEntity data")
-        val entity = RecentEntity(
-            timestamp = data.getLong("timestamp"),
-            acc = data.getString("acc") ?: "null",
-            ppg = data.getString("ppg") ?: "null",
-            hr = data.getString("hr") ?: "null",
-            skinTemp = data.getString("skin") ?: "null",
-        )
-        val recentEntities = mutableListOf<RecentEntity>(entity)
+        val entity = JsonObject()
+
+        entity.addProperty("timestamp", data.getLong("timestamp"))
+        entity.addProperty("acc", data.getString("acc") ?: "null")
+        entity.addProperty("ppg", data.getString("ppg") ?: "null")
+        entity.addProperty("hr", data.getString("hr") ?: "null")
+        entity.addProperty("skin", data.getString("skin") ?: "null")
+
+        val gson = GsonBuilder().setStrictness(Strictness.LENIENT).create()
 
         CoroutineScope(Dispatchers.IO).launch {
-            recentDao.insertEvents(recentEntities)
-            dataUploaderRepository.uploadRecentData()
+            recentTimestamp.emit(data.getLong("timestamp"))
+            recentHREntity.emit(data.getString("hr")?.let { gson.fromJson(it, HREntity::class.java) } )
+            recentAccEntity.emit(data.getString("acc")?.let { gson.fromJson(it, AccEntity::class.java) })
+            recentPpgEntity.emit(data.getString("ppg")?.let { gson.fromJson(it, PpgEntity::class.java) })
+            recentSkinTempEntity.emit(data.getString("skin")?.let { gson.fromJson(it, SkinTempEntity::class.java) })
+
+            dataUploaderRepository.uploadRecentData(entity)
         }
     }
 

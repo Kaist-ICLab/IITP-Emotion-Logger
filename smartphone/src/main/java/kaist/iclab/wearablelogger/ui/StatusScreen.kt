@@ -19,9 +19,16 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import kaist.iclab.loggerstructure.entity.AccEntity
 import kaist.iclab.loggerstructure.entity.EnvEntity
-import kaist.iclab.loggerstructure.entity.RecentEntity
+import kaist.iclab.loggerstructure.entity.HREntity
+import kaist.iclab.loggerstructure.entity.PpgEntity
+import kaist.iclab.loggerstructure.entity.SkinTempEntity
 import kaist.iclab.loggerstructure.entity.StepEntity
+import kaist.iclab.loggerstructure.entity.defaultAccEntity
+import kaist.iclab.loggerstructure.entity.defaultHREntity
+import kaist.iclab.loggerstructure.entity.defaultPpgEntity
+import kaist.iclab.loggerstructure.entity.defaultSkinTempEntity
 import kaist.iclab.loggerstructure.util.CollectorType
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -32,7 +39,12 @@ fun StatusScreen(
     statusViewModel: StatusViewModel,
     modifier: Modifier = Modifier
 ) {
-    val recentData = statusViewModel.recentDataState.collectAsState().value
+    val recentTimestamp = statusViewModel.recentTimestamp.collectAsState().value
+    val hrData = statusViewModel.recentHREntity.collectAsState().value
+    val accData = statusViewModel.recentAccEntity.collectAsState().value
+    val ppgData = statusViewModel.recentPpgEntity.collectAsState().value
+    val skinTempData = statusViewModel.recentSkinTempEntity.collectAsState().value
+
     val stepData = statusViewModel.stepsState.collectAsState().value
     val environmentData = statusViewModel.environmentState.collectAsState().value
     val syncTime = statusViewModel.syncTime.collectAsState().value
@@ -41,7 +53,13 @@ fun StatusScreen(
         modifier = modifier
             .fillMaxSize()
     ) {
-        CollectorStatus(recentData?: RecentEntity(timestamp = -1, acc = "null", hr = "null", ppg= "null", skinTemp = "null"))
+        CollectorStatus(
+            recentTimestamp = recentTimestamp,
+            hrData = hrData ?: defaultHREntity,
+            accData = accData ?: defaultAccEntity,
+            ppgData = ppgData ?: defaultPpgEntity,
+            skinTempData = skinTempData ?: defaultSkinTempEntity
+        )
         HorizontalDivider()
 //        StepStatus(
 //            stepData = stepData?: StepEntity(dataReceived = -1, startTime = -1, endTime = -1, step = 0)
@@ -70,9 +88,16 @@ fun StatusScreen(
 }
 
 @Composable
-fun CollectorStatus(recentData: RecentEntity) {
+fun CollectorStatus(
+    recentTimestamp: Long,
+    hrData: HREntity,
+    accData: AccEntity,
+    ppgData: PpgEntity,
+    skinTempData: SkinTempEntity,
+    modifier: Modifier = Modifier
+) {
     Column(
-        modifier = Modifier.fillMaxWidth().padding(8.dp),
+        modifier = modifier.fillMaxWidth().padding(8.dp),
     ) {
         Card(
             modifier = Modifier.fillMaxWidth().padding(bottom = 4.dp)
@@ -84,14 +109,14 @@ fun CollectorStatus(recentData: RecentEntity) {
                     "Last received: ",
                     style = MaterialTheme.typography.titleMedium
                 )
-                Text(timestampToString(recentData.timestamp))
+                Text(timestampToString(recentTimestamp))
             }
         }
 
-        Text("HR: ${recentData.hr}")
-        Text("ACC: ${recentData.acc}")
-        Text("PPG: ${recentData.ppg}")
-        Text("SkinTemp: ${recentData.skinTemp}")
+        Text("HR: $hrData")
+        Text("ACC: $accData")
+        Text("PPG: $ppgData")
+        Text("SkinTemp: $skinTempData")
     }
 }
 

@@ -16,3 +16,12 @@ data class AccEntity(
     val y : Float,
     val z : Float,
 ): EntityBase
+
+val defaultAccEntity = AccEntity(
+    id = 0,
+    dataReceived = -1,
+    timestamp = -1,
+    x = 0.0F,
+    y = 0.0F,
+    z = 0.0F
+)

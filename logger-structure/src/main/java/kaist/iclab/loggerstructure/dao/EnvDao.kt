@@ -9,6 +9,9 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface EnvDao {
+    @Query("SELECT * FROM envEvent WHERE timestamp <= :timestamp")
+    suspend fun getBefore(timestamp: Long): List<EnvEntity>
+
     @Query("SELECT * FROM envEvent")
     suspend fun getAll(): List<EnvEntity>
 
@@ -23,6 +26,9 @@ interface EnvDao {
 
     @Query("SELECT * FROM envEvent ORDER BY timestamp DESC LIMIT 1")
     fun getLast(): EnvEntity?
+
+    @Query("DELETE FROM envEvent WHERE timestamp <= :timestamp")
+    suspend fun deleteBefore(timestamp: Long)
 
     @Query("DELETE FROM envEvent")
     fun deleteAll()
