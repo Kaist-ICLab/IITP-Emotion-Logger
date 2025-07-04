@@ -11,10 +11,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -63,7 +65,6 @@ fun MainApp(
                 }
             }
         }
-
     }
 }
 
@@ -74,14 +75,29 @@ fun MainScreen(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    val bluetoothDeviceAddress = mainViewModel.bluetoothDeviceAddress.collectAsState("None").value
+    val wearables = mainViewModel.wearables.collectAsState(listOf()).value
 
     Column(
         modifier = modifier
             .fillMaxSize()
             .padding(16.dp),
-        verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        Card(
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Column(
+                modifier = Modifier.fillMaxWidth().padding(8.dp)
+            ) {
+                Text("DEVICE INFO", style = MaterialTheme.typography.titleMedium)
+
+                Text("Device ID: ${mainViewModel.deviceId}")
+                Text("BluSensor Address: $bluetoothDeviceAddress")
+                Text("Wearables: $wearables")
+            }
+        }
+
         Button(
             onClick = { navController.navigate(ScreenType.BLUETOOTH_SCAN.name) },
             modifier = Modifier.fillMaxWidth()

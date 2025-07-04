@@ -16,6 +16,7 @@ import kaist.iclab.wearablelogger.ui.MainViewModel
 import kaist.iclab.wearablelogger.ui.StatusViewModel
 import kaist.iclab.wearablelogger.util.DataReceiver
 import kaist.iclab.wearablelogger.util.DataUploaderRepository
+import kaist.iclab.wearablelogger.util.DeviceInfoRepository
 import kaist.iclab.wearablelogger.util.StateRepository
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
@@ -83,8 +84,13 @@ val koinModule = module {
     }
 
     single {
+        DeviceInfoRepository(
+            context = androidContext()
+        )
+    }
+
+    single {
         DataUploaderRepository(
-            androidContext(),
             recentDao = get<RoomDB>().recentDao(),
             stepDao = get<RoomDB>().stepDao(),
             envDao = get<RoomDB>().envDao(),
@@ -95,7 +101,7 @@ val koinModule = module {
                 CollectorType.SKINTEMP.name to get<SkinTempDaoWrapper>(),
                 CollectorType.ENV.name to get<EnvDaoWrapper>(),
                 CollectorType.STEP.name to get<StepDaoWrapper>(),
-            ) as Map<String, DaoWrapper<EntityBase>>,
+            ) as Map<String, DaoWrapper<EntityBase>>
         )
     }
 

@@ -30,7 +30,7 @@ class StatusViewModel(
     stateRepository: StateRepository
 ) : ViewModel(){
     val syncTime: StateFlow<Map<CollectorType, Long>> =
-        stateRepository.syncTimeFlow.stateIn(
+        stateRepository.syncTime.stateIn(
             scope = CoroutineScope(Dispatchers.IO),
             started = SharingStarted.WhileSubscribed(5_000L),
             initialValue = mapOf()

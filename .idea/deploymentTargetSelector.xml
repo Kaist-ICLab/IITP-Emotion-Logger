@@ -4,7 +4,7 @@
     <selectionStates>
       <SelectionState runConfigName="smartphone">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2025-07-04T05:40:40.305469100Z">
+        <DropdownSelection timestamp="2025-07-04T10:11:07.185765400Z">
           <Target type="DEFAULT_BOOT">
             <handle>
               <DeviceId pluginId="PhysicalDevice" identifier="serial=R3CR40DDNPT" />
@@ -15,7 +15,7 @@
       </SelectionState>
       <SelectionState runConfigName="wearable">
         <option name="selectionMode" value="DROPDOWN" />
-        <DropdownSelection timestamp="2025-06-27T13:19:44.933566200Z">
+        <DropdownSelection timestamp="2025-07-04T06:50:46.196640100Z">
           <Target type="DEFAULT_BOOT">
             <handle>
               <DeviceId pluginId="PhysicalDevice" identifier="serial=RFAY40Z11PX" />

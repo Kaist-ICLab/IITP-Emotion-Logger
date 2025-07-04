@@ -12,8 +12,10 @@ import android.util.Log
 import kaist.iclab.loggerstructure.dao.EnvDao
 import kaist.iclab.loggerstructure.entity.EnvEntity
 import kaist.iclab.wearablelogger.util.ForegroundNotification
+import kaist.iclab.wearablelogger.util.StateRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import java.util.Timer
@@ -27,16 +29,14 @@ class EnvCollectorService : BLEService(), SensorEventListener {
     }
 
     private val envDao by inject<EnvDao>()
+    private val stateRepository by inject<StateRepository>()
 
     private var deviceAddress: String? = null
     private var sensorManager: SensorManager? = null
-    private var sharedPreferencesUtil: SharedPreferencesUtil? = null
-
     override fun onCreate() {
         super.onCreate()
 
         sensorManager = getSystemService(SENSOR_SERVICE) as SensorManager
-        sharedPreferencesUtil = SharedPreferencesUtil.getInstance(this)
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
             permissionBluetoothScan = Manifest.permission.BLUETOOTH_SCAN
@@ -95,19 +95,23 @@ class EnvCollectorService : BLEService(), SensorEventListener {
 //            context.startActivity(intent);
 //            stopSelf();
             Log.v(TAG, "BluetoothDisconnected")
-            deviceAddress = sharedPreferencesUtil?.deviceAddress
-            initialize()
-            connect(deviceAddress)
+
+            CoroutineScope(Dispatchers.IO).launch {
+                deviceAddress = stateRepository.bluetoothAddress.first()
+                initialize()
+                connect(deviceAddress)
+            }
         }
     }
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         // SENSOR_DELAY_NORMAL : 20,000 msec delay
-        deviceAddress = sharedPreferencesUtil?.deviceAddress
-        initialize()
-        Log.v(TAG, "deviceAddress: $deviceAddress")
-        connect(deviceAddress)
-        // stop();
+        CoroutineScope(Dispatchers.IO).launch {
+            deviceAddress = stateRepository.bluetoothAddress.first()
+            initialize()
+            Log.v(TAG, "deviceAddress: $deviceAddress")
+            connect(deviceAddress)
+        }
 
         val notification = ForegroundNotification.getNotification(this)
         startForeground(2, notification)

@@ -10,10 +10,20 @@ import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import kaist.iclab.wearablelogger.blu.EnvCollectorService
 import kaist.iclab.wearablelogger.step.StepCollectorService
+import kaist.iclab.wearablelogger.util.DeviceInfoRepository
+import kaist.iclab.wearablelogger.util.StateRepository
+import org.koin.java.KoinJavaComponent.inject
 
 private const val TAG = "MainViewModel"
 
 class MainViewModel(): ViewModel() {
+    private val deviceInfoRepository: DeviceInfoRepository by inject(DeviceInfoRepository::class.java)
+    private val stateRepository: StateRepository by inject(StateRepository::class.java)
+
+    val deviceId = deviceInfoRepository.deviceId
+    val bluetoothDeviceAddress = stateRepository.bluetoothAddress
+    val wearables = deviceInfoRepository.getWearablesFlow()
+
     var isStepAvailable by mutableStateOf(false)
         private set
 

@@ -28,7 +28,10 @@ import androidx.lifecycle.ViewModel
 import kaist.iclab.wearablelogger.blu.BluetoothHelper.SCAN_PERIOD
 import kaist.iclab.wearablelogger.blu.BluetoothHelper.UUID_SERVICE
 import kaist.iclab.wearablelogger.blu.BluetoothHelper.findBLECharacteristics
-import kaist.iclab.wearablelogger.blu.SharedPreferencesUtil
+import kaist.iclab.wearablelogger.util.StateRepository
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
+import org.koin.java.KoinJavaComponent.inject
 
 private const val TAG = "BluetoothViewModel"
 
@@ -40,6 +43,8 @@ enum class BluetoothConnectStatus {
 }
 
 class BluetoothViewModel() : ViewModel() {
+    val stateRepository: StateRepository by inject(StateRepository::class.java)
+
     // flag for scanning
     var isScanning by mutableStateOf(false)
         private set
@@ -66,7 +71,6 @@ class BluetoothViewModel() : ViewModel() {
     private var bleScanner: BluetoothLeScanner? = null
     // scan handler
     private var scanHandler: Handler? = null
-    private var sharedPreferencesUtil: SharedPreferencesUtil? = null
 
     // BLE connected Gatt
     private var bleGatt: BluetoothGatt? = null
@@ -76,8 +80,9 @@ class BluetoothViewModel() : ViewModel() {
         bleAdapter = bleManager.adapter
 
         // Load previous saves
-        sharedPreferencesUtil = SharedPreferencesUtil.getInstance(context)
-        deviceAddress = sharedPreferencesUtil?.deviceAddress
+        runBlocking {
+            deviceAddress = stateRepository.bluetoothAddress.first()
+        }
     }
 
     fun changeBluSensorAddress(value: String) {
@@ -331,7 +336,10 @@ class BluetoothViewModel() : ViewModel() {
             }
 
             bluetoothConnectStatus = BluetoothConnectStatus.SUCCESS
-            sharedPreferencesUtil?.deviceAddress = deviceAddress
+
+            runBlocking {
+                stateRepository.updateBluetoothAddress(deviceAddress ?: "None")
+            }
         }
 
         override fun onCharacteristicWrite(
