@@ -1,10 +1,9 @@
 package kaist.iclab.wearablelogger.util
 
 import android.annotation.SuppressLint
-import android.content.Context
-import android.provider.Settings
 import android.util.Log
 import com.google.gson.GsonBuilder
+import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.google.gson.Strictness
@@ -18,28 +17,29 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import okhttp3.Call
-import okhttp3.Callback
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
-import okhttp3.Response
+import org.koin.java.KoinJavaComponent.inject
 import java.io.IOException
+import java.lang.Thread.sleep
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
 class DataUploaderRepository(
-    val context: Context,
-    val recentDao: RecentDao,
-    val stepDao: StepDao,
-    val envDao: EnvDao,
-    val dataDao: Map<String, DaoWrapper<EntityBase>>
+    private val recentDao: RecentDao,
+    private val stepDao: StepDao,
+    private val envDao: EnvDao,
+    private val dataDao: Map<String, DaoWrapper<EntityBase>>,
 ) {
     companion object {
         private val TAG = DataUploaderRepository::class.simpleName
     }
+
+    private val deviceInfoRepository: DeviceInfoRepository by inject(DeviceInfoRepository::class.java)
+    private val deviceId = deviceInfoRepository.deviceId
 
     private enum class LogType(val url: String) {
         ERROR(""),
@@ -51,12 +51,6 @@ class DataUploaderRepository(
         SKINTEMP("skintemp"),
         STEP("step")
     }
-
-    @SuppressLint("HardwareIds")
-    var deviceId: String = Settings.Secure.getString(
-        context.contentResolver,
-        Settings.Secure.ANDROID_ID
-    )
 
     fun uploadRecentData() {
         Log.d(TAG, "Upload recent Data")
@@ -71,7 +65,6 @@ class DataUploaderRepository(
         for(key in properties) {
             val rawInnerJSON = jsonObject.get(key).toString()
             val innerJSON = rawInnerJSON.replace("\\", "").trim('"')
-            Log.d(TAG, innerJSON)
 
             if(innerJSON == "null") jsonObject.add(key, null)
             else jsonObject.add(key, JsonParser.parseString(innerJSON).asJsonObject)
@@ -92,30 +85,14 @@ class DataUploaderRepository(
     }
 
     fun uploadFullData() {
+        val chunkSize = 2000
+        val timeProperty = listOf("timestamp", "dataReceived", "startTime", "endTime")
         val gson = GsonBuilder().setStrictness(Strictness.LENIENT).create()
-        for(entry in dataDao){
-            val name = entry.key
-            val dao = entry.value
 
-            CoroutineScope(Dispatchers.IO).launch {
-                val data = gson.toJsonTree(dao.getAll()).asJsonArray
-                dao.deleteAll()
-
-                val timeProperty = listOf("timestamp", "dataReceived", "startTime", "endTime")
-                for(elem in data) {
-                    val elemObject = elem.asJsonObject
-                    elemObject.addProperty("device_id", deviceId)
-                    for(prop in timeProperty) {
-                        if(elemObject.has(prop))
-                            elemObject.addProperty(prop, toTimestampz(elemObject[prop].asLong))
-                    }
-
-                    elemObject.remove("id")
-                }
-
-                val json = JsonObject()
-                json.add("data", data)
-                json.addProperty("device_id", deviceId)
+        CoroutineScope(Dispatchers.IO).launch {
+            for(entry in dataDao){
+                val name = entry.key
+                val dao = entry.value
 
                 val logType = when(name) {
                     CollectorType.SKINTEMP.name -> LogType.SKINTEMP
@@ -127,7 +104,32 @@ class DataUploaderRepository(
                     else -> LogType.ERROR
                 }
 
-                uploadJSON(json.toString(), logType)
+                val data = gson.toJsonTree(dao.getAll()).asJsonArray
+                dao.deleteAll()
+
+                Log.d(TAG, "${logType.url} data length: ${data.size()}")
+
+                for(elem in data) {
+                    val elemObject = elem.asJsonObject
+                    elemObject.addProperty("device_id", deviceId)
+                    for(prop in timeProperty) {
+                        if(elemObject.has(prop))
+                            elemObject.addProperty(prop, toTimestampz(elemObject[prop].asLong))
+                    }
+
+                    elemObject.remove("id")
+                }
+
+                val chunks = data.chunked(chunkSize)
+                for(chunk in chunks) {
+                    val json = JsonObject()
+                    json.add("data", JsonArray().apply { chunk.forEach { add(it) }})
+                    json.addProperty("device_id", deviceId)
+
+                    Log.d(TAG, "Upload full Data: $name")
+                    uploadJSON(json.toString(), logType)
+                    sleep(9000)
+                }
             }
         }
     }
@@ -139,6 +141,8 @@ class DataUploaderRepository(
             return
         }
 
+        val retryAtTimeout = (logType != LogType.RECENT)
+
         val client = OkHttpClient()
         val jsonMediaType = "application/json; charset=utf-8".toMediaType()
         val requestBody = jsonString.toRequestBody(jsonMediaType)
@@ -148,19 +152,26 @@ class DataUploaderRepository(
             .post(requestBody)
             .build()
 
-        client.newCall(request).enqueue(object : Callback {
-            override fun onFailure(call: Call, e: IOException) {
-                e.printStackTrace()
-            }
-
-            override fun onResponse(call: Call, response: Response) {
+        var shouldTryUpload = true
+        while(shouldTryUpload) {
+            try {
+                val response = client.newCall(request).execute()
                 response.use {
                     if (!response.isSuccessful) {
                         Log.e(TAG, "${logType.url}: Error uploading to server: ${response.message}")
+                        sleep(5000)
+                    } else {
+                        Log.d(TAG, "${logType.url}: Upload successful")
                     }
+
+                    shouldTryUpload = retryAtTimeout && !response.isSuccessful
                 }
+            } catch (e: IOException) {
+                Log.e(TAG, "${logType.url}: Upload failed - ${e.message}")
+                e.printStackTrace()
+                sleep(5000)
             }
-        })
+        }
     }
 
     private fun toTimestampz(timeMillis: Long): String {
@@ -171,7 +182,6 @@ class DataUploaderRepository(
         )
 
         val string = kstTime.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
-        Log.d(TAG, "Time: $timeMillis, Converted to: $string")
         return string
     }
 }
