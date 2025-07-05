@@ -1,4 +1,4 @@
-package kaist.iclab.wearablelogger.blu
+package kaist.iclab.wearablelogger.env
 
 import android.Manifest
 import android.app.Service
@@ -17,7 +17,7 @@ import android.os.Build
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.ActivityCompat
-import kaist.iclab.wearablelogger.blu.BluetoothHelper.UUID_DATA
+import kaist.iclab.wearablelogger.env.BluetoothHelper.UUID_DATA
 import java.util.UUID
 
 private const val TAG = "BLEService"

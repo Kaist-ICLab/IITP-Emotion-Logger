@@ -35,11 +35,11 @@
             android:foregroundServiceType="health"
             />
         <service
-            android:name="kaist.iclab.wearablelogger.blu.BLEService"
+            android:name="kaist.iclab.wearablelogger.env.BLEService"
             android:foregroundServiceType="connectedDevice"
             />
         <service
-            android:name="kaist.iclab.wearablelogger.blu.EnvCollectorService"
+            android:name="kaist.iclab.wearablelogger.env.EnvCollectorService"
             android:foregroundServiceType="connectedDevice"
             />
     </application>

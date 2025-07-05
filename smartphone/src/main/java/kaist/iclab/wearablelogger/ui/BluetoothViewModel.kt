@@ -25,9 +25,9 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.app.ActivityCompat
 import androidx.lifecycle.ViewModel
-import kaist.iclab.wearablelogger.blu.BluetoothHelper.SCAN_PERIOD
-import kaist.iclab.wearablelogger.blu.BluetoothHelper.UUID_SERVICE
-import kaist.iclab.wearablelogger.blu.BluetoothHelper.findBLECharacteristics
+import kaist.iclab.wearablelogger.env.BluetoothHelper.SCAN_PERIOD
+import kaist.iclab.wearablelogger.env.BluetoothHelper.UUID_SERVICE
+import kaist.iclab.wearablelogger.env.BluetoothHelper.findBLECharacteristics
 import kaist.iclab.wearablelogger.util.StateRepository
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.runBlocking

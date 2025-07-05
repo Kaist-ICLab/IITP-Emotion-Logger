@@ -13,7 +13,6 @@ import kaist.iclab.loggerstructure.util.CollectorType
 import kaist.iclab.wearablelogger.step.StepCollector
 import kaist.iclab.wearablelogger.ui.BluetoothViewModel
 import kaist.iclab.wearablelogger.ui.MainViewModel
-import kaist.iclab.wearablelogger.ui.StatusViewModel
 import kaist.iclab.wearablelogger.util.DataReceiver
 import kaist.iclab.wearablelogger.util.DataUploaderRepository
 import kaist.iclab.wearablelogger.util.DeviceInfoRepository
@@ -81,6 +80,12 @@ val koinModule = module {
     }
 
     single {
+        StateRepository(
+            androidContext()
+        )
+    }
+
+    single {
         DeviceInfoRepository(
             context = androidContext()
         )
@@ -97,13 +102,8 @@ val koinModule = module {
                 CollectorType.SKINTEMP.name to get<SkinTempDaoWrapper>(),
                 CollectorType.ENV.name to get<EnvDaoWrapper>(),
                 CollectorType.STEP.name to get<StepDaoWrapper>(),
-            ) as Map<String, DaoWrapper<EntityBase>>
-        )
-    }
-
-    single {
-        StateRepository(
-            androidContext()
+            ) as Map<String, DaoWrapper<EntityBase>>,
+            stateRepository = get()
         )
     }
 
@@ -116,28 +116,22 @@ val koinModule = module {
                 CollectorType.HR.name to get<HRDaoWrapper>(),
                 CollectorType.SKINTEMP.name to get<SkinTempDaoWrapper>()
             ) as Map<String, DaoWrapper<EntityBase>>,
+            get(),
             get<DataUploaderRepository>()
         )
     }
 
     // ViewModel
     viewModel {
-        StatusViewModel(
-            get<RoomDB>().stepDao(), get<RoomDB>().envDao(), listOf(
-                get<AccDaoWrapper>(),
-                get<PpgDaoWrapper>(),
-                get<HRDaoWrapper>(),
-                get<SkinTempDaoWrapper>(),
-            ) as List<DaoWrapper<EntityBase>>,
-            get<StateRepository>(),
-        )
-    }
-
-    viewModel {
         BluetoothViewModel()
     }
 
     viewModel {
-        MainViewModel()
+        MainViewModel(
+            stepDao = get(),
+            envDao = get(),
+            deviceInfoRepository = get(),
+            stateRepository = get(),
+        )
     }
 }

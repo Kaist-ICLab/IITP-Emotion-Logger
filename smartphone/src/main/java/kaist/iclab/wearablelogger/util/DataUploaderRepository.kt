@@ -31,6 +31,7 @@ class DataUploaderRepository(
     private val stepDao: StepDao,
     private val envDao: EnvDao,
     private val dataDao: Map<String, DaoWrapper<EntityBase>>,
+    private val stateRepository: StateRepository,
 ) {
     companion object {
         private val TAG = DataUploaderRepository::class.simpleName
@@ -126,6 +127,7 @@ class DataUploaderRepository(
                     sleep(9000)
                 }
 
+                stateRepository.updateUploadTime(name, System.currentTimeMillis())
                 dao.deleteBefore(threshold)
             }
         }

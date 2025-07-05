@@ -60,16 +60,22 @@ dependencies {
 
     implementation(libs.android.ktx)
     implementation(libs.lifecycle.runtime.ktx)
+
+    // Compose
     implementation(libs.activity.compose)
     implementation(platform(libs.compose.bom))
+    debugImplementation(libs.androidx.ui.tooling)
+    implementation(libs.androidx.ui.tooling.preview)
+    implementation(libs.androidx.material.icons.extended)
+    implementation(libs.androidx.navigation.compose)
     implementation(libs.ui)
     implementation(libs.ui.graphics)
     implementation(libs.ui.tooling.preview)
     implementation(libs.material3)
+
     implementation(libs.play.services.wearable)
     implementation(libs.kotlinx.coroutines.play.services)
     implementation(libs.kotlinx.coroutines.android)
-    implementation(libs.androidx.navigation.compose)
 
     // For saving preferences
     implementation(libs.datastore.preferences)

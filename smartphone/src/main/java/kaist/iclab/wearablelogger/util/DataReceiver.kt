@@ -21,11 +21,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
-import org.koin.java.KoinJavaComponent.inject
 
 class DataReceiver(
     val context: Context,
     val collectorDao: Map<String, DaoWrapper<EntityBase>>,
+    val stateRepository: StateRepository,
     val dataUploaderRepository: DataUploaderRepository
 ) : DataClient.OnDataChangedListener {
     companion object {
@@ -37,8 +37,6 @@ class DataReceiver(
         val recentPpgEntity = MutableSharedFlow<PpgEntity?>()
         val recentSkinTempEntity = MutableSharedFlow<SkinTempEntity?>()
     }
-
-    private val stateRepository by inject<StateRepository>(StateRepository::class.java)
 
     override fun onDataChanged(dataEventBuffer: DataEventBuffer) {
         dataEventBuffer.forEach { dataEvent ->

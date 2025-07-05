@@ -1,4 +1,4 @@
-package kaist.iclab.wearablelogger.blu
+package kaist.iclab.wearablelogger.env
 
 import android.Manifest
 import android.bluetooth.BluetoothProfile

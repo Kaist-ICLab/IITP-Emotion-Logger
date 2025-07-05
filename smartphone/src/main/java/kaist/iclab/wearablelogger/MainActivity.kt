@@ -45,11 +45,13 @@ class MainActivity : ComponentActivity() {
         ) { result: Map<String, Boolean> ->
             Log.d(TAG, "$result")
             val allGranted = result.values.all { it }
-            if (allGranted) {
-                proceedAfterPermissionGranted()
-            } else {
+
+            if(!allGranted) {
                 Toast.makeText(this, "일부 권한이 거부되었습니다. 모든 권한을 허용해주셔야 정상적인 실험이 가능합니다.", Toast.LENGTH_LONG).show()
+                return@registerForActivityResult
             }
+
+            proceedAfterPermissionGranted()
         }
 
         setContent {
@@ -104,6 +106,15 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun proceedAfterPermissionGranted() {
+//        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+//            val hasBackgroundSensorPermission =
+//                ContextCompat.checkSelfPermission(this, Manifest.permission.BODY_SENSORS_BACKGROUND) == PackageManager.PERMISSION_GRANTED
+//
+//            Log.d(TAG, "BODY_SENSORS_BACKGROUND: $hasBackgroundSensorPermission")
+//            if(!hasBackgroundSensorPermission)
+//                this.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS))
+//        }
+
         val permManager = SamsungHealthPermissionManager(this)
         permManager.request { res ->
             if (res) {

@@ -15,3 +15,11 @@ data class StepEntity(
     val endTime: Long,
     val step: Long,
 ): EntityBase
+
+val defaultStepEntity = StepEntity(
+    id = 0,
+    dataReceived = -1,
+    startTime = -1,
+    endTime = -1,
+    step = 0
+)

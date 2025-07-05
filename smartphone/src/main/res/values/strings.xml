@@ -1,4 +1,4 @@
 <resources>
     <string name="app_name">ABC Logger: Wearable</string>
-    <string name="scan_for_blusensor">Scan for bluSensor</string>
+    <string name="scan_for_blusensor">Scan for BluSensor</string>
 </resources>

@@ -1,4 +1,4 @@
-package kaist.iclab.wearablelogger.blu
+package kaist.iclab.wearablelogger.env
 
 import android.bluetooth.BluetoothGatt
 import android.bluetooth.BluetoothGattCharacteristic
