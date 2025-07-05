@@ -11,6 +11,10 @@ import org.koin.android.ext.android.inject
 private const val TAG = "StepCollectorService"
 
 class StepCollectorService : Service() {
+    companion object {
+        var isRunning = false
+    }
+
     private val stepCollector by inject<StepCollector>()
 
     init {
@@ -22,8 +26,10 @@ class StepCollectorService : Service() {
         Log.v(TAG, "Service Started")
 
         runBlocking {
-            if(stepCollector.getStatus())
+            if(stepCollector.getStatus() && !isRunning){
                 stepCollector.startLogging()
+                isRunning = true
+            }
         }
 
         val notification = ForegroundNotification.getNotification(this)
@@ -34,6 +40,7 @@ class StepCollectorService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
+        isRunning = false
         stepCollector.stopLogging()
     }
 }
