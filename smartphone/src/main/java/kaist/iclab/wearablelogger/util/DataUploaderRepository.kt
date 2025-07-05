@@ -117,14 +117,16 @@ class DataUploaderRepository(
                 }
 
                 val chunks = data.chunked(chunkSize)
+                var chunkIndex = 1
                 for(chunk in chunks) {
                     val json = JsonObject()
                     json.add("data", JsonArray().apply { chunk.forEach { add(it) }})
                     json.addProperty("device_id", deviceId)
 
-                    Log.d(TAG, "Upload full Data: $name")
+                    Log.d(TAG, "Upload full Data ($chunkIndex / ${chunks.size}): $name")
                     uploadJSON(json.toString(), logType)
-                    sleep(9000)
+                    sleep(7000)
+                    chunkIndex += 1
                 }
 
                 stateRepository.updateUploadTime(name, System.currentTimeMillis())

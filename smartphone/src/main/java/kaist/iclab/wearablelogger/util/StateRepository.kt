@@ -3,6 +3,7 @@ package kaist.iclab.wearablelogger.util
 import android.content.Context
 import androidx.datastore.core.DataStore
 import androidx.datastore.preferences.core.Preferences
+import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.longPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
@@ -15,12 +16,17 @@ import kotlin.to
 class StateRepository(private val context: Context) {
     companion object {
         private const val BLUETOOTH_ADDRESS = "BLUETOOTH_ADDRESS"
+        private const val IS_STEP_COLLECTED = "IS_STEP_COLLECTED"
+        private const val IS_ENV_COLLECTED = "IS_ENV_COLLECTED"
         private const val SYNC_TIME = "SYNC_TIME"
         private const val UPLOAD_TIME = "UPLOAD_TIME"
     }
 
     val Context.dataStore: DataStore<Preferences> by preferencesDataStore("STATE")
     val bluetoothAddress: Flow<String> = context.dataStore.data.map { it[stringPreferencesKey(BLUETOOTH_ADDRESS)] ?: "None"}
+    val isStepCollected: Flow<Boolean> = context.dataStore.data.map { it[booleanPreferencesKey(IS_STEP_COLLECTED)] == true }
+    val isEnvCollected: Flow<Boolean> = context.dataStore.data.map { it[booleanPreferencesKey(IS_ENV_COLLECTED)] == true }
+
     val syncTime: Flow<Map<CollectorType, Long>> = context.dataStore.data
         .map { pref ->
             mapOf(
@@ -44,6 +50,14 @@ class StateRepository(private val context: Context) {
 
     suspend fun updateBluetoothAddress(address: String) {
         context.dataStore.edit { it[stringPreferencesKey(BLUETOOTH_ADDRESS)] = address }
+    }
+
+    suspend fun updateIsStepCollected(isCollected: Boolean) {
+        context.dataStore.edit { it[booleanPreferencesKey(IS_STEP_COLLECTED)] = isCollected }
+    }
+
+    suspend fun updateIsEnvCollected(isCollected: Boolean) {
+        context.dataStore.edit { it[booleanPreferencesKey(IS_ENV_COLLECTED)] = isCollected }
     }
 
     suspend fun updateSyncTime(collectorName: String, time: Long) {

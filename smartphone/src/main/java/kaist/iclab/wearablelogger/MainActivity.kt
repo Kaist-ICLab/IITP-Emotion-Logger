@@ -1,6 +1,7 @@
 package kaist.iclab.wearablelogger
 
 import android.Manifest
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Build
 import android.os.Bundle
@@ -17,11 +18,17 @@ import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import com.google.android.gms.wearable.Wearable
+import kaist.iclab.wearablelogger.env.EnvCollectorService
 import kaist.iclab.wearablelogger.step.SamsungHealthPermissionManager
+import kaist.iclab.wearablelogger.step.StepCollectorService
 import kaist.iclab.wearablelogger.ui.MainApp
 import kaist.iclab.wearablelogger.ui.MainViewModel
 import kaist.iclab.wearablelogger.util.DataReceiver
 import kaist.iclab.wearablelogger.util.SensorDataUploadWorker
+import kaist.iclab.wearablelogger.util.StateRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
 import java.util.concurrent.TimeUnit
@@ -33,6 +40,7 @@ class MainActivity : ComponentActivity() {
 
     private val dataClient by lazy { Wearable.getDataClient(this) }
     private val dataReceiver: DataReceiver by inject()
+    private val stateRepository: StateRepository by inject()
     private lateinit var permissionLauncher: ActivityResultLauncher<Array<String>>
 
     private val mainViewModel: MainViewModel by viewModel()
@@ -63,6 +71,22 @@ class MainActivity : ComponentActivity() {
         Handler(Looper.getMainLooper()).post {
             checkAndRequestPermissions()
         }
+
+        CoroutineScope(Dispatchers.IO).launch {
+            val context = this@MainActivity
+            stateRepository.isStepCollected.collect { isCollected ->
+                if(isCollected) {
+                    val intent = Intent(context, StepCollectorService::class.java)
+                    ContextCompat.startForegroundService(context, intent)
+                }
+            }
+            stateRepository.isEnvCollected.collect { isCollected ->
+                if(isCollected) {
+                    val intent = Intent(context, EnvCollectorService::class.java)
+                    ContextCompat.startForegroundService(context, intent)
+                }
+            }
+        }
     }
 
     override fun onResume() {
@@ -89,7 +113,6 @@ class MainActivity : ComponentActivity() {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) Manifest.permission.BLUETOOTH_SCAN else null,
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) Manifest.permission.POST_NOTIFICATIONS else null,
             Manifest.permission.BODY_SENSORS,
-//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) Manifest.permission.BODY_SENSORS_BACKGROUND else null,
         )
 
         val permissionsToRequest = permissionList.filter {
@@ -106,15 +129,6 @@ class MainActivity : ComponentActivity() {
     }
 
     private fun proceedAfterPermissionGranted() {
-//        if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-//            val hasBackgroundSensorPermission =
-//                ContextCompat.checkSelfPermission(this, Manifest.permission.BODY_SENSORS_BACKGROUND) == PackageManager.PERMISSION_GRANTED
-//
-//            Log.d(TAG, "BODY_SENSORS_BACKGROUND: $hasBackgroundSensorPermission")
-//            if(!hasBackgroundSensorPermission)
-//                this.startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS))
-//        }
-
         val permManager = SamsungHealthPermissionManager(this)
         permManager.request { res ->
             if (res) {

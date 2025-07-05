@@ -109,6 +109,7 @@ class EnvCollectorService : BLEService(), SensorEventListener {
             initialize()
             Log.v(TAG, "deviceAddress: $deviceAddress")
             connect(deviceAddress)
+            stateRepository.updateIsEnvCollected(true)
         }
 
         val notification = ForegroundNotification.getNotification(this)
@@ -125,6 +126,9 @@ class EnvCollectorService : BLEService(), SensorEventListener {
     override fun onDestroy() {
         envSensorTimer!!.cancel()
         sensorManager?.unregisterListener(this)
+        CoroutineScope(Dispatchers.IO).launch {
+            stateRepository.updateIsEnvCollected(false)
+        }
         super.onDestroy()
     }
 }

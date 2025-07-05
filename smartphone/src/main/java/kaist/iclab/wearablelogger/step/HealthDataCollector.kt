@@ -13,7 +13,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import java.lang.Thread.sleep
+import kotlin.coroutines.cancellation.CancellationException
 
 private const val TAG = "HealthDataCollector"
 
@@ -40,21 +42,35 @@ abstract class HealthDataCollector(
     }
     override fun startLogging() {
         Log.v(TAG, "HealthDataCollector startLogging()")
+
+        try {
+            job?.cancel()
+        } catch (e: CancellationException) {
+            e.printStackTrace()
+        }
+
         try{
             job = CoroutineScope(Dispatchers.IO).launch {
                 while(isActive) {
-                    logData()
+                    runBlocking {
+                        logData()
+                    }
                     sleep(5000)
                 }
             }
-        }catch(e: Exception){
+        } catch(e: Exception) {
             Log.e(TAG, "HealthDataCollector startLogging: $e")
         }
     }
 
     override fun stopLogging() {
         Log.d(TAG, "stopLogging")
-        job?.cancel()
+        try {
+            job?.cancel()
+        } catch (e: CancellationException) {
+            e.printStackTrace()
+        }
+
         job = null
     }
 }

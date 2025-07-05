@@ -5,17 +5,17 @@ import android.content.Intent
 import android.os.IBinder
 import android.util.Log
 import kaist.iclab.wearablelogger.util.ForegroundNotification
-import kotlinx.coroutines.runBlocking
+import kaist.iclab.wearablelogger.util.StateRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 
 private const val TAG = "StepCollectorService"
 
 class StepCollectorService : Service() {
-    companion object {
-        var isRunning = false
-    }
-
-    private val stepCollector by inject<StepCollector>()
+    private val stepCollector: StepCollector by inject()
+    private val stateRepository: StateRepository by inject()
 
     init {
         stepCollector.setup()
@@ -25,10 +25,10 @@ class StepCollectorService : Service() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         Log.v(TAG, "Service Started")
 
-        runBlocking {
-            if(stepCollector.getStatus() && !isRunning){
+        CoroutineScope(Dispatchers.IO).launch {
+            if (stepCollector.getStatus()) {
                 stepCollector.startLogging()
-                isRunning = true
+                stateRepository.updateIsStepCollected(true)
             }
         }
 
@@ -40,7 +40,9 @@ class StepCollectorService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
-        isRunning = false
+        CoroutineScope(Dispatchers.IO).launch {
+            stateRepository.updateIsStepCollected(false)
+        }
         stepCollector.stopLogging()
     }
 }

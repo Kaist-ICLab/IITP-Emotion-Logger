@@ -44,14 +44,12 @@ class MainViewModel(
     var isStepAvailable by mutableStateOf(false)
         private set
 
-    var isStepRunning by mutableStateOf(false)
-        private set
+    val isStepRunning: StateFlow<Boolean> = getStateFlowFromFlow(stateRepository.isStepCollected, initialValue = false)
 
     var isEnvAvailable by mutableStateOf(false)
         private set
 
-    var isEnvRunning by mutableStateOf(false)
-        private set
+    var isEnvRunning: StateFlow<Boolean> = getStateFlowFromFlow(stateRepository.isEnvCollected, initialValue = false)
 
     val recentTimestamp: StateFlow<Long> = getStateFlowFromFlow(DataReceiver.recentTimestamp, initialValue = -1)
     val syncTime: StateFlow<Map<CollectorType, Long>> = getStateFlowFromFlow(stateRepository.syncTime, initialValue = mapOf())
@@ -80,28 +78,24 @@ class MainViewModel(
 
     fun toggleStepRunning(context: Context) {
         val intent = Intent(context, StepCollectorService::class.java)
-        if(isStepRunning) {
+        if(isStepRunning.value) {
             context.stopService(intent)
             Log.d(TAG, "Stop StepCollectorService")
         } else {
             ContextCompat.startForegroundService(context, intent)
             Log.d(TAG, "Start StepCollectorService")
         }
-
-        isStepRunning = !isStepRunning
     }
     
     fun toggleEnvRunning(context: Context) {
         val intent = Intent(context, EnvCollectorService::class.java)
-        if(isEnvRunning) {
+        if(isEnvRunning.value) {
             context.stopService(intent)
             Log.d(TAG, "Stop EnvCollectorService")
         } else {
             ContextCompat.startForegroundService(context, intent)
             Log.d(TAG, "Start EnvCollectorService")
         }
-
-        isEnvRunning = !isEnvRunning
     }
 
     private fun <T> getStateFlowFromFlow(flow: Flow<T>, initialValue: T): StateFlow<T> {

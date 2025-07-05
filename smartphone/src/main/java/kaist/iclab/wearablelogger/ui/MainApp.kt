@@ -96,8 +96,8 @@ fun MainApp(
                             ).value,
                             wearables = mainViewModel.wearables.collectAsState(listOf()).value.map { it.id },
                             deviceId = mainViewModel.deviceId,
-                            isEnvRunning = mainViewModel.isEnvRunning,
-                            isStepRunning = mainViewModel.isStepRunning,
+                            isEnvRunning = mainViewModel.isEnvRunning.collectAsState().value,
+                            isStepRunning = mainViewModel.isStepRunning.collectAsState().value,
 
                             recentTime = mainViewModel.recentTimestamp.collectAsState().value,
                             syncTime = mainViewModel.syncTime.collectAsState().value,
