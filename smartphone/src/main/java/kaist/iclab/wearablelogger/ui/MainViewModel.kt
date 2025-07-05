@@ -95,10 +95,10 @@ class MainViewModel(
         val intent = Intent(context, EnvCollectorService::class.java)
         if(isEnvRunning) {
             context.stopService(intent)
-            Log.d(TAG, "Stop DataCollectionService")
+            Log.d(TAG, "Stop EnvCollectorService")
         } else {
             ContextCompat.startForegroundService(context, intent)
-            Log.d(TAG, "Start DataCollectionService")
+            Log.d(TAG, "Start EnvCollectorService")
         }
 
         isEnvRunning = !isEnvRunning

@@ -21,10 +21,9 @@ import org.koin.android.ext.android.inject
 import java.util.Timer
 import java.util.TimerTask
 
-private const val TAG = "DataCollectionService"
-
 class EnvCollectorService : BLEService(), SensorEventListener {
     companion object {
+        private val TAG = EnvCollectorService::class.simpleName
         private var envSensorTimer: Timer? = null
     }
 
@@ -47,7 +46,7 @@ class EnvCollectorService : BLEService(), SensorEventListener {
         }
 
         envSensorTimer = Timer()
-        envSensorTimerTask(envSensorTimer)
+        envSensorTimerTask()
     }
 
     override fun onSensorChanged(event: SensorEvent?) {
@@ -56,8 +55,7 @@ class EnvCollectorService : BLEService(), SensorEventListener {
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
     }
 
-    private fun envSensorTimerTask(mTimer: Timer?) {
-        var mTimer = mTimer
+    private fun envSensorTimerTask() {
         val timerTask: TimerTask = object : TimerTask() {
             override fun run() {
                 bleConnectionCheck()
@@ -83,8 +81,8 @@ class EnvCollectorService : BLEService(), SensorEventListener {
                 }
             }
         }
-        mTimer = Timer()
-        mTimer.schedule(timerTask, 10000, 10000)
+        envSensorTimer = Timer()
+        envSensorTimer!!.schedule(timerTask, 10000, 10000)
     }
 
     private fun bleConnectionCheck() {
