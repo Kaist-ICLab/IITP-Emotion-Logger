@@ -14,9 +14,11 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
+import androidx.work.BackoffPolicy
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import androidx.work.WorkRequest
 import com.google.android.gms.wearable.Wearable
 import kaist.iclab.wearablelogger.env.EnvCollectorService
 import kaist.iclab.wearablelogger.step.SamsungHealthPermissionManager
@@ -146,9 +148,9 @@ class MainActivity : ComponentActivity() {
         Log.v(TAG, "scheduleSensorUploadWorker()")
 
         // Minimum period is 15 minutes
-        val workRequest = PeriodicWorkRequestBuilder<SensorDataUploadWorker>(
-            15, TimeUnit.MINUTES
-        ).build()
+        val workRequest = PeriodicWorkRequestBuilder<SensorDataUploadWorker>(15, TimeUnit.MINUTES)
+            .setBackoffCriteria(BackoffPolicy.LINEAR, WorkRequest.MIN_BACKOFF_MILLIS, TimeUnit.MILLISECONDS)
+            .build()
 
         WorkManager.getInstance(this).enqueueUniquePeriodicWork(
             "sensor_data_sync",
