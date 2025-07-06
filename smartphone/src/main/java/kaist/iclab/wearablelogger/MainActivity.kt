@@ -38,7 +38,7 @@ import java.util.concurrent.TimeUnit
 
 class MainActivity : ComponentActivity() {
     companion object {
-        private val TAG = this::class.simpleName
+        private val TAG = MainActivity::class.simpleName
     }
 
     private val dataClient by lazy { Wearable.getDataClient(this) }
