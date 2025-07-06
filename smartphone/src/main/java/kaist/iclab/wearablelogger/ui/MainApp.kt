@@ -34,6 +34,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
@@ -63,6 +64,7 @@ import kaist.iclab.loggerstructure.entity.defaultStepEntity
 import kaist.iclab.loggerstructure.util.CollectorType
 import kaist.iclab.wearablelogger.R
 import kaist.iclab.wearablelogger.util.TimeUtil
+import kotlinx.coroutines.delay
 import org.koin.androidx.compose.koinViewModel
 
 enum class ScreenType {
@@ -99,6 +101,7 @@ fun MainApp(
                             isEnvRunning = mainViewModel.isEnvRunning.collectAsState().value,
                             isStepRunning = mainViewModel.isStepRunning.collectAsState().value,
 
+                            currentTime = mainViewModel.currentTime,
                             recentTime = mainViewModel.recentTimestamp.collectAsState().value,
                             syncTime = mainViewModel.syncTime.collectAsState().value,
                             uploadTime = mainViewModel.uploadTime.collectAsState().value,
@@ -110,6 +113,7 @@ fun MainApp(
                             recentStepEntity = mainViewModel.recentStepEntity.collectAsState().value ?: defaultStepEntity,
                             recentEnvEntity = mainViewModel.recentEnvEntity.collectAsState().value ?: defaultEnvEntity,
 
+                            tickTime = { mainViewModel.tickTime() },
                             navigateToBluetoothScan = { navController.navigate(ScreenType.BLUETOOTH_SCAN.name) },
                             toggleEnvRunning = { mainViewModel.toggleEnvRunning(context) },
                             toggleStepRunning = { mainViewModel.toggleStepRunning(context)},
@@ -129,6 +133,7 @@ fun MainScreen(
     deviceId: String,
     isEnvRunning: Boolean,
     isStepRunning: Boolean,
+    currentTime: Long,
     recentTime: Long,
     syncTime: Map<CollectorType, Long>,
     uploadTime: Map<CollectorType, Long>,
@@ -138,12 +143,20 @@ fun MainScreen(
     recentSkinTempEntity: SkinTempEntity,
     recentStepEntity: StepEntity,
     recentEnvEntity: EnvEntity,
+    tickTime: () -> Unit,
     navigateToBluetoothScan: () -> Unit,
     toggleEnvRunning: () -> Unit,
     toggleStepRunning: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val scrollState = rememberScrollState()
+
+    LaunchedEffect(Unit) {
+        while (true) {
+            tickTime()
+            delay(1000L)
+        }
+    }
 
     Column(
         modifier = modifier
@@ -165,16 +178,31 @@ fun MainScreen(
             Card(
                 modifier = Modifier.fillMaxWidth()
             ) {
-                Row(modifier = Modifier.padding(vertical = 8.dp, horizontal = 12.dp)) {
-                    Text(
-                        "Recent Entity Update: ",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold
+                Column(
+                    modifier = Modifier.padding(vertical = 8.dp, horizontal = 12.dp)
+                ) {
+                    Row {
+                        Text(
+                            "Current Time: ",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
                         )
-                    Text(
-                        TimeUtil.timestampToString(recentTime)
-                    )
+                        Text(
+                            TimeUtil.timestampToString(currentTime)
+                        )
+                    }
+                    Row {
+                        Text(
+                            "Recent Entity Update: ",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            TimeUtil.timestampToString(recentTime)
+                        )
+                    }
                 }
+
             }
             Spacer(modifier = Modifier.height(8.dp))
             AccordionGroup(
@@ -478,6 +506,7 @@ fun MainScreenPreview() {
             deviceId = "1234567890abcdef",
             isEnvRunning = false,
             isStepRunning = false,
+            currentTime =  currentTime,
             recentTime = currentTime,
             syncTime = mapOf(
                 CollectorType.HR to currentTime,
@@ -499,6 +528,7 @@ fun MainScreenPreview() {
             recentSkinTempEntity = defaultSkinTempEntity,
             recentStepEntity = defaultStepEntity,
             recentEnvEntity = defaultEnvEntity,
+            tickTime = {},
             navigateToBluetoothScan = {},
             toggleEnvRunning = {},
             toggleStepRunning = {},
