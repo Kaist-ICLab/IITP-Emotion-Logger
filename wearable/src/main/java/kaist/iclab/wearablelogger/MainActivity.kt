@@ -11,6 +11,7 @@ import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
 import androidx.work.WorkRequest
 import kaist.iclab.loggerstructure.core.PermissionActivity
+import kaist.iclab.wearablelogger.collector.core.AlarmScheduler
 import kaist.iclab.wearablelogger.ui.SettingsScreen
 import kaist.iclab.wearablelogger.ui.SettingsViewModel
 import kaist.iclab.wearablelogger.uploader.SensorDataUploadWorker
@@ -45,7 +46,8 @@ class MainActivity : PermissionActivity() {
     override fun onResume() {
         super.onResume()
         // Setup periodic upload worker
-        scheduleSensorUploadWorker()
+//        scheduleSensorUploadWorker()
+        AlarmScheduler.scheduleExactAlarm(this)
 
         // (re)start job if it was configured to collect data
         val isCollecting = settingsViewModel.isCollectorState.value
