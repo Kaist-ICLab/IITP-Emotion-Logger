@@ -3,6 +3,7 @@ package kaist.iclab.loggerstructure.dao
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import androidx.room.Upsert
 import kaist.iclab.loggerstructure.entity.StepEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -19,6 +20,9 @@ interface StepDao {
 
     @Insert
     suspend fun insertEvents(stepEntity: List<StepEntity>)
+
+    @Upsert
+    suspend fun upsertEvent(stepEntity: StepEntity)
 
     @Query("SELECT * FROM stepEvent ORDER BY id DESC LIMIT 1")
     suspend fun getLast(): StepEntity?

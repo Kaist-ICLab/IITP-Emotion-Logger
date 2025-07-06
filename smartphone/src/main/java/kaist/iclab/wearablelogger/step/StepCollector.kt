@@ -29,6 +29,7 @@ class StepCollector(
     private val stepDao: StepDao,
 ): HealthDataCollector(context) {
     override val key = CollectorType.STEP.name
+    // Start from 64 days before
     private val syncPastLimitDays:Long = 64
 //    private val syncUnitTimeMinutes:Long = 1
 
@@ -39,6 +40,7 @@ class StepCollector(
         // The wearable's data doesn't sync instantly to mobile devices, so have 1 hour of margin to load the steps
         val fromTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(since), ZoneId.systemDefault())
             .truncatedTo(ChronoUnit.MINUTES).minusHours(1)
+        Log.d(TAG, "fromTime: $fromTime")
         val req = DataType.StepsType
             .TOTAL
             .requestBuilder
@@ -55,7 +57,7 @@ class StepCollector(
 
         var maxTime:Long = since
         resList.forEach{ it ->
-            stepDao.insertEvent(
+            stepDao.upsertEvent(
                 StepEntity(
                     dataReceived = System.currentTimeMillis(),
                     startTime = it.startTime.toEpochMilli(),
@@ -76,7 +78,6 @@ class StepCollector(
         val store = super.store!!
         val timestamp = System.currentTimeMillis()
 
-        //TODO : Insert only if this entity's timeslot is new. Else, do update instead of insertion.
         try {
             lastSynced = readAllDataByGroup(store, lastSynced)
         } catch (e: PlatformInternalException) {

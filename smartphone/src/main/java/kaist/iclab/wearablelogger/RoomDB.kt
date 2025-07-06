@@ -18,7 +18,7 @@ import kaist.iclab.loggerstructure.entity.StepEntity
 import kaist.iclab.loggerstructure.util.Converter
 
 @Database(
-    version = 21,
+    version = 22,
     entities = [
         PpgEntity::class,
         AccEntity::class,
