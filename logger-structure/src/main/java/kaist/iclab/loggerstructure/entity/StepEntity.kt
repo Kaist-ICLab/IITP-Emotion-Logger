@@ -1,11 +1,13 @@
 package kaist.iclab.loggerstructure.entity
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import kaist.iclab.loggerstructure.core.EntityBase
 
 @Entity(
     tableName = "stepEvent",
+    indices = [Index(value = ["startTime", "endTime"], unique = true)]
 )
 data class StepEntity(
     @PrimaryKey(autoGenerate = true)
