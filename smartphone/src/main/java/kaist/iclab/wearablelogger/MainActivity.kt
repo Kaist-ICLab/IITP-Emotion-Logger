@@ -28,6 +28,7 @@ import kaist.iclab.wearablelogger.util.SensorDataUploadWorker
 import kaist.iclab.wearablelogger.util.StateRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
@@ -74,17 +75,19 @@ class MainActivity : ComponentActivity() {
 
         CoroutineScope(Dispatchers.IO).launch {
             val context = this@MainActivity
-            stateRepository.isStepCollected.collect { isCollected ->
+            stateRepository.isStepCollected.first { isCollected ->
                 if(isCollected) {
                     val intent = Intent(context, StepCollectorService::class.java)
                     ContextCompat.startForegroundService(context, intent)
                 }
+                true
             }
-            stateRepository.isEnvCollected.collect { isCollected ->
+            stateRepository.isEnvCollected.first { isCollected ->
                 if(isCollected) {
                     val intent = Intent(context, EnvCollectorService::class.java)
                     ContextCompat.startForegroundService(context, intent)
                 }
+                true
             }
         }
     }
