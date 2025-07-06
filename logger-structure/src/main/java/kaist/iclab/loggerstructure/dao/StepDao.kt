@@ -24,14 +24,14 @@ interface StepDao {
     @Upsert
     suspend fun upsertEvent(stepEntity: StepEntity)
 
-    @Query("SELECT * FROM stepEvent ORDER BY id DESC LIMIT 1")
+    @Query("SELECT * FROM stepEvent ORDER BY startTime DESC LIMIT 1")
     suspend fun getLast(): StepEntity?
 
-    @Query("SELECT * FROM stepEvent ORDER BY id DESC LIMIT 1")
+    @Query("SELECT * FROM stepEvent ORDER BY startTime DESC LIMIT 1")
     fun getLastByFlow(): Flow<StepEntity?>
 
-    @Query("DELETE FROM stepEvent WHERE id <= :id")
-    suspend fun deleteBefore(id: Long)
+    @Query("DELETE FROM stepEvent WHERE startTime <= :startTime")
+    suspend fun deleteBefore(startTime: Long)
 
     @Query("DELETE FROM stepEvent")
     suspend fun deleteAll()

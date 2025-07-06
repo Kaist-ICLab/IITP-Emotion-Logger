@@ -30,7 +30,7 @@ class StepCollector(
 ): HealthDataCollector(context) {
     override val key = CollectorType.STEP.name
     // Start from 64 days before
-    private val syncPastLimitDays:Long = 64
+    private val syncPastLimitDays:Long = 7
 //    private val syncUnitTimeMinutes:Long = 1
 
     private var lastSynced:Long = System.currentTimeMillis() - syncPastLimitDays*24L*3600L*1000L
@@ -38,9 +38,11 @@ class StepCollector(
     private suspend fun readAllDataByGroup(store: HealthDataStore, since: Long): Long {
         // We want to collect recent steps, so grouped in several minutes unit
         // The wearable's data doesn't sync instantly to mobile devices, so have 1 hour of margin to load the steps
+        val tenMinuteDigit = (since % (60 * 60 * 1000)) / (60 * 1000) / 10 * 10
         val fromTime = LocalDateTime.ofInstant(Instant.ofEpochMilli(since), ZoneId.systemDefault())
-            .truncatedTo(ChronoUnit.MINUTES).minusHours(1)
-        Log.d(TAG, "fromTime: $fromTime")
+            .truncatedTo(ChronoUnit.MINUTES)
+            .withMinute(tenMinuteDigit.toInt())
+            .minusHours(1)
         val req = DataType.StepsType
             .TOTAL
             .requestBuilder
