@@ -1,6 +1,8 @@
 package kaist.iclab.wearablelogger
 
 import android.Manifest
+import android.content.Intent
+import android.content.IntentFilter
 import android.os.Build
 import android.os.Bundle
 import android.util.Log
@@ -12,6 +14,7 @@ import androidx.work.WorkManager
 import androidx.work.WorkRequest
 import kaist.iclab.loggerstructure.core.PermissionActivity
 import kaist.iclab.wearablelogger.collector.core.AlarmScheduler
+import kaist.iclab.wearablelogger.collector.core.BatteryStateReceiver
 import kaist.iclab.wearablelogger.ui.SettingsScreen
 import kaist.iclab.wearablelogger.ui.SettingsViewModel
 import kaist.iclab.wearablelogger.uploader.SensorDataUploadWorker
@@ -22,6 +25,7 @@ private const val TAG = "MainActivity"
 
 class MainActivity : PermissionActivity() {
     private val settingsViewModel: SettingsViewModel by viewModel()
+    private lateinit var batteryReceiver: BatteryStateReceiver
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,6 +39,9 @@ class MainActivity : PermissionActivity() {
             Manifest.permission.ACTIVITY_RECOGNITION
         )
         requestPermissions.launch(permissionList.toTypedArray())
+
+        batteryReceiver = BatteryStateReceiver()
+        registerReceiver(batteryReceiver, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
 
         setContent {
             SettingsScreen(
@@ -52,6 +59,11 @@ class MainActivity : PermissionActivity() {
         // (re)start job if it was configured to collect data
         val isCollecting = settingsViewModel.isCollectorState.value
         if(isCollecting) settingsViewModel.startLogging()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        unregisterReceiver(batteryReceiver)
     }
 
     private fun scheduleSensorUploadWorker() {

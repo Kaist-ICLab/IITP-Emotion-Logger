@@ -10,6 +10,7 @@ import com.samsung.android.service.health.tracking.data.ValueKey
 import kaist.iclab.loggerstructure.dao.SkinTempDao
 import kaist.iclab.loggerstructure.entity.SkinTempEntity
 import kaist.iclab.loggerstructure.util.CollectorType
+import kaist.iclab.wearablelogger.collector.core.BatteryStateReceiver
 import kaist.iclab.wearablelogger.collector.core.HealthTrackerCollector
 import kaist.iclab.wearablelogger.config.ConfigRepository
 import kaist.iclab.wearablelogger.healthtracker.AbstractTrackerEventListener
@@ -18,14 +19,16 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-private const val TAG = "SkinTempCollector"
-
 class SkinTempCollector(
     context: Context,
     private val healthTrackerRepository: HealthTrackerRepository,
     private val configRepository: ConfigRepository,
     private val skinTempDao: SkinTempDao
 ) : HealthTrackerCollector(context) {
+    companion object {
+        private val TAG = SkinTempCollector::class.simpleName
+    }
+
     override val key = CollectorType.SKINTEMP.name
 
     override fun initHealthTracker() {
@@ -41,6 +44,7 @@ class SkinTempCollector(
         AbstractTrackerEventListener() {
         override fun onDataReceived(data: List<DataPoint>) {
             val dataReceived = System.currentTimeMillis()
+            Log.d(TAG, "$dataReceived, ${data.size}")
             val skinTempData = data.map {
                 SkinTempEntity(
                     dataReceived = dataReceived,
@@ -49,7 +53,12 @@ class SkinTempCollector(
                     objectTemp = it.getValue(ValueKey.SkinTemperatureSet.OBJECT_TEMPERATURE),
                     status = it.getValue(ValueKey.SkinTemperatureSet.STATUS)
                 )
+            }.filter {
+                (!BatteryStateReceiver.isCharging || it.timestamp <= BatteryStateReceiver.chargeStartTimestamp)
             }
+
+            Log.d(TAG, "insert ${skinTempData.size} entities")
+
             CoroutineScope(Dispatchers.IO).launch {
                 skinTempDao.insertEvents(skinTempData)
             }
