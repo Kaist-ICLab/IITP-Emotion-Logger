@@ -11,6 +11,7 @@ import com.samsung.android.service.health.tracking.data.ValueKey
 import kaist.iclab.loggerstructure.dao.PpgDao
 import kaist.iclab.loggerstructure.entity.PpgEntity
 import kaist.iclab.loggerstructure.util.CollectorType
+import kaist.iclab.wearablelogger.collector.core.BatteryStateReceiver
 import kaist.iclab.wearablelogger.collector.core.HealthTrackerCollector
 import kaist.iclab.wearablelogger.config.ConfigRepository
 import kaist.iclab.wearablelogger.healthtracker.AbstractTrackerEventListener
@@ -19,29 +20,37 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-private const val TAG = "PpgCollector"
-
 class PpgCollector(
     context: Context,
     private val healthTrackerRepository: HealthTrackerRepository,
     private val configRepository: ConfigRepository,
     private val ppgDao: PpgDao,
 ): HealthTrackerCollector(context) {
+    companion object {
+        private val TAG = PpgCollector::class.simpleName
+    }
+
     override val key = CollectorType.PPG.name
 
     override val trackerEventListener = object : AbstractTrackerEventListener() {
         override fun onDataReceived(data: List<DataPoint>) {
             val dataReceived = System.currentTimeMillis()
-            val ppgData = data.map{
+            Log.d(TAG, "$dataReceived, ${data.size}")
+            val ppgEntities = data.map{
                 PpgEntity(
                     dataReceived = dataReceived,
                     timestamp = it.timestamp,
                     ppg = it.getValue(ValueKey.PpgSet.PPG_GREEN), //ADC value: might require DAC
                     status = it.getValue(ValueKey.PpgSet.GREEN_STATUS)
                 )
+            }.filter {
+                (!BatteryStateReceiver.isCharging || it.timestamp <= BatteryStateReceiver.chargeStartTimestamp)
             }
+
+            Log.d(TAG, "insert ${ppgEntities.size} entities")
+
             CoroutineScope(Dispatchers.IO).launch {
-                ppgDao.insertEvents(ppgData)
+                ppgDao.insertEvents(ppgEntities)
             }
         }
     }

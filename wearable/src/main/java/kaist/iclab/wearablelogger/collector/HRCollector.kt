@@ -10,6 +10,7 @@ import com.samsung.android.service.health.tracking.data.ValueKey
 import kaist.iclab.loggerstructure.dao.HRDao
 import kaist.iclab.loggerstructure.entity.HREntity
 import kaist.iclab.loggerstructure.util.CollectorType
+import kaist.iclab.wearablelogger.collector.core.BatteryStateReceiver
 import kaist.iclab.wearablelogger.collector.core.HealthTrackerCollector
 import kaist.iclab.wearablelogger.config.ConfigRepository
 import kaist.iclab.wearablelogger.healthtracker.AbstractTrackerEventListener
@@ -18,14 +19,15 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-private const val TAG = "HRCollector"
-
 class HRCollector(
     context: Context,
     private val healthTrackerRepository: HealthTrackerRepository,
     private val configRepository: ConfigRepository,
     private val hrDao: HRDao,
 ) : HealthTrackerCollector(context) {
+    companion object {
+        private val TAG = HRCollector::class.simpleName
+    }
     override val key = CollectorType.HR.name
 
     override val trackerEventListener = object :
@@ -42,7 +44,12 @@ class HRCollector(
                     ibi = it.getValue(ValueKey.HeartRateSet.IBI_LIST),
                     ibiStatus = it.getValue(ValueKey.HeartRateSet.IBI_STATUS_LIST),
                 )
+            }.filter {
+                (!BatteryStateReceiver.isCharging || it.timestamp <= BatteryStateReceiver.chargeStartTimestamp)
             }
+
+            Log.d(TAG, "insert ${hrEntities.size} entities")
+
             CoroutineScope(Dispatchers.IO).launch {
                 hrDao.insertEvents(hrEntities)
             }
