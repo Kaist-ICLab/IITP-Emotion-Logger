@@ -70,12 +70,14 @@ import org.koin.androidx.compose.koinViewModel
 enum class ScreenType {
     MAIN,
     BLUETOOTH_SCAN,
+    DEBUG,
 }
 
 @Composable
 fun MainApp(
     mainViewModel: MainViewModel,
-    bluetoothViewModel: BluetoothViewModel = koinViewModel()
+    bluetoothViewModel: BluetoothViewModel = koinViewModel(),
+    debugViewModel: DebugViewModel = koinViewModel()
 ) {
     val navController = rememberNavController()
     val context = LocalContext.current
@@ -115,11 +117,16 @@ fun MainApp(
 
                             tickTime = { mainViewModel.tickTime() },
                             navigateToBluetoothScan = { navController.navigate(ScreenType.BLUETOOTH_SCAN.name) },
+                            navigateToDebug = { navController.navigate(ScreenType.DEBUG.name) },
                             toggleEnvRunning = { mainViewModel.toggleEnvRunning(context) },
                             toggleStepRunning = { mainViewModel.toggleStepRunning(context)},
                         )
                     }
                     composable(ScreenType.BLUETOOTH_SCAN.name) { BluetoothScanScreen(bluetoothViewModel) }
+                    composable(ScreenType.DEBUG.name) { DebugScreen(
+                        uploadSingleStepEntity = { debugViewModel.uploadSingleStepEntity() },
+                        flush = { debugViewModel.flush() }
+                    ) }
                 }
             }
         }
@@ -145,6 +152,7 @@ fun MainScreen(
     recentEnvEntity: EnvEntity,
     tickTime: () -> Unit,
     navigateToBluetoothScan: () -> Unit,
+    navigateToDebug: () -> Unit,
     toggleEnvRunning: () -> Unit,
     toggleStepRunning: () -> Unit,
     modifier: Modifier = Modifier
@@ -168,6 +176,7 @@ fun MainScreen(
             deviceId = deviceId,
             bluetoothDeviceAddress = bluetoothDeviceAddress,
             wearables = wearables,
+            navigateToDebug = navigateToDebug,
             navigateToBluetoothScan = navigateToBluetoothScan,
             modifier = Modifier.padding(16.dp)
         )
@@ -230,6 +239,7 @@ fun DeviceInfo(
     bluetoothDeviceAddress: String,
     wearables: List<String>,
     navigateToBluetoothScan: () -> Unit,
+    navigateToDebug: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -264,6 +274,13 @@ fun DeviceInfo(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(stringResource(R.string.scan_for_blusensor))
+            }
+
+            Button(
+                onClick = navigateToDebug,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text("Debug")
             }
         }
     }
@@ -463,6 +480,7 @@ fun DeviceInfoPreview() {
             bluetoothDeviceAddress = "XX:XX:XX:XX:XX:XX",
             wearables = listOf(),
             deviceId = "1234567890abcdef",
+            navigateToDebug = {},
             navigateToBluetoothScan = {}
         )
     }
@@ -529,6 +547,7 @@ fun MainScreenPreview() {
             recentStepEntity = defaultStepEntity,
             recentEnvEntity = defaultEnvEntity,
             tickTime = {},
+            navigateToDebug = {},
             navigateToBluetoothScan = {},
             toggleEnvRunning = {},
             toggleStepRunning = {},

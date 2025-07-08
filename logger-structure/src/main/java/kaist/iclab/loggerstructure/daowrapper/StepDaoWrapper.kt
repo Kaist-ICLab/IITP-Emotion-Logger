@@ -14,7 +14,7 @@ class StepDaoWrapper(
     }
 
     override suspend fun getBeforeLast(): Pair<Long, List<StepEntity>> {
-        val lastId = stepDao.getLast()?.id ?: 0
+        val lastId = stepDao.getLast()?.dataReceived ?: 0
         val entries = stepDao.getBefore(lastId)
 
         return Pair(lastId, entries)

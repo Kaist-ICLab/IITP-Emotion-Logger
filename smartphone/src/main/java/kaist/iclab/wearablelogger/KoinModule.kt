@@ -12,6 +12,7 @@ import kaist.iclab.loggerstructure.daowrapper.StepDaoWrapper
 import kaist.iclab.loggerstructure.util.CollectorType
 import kaist.iclab.wearablelogger.step.StepCollector
 import kaist.iclab.wearablelogger.ui.BluetoothViewModel
+import kaist.iclab.wearablelogger.ui.DebugViewModel
 import kaist.iclab.wearablelogger.ui.MainViewModel
 import kaist.iclab.wearablelogger.util.DataReceiver
 import kaist.iclab.wearablelogger.util.DataUploaderRepository
@@ -123,15 +124,21 @@ val koinModule = module {
 
     // ViewModel
     viewModel {
-        BluetoothViewModel()
-    }
-
-    viewModel {
         MainViewModel(
             stepDao = get(),
             envDao = get(),
             deviceInfoRepository = get(),
             stateRepository = get(),
+        )
+    }
+
+    viewModel {
+        BluetoothViewModel()
+    }
+
+    viewModel {
+        DebugViewModel(
+            uploaderRepository = get()
         )
     }
 }

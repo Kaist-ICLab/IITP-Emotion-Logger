@@ -1,6 +1,5 @@
 package kaist.iclab.wearablelogger.util
 
-import android.annotation.SuppressLint
 import android.util.Log
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonArray
@@ -33,13 +32,6 @@ class DataUploaderRepository(
     private val dataDao: Map<String, DaoWrapper<EntityBase>>,
     private val stateRepository: StateRepository,
 ) {
-    companion object {
-        private val TAG = DataUploaderRepository::class.simpleName
-    }
-
-    private val deviceInfoRepository: DeviceInfoRepository by inject(DeviceInfoRepository::class.java)
-    private val deviceId = deviceInfoRepository.deviceId
-
     private enum class LogType(val url: String) {
         ERROR(""),
         RECENT("recent"),
@@ -49,6 +41,39 @@ class DataUploaderRepository(
         PPG("ppg"),
         SKINTEMP("skintemp"),
         STEP("step")
+    }
+
+    companion object {
+        private val TAG = DataUploaderRepository::class.simpleName
+        private val TIME_PROPERTY = listOf("timestamp", "dataReceived", "startTime", "endTime")
+    }
+
+    private val deviceInfoRepository: DeviceInfoRepository by inject(DeviceInfoRepository::class.java)
+    private val deviceId = deviceInfoRepository.deviceId
+
+
+    private fun JsonObject.formatForUpload() {
+        this.addProperty("device_id", deviceId)
+        for(prop in TIME_PROPERTY) {
+            if(this.has(prop))
+                this.addProperty(prop, toTimestampz(this[prop].asLong))
+        }
+
+        this.remove("id")
+    }
+
+    private fun nameToLogType(name: String): LogType {
+        val logType = when(name) {
+            CollectorType.SKINTEMP.name -> LogType.SKINTEMP
+            CollectorType.ACC.name -> LogType.ACC
+            CollectorType.ENV.name -> LogType.ENV
+            CollectorType.PPG.name -> LogType.PPG
+            CollectorType.STEP.name -> LogType.STEP
+            CollectorType.HR.name -> LogType.HR
+            else -> LogType.ERROR
+        }
+
+        return logType
     }
 
     fun uploadRecentData(recentEntity: JsonObject) {
@@ -81,7 +106,6 @@ class DataUploaderRepository(
 
     fun uploadFullData() {
         val chunkSize = 2000
-        val timeProperty = listOf("timestamp", "dataReceived", "startTime", "endTime")
         val gson = GsonBuilder().setStrictness(Strictness.LENIENT).create()
 
         CoroutineScope(Dispatchers.IO).launch {
@@ -89,34 +113,15 @@ class DataUploaderRepository(
                 val name = entry.key
                 val dao = entry.value
 
-                val logType = when(name) {
-                    CollectorType.SKINTEMP.name -> LogType.SKINTEMP
-                    CollectorType.ACC.name -> LogType.ACC
-                    CollectorType.ENV.name -> LogType.ENV
-                    CollectorType.PPG.name -> LogType.PPG
-                    CollectorType.STEP.name -> LogType.STEP
-                    CollectorType.HR.name -> LogType.HR
-                    else -> LogType.ERROR
-                }
-
+                val logType = nameToLogType(name)
                 val pair = dao.getBeforeLast()
                 val threshold = pair.first
                 val entries = pair.second
 
                 val data = gson.toJsonTree(entries).asJsonArray
-
-                for(elem in data) {
-                    val elemObject = elem.asJsonObject
-                    elemObject.addProperty("device_id", deviceId)
-                    for(prop in timeProperty) {
-                        if(elemObject.has(prop))
-                            elemObject.addProperty(prop, toTimestampz(elemObject[prop].asLong))
-                    }
-
-                    elemObject.remove("id")
-                }
-
+                data.map { it.asJsonObject.formatForUpload() }
                 val chunks = data.chunked(chunkSize)
+
                 var chunkIndex = 1
                 for(chunk in chunks) {
                     val json = JsonObject()
@@ -124,7 +129,7 @@ class DataUploaderRepository(
                     json.addProperty("device_id", deviceId)
 
                     Log.d(TAG, "Upload full Data ($chunkIndex / ${chunks.size}): $name")
-                    uploadJSON(json.toString(), logType)
+                    uploadJSON(json.toString(), logType, retryAtTimeout = true)
                     sleep(7000)
                     chunkIndex += 1
                 }
@@ -135,14 +140,23 @@ class DataUploaderRepository(
         }
     }
 
-    @SuppressLint("HardwareIds")
-    private fun uploadJSON(jsonString: String, logType: LogType) {
+    fun uploadSingleEntity(entity: EntityBase, collectorType: CollectorType) {
+        val gson = GsonBuilder().setStrictness(Strictness.LENIENT).create()
+        val data = gson.toJsonTree(entity)
+        data.asJsonObject.formatForUpload()
+
+        val json = JsonObject()
+        json.add("data", JsonArray().apply{ add(data) })
+        json.addProperty("device_id", deviceId)
+        Log.d(TAG, "Upload test: $json")
+        uploadJSON(json.toString(), nameToLogType(collectorType.name))
+    }
+
+    private fun uploadJSON(jsonString: String, logType: LogType, retryAtTimeout: Boolean = false) {
         if(logType == LogType.ERROR) {
             Log.e(TAG, "Invalid LogType")
             return
         }
-
-        val retryAtTimeout = (logType != LogType.RECENT)
 
         val client = OkHttpClient()
         val jsonMediaType = "application/json; charset=utf-8".toMediaType()
@@ -157,7 +171,7 @@ class DataUploaderRepository(
         var timeoutMillis = 5000L
         val maxTimeoutMillis = 20000L
 
-        while(true) {
+        while(shouldTryUpload) {
             try {
                 val response = client.newCall(request).execute()
                 response.use {
