@@ -15,12 +15,13 @@ import kaist.iclab.wearablelogger.step.StepCollector
 import kaist.iclab.wearablelogger.ui.BluetoothViewModel
 import kaist.iclab.wearablelogger.ui.DebugViewModel
 import kaist.iclab.wearablelogger.ui.MainViewModel
-import kaist.iclab.wearablelogger.util.DataReceiver
+import kaist.iclab.wearablelogger.util.DataReceiverService
 import kaist.iclab.wearablelogger.util.DataUploaderRepository
 import kaist.iclab.wearablelogger.util.DeviceInfoRepository
 import kaist.iclab.wearablelogger.util.StateRepository
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
+import org.koin.core.qualifier.named
 import org.koin.dsl.module
 
 val koinModule = module {
@@ -109,18 +110,17 @@ val koinModule = module {
         )
     }
 
+    single(named("collectorDao")) {
+        mapOf(
+            CollectorType.ACC.name to get<AccDaoWrapper>(),
+            CollectorType.PPG.name to get<PpgDaoWrapper>(),
+            CollectorType.HR.name to get<HRDaoWrapper>(),
+            CollectorType.SKINTEMP.name to get<SkinTempDaoWrapper>()
+        ) as Map<String, DaoWrapper<EntityBase>>
+    }
+
     single{
-        DataReceiver(
-            androidContext(),
-            mapOf(
-                CollectorType.ACC.name to get<AccDaoWrapper>(),
-                CollectorType.PPG.name to get<PpgDaoWrapper>(),
-                CollectorType.HR.name to get<HRDaoWrapper>(),
-                CollectorType.SKINTEMP.name to get<SkinTempDaoWrapper>()
-            ) as Map<String, DaoWrapper<EntityBase>>,
-            get(),
-            get<DataUploaderRepository>()
-        )
+        DataReceiverService()
     }
 
     single {

@@ -5,7 +5,6 @@ import android.content.Context
 import android.provider.Settings
 import android.util.Log
 import com.google.android.gms.wearable.CapabilityClient
-import com.google.android.gms.wearable.Node
 import com.google.android.gms.wearable.Wearable
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
@@ -17,6 +16,7 @@ class DeviceInfoRepository(
 ) {
     companion object {
         private val TAG = DeviceInfoRepository::class.simpleName
+        private const val CAPABILITY_NAME = "data_collection"
     }
 
     @SuppressLint("HardwareIds")
@@ -25,21 +25,29 @@ class DeviceInfoRepository(
         Settings.Secure.ANDROID_ID
     )
 
-    fun getWearablesFlow(): Flow<Set<Node>> = callbackFlow {
+    fun getWearablesFlow(): Flow<String?> = callbackFlow {
         val capabilityClient = Wearable.getCapabilityClient(context)
+
         val listener = CapabilityClient.OnCapabilityChangedListener { capabilityInfo ->
-            trySend(capabilityInfo.nodes)
+            trySend(capabilityInfo.nodes.firstOrNull { it -> it.isNearby }?.displayName)
             Log.d(TAG, "capabilityChangedListener: ${capabilityInfo.nodes}")
         }
 
         // 초기 상태 emit
         val initial = capabilityClient
-            .getCapability("my_wearable_capability", CapabilityClient.FILTER_ALL)
+            .getCapability(CAPABILITY_NAME, CapabilityClient.FILTER_REACHABLE)
+            .addOnSuccessListener { capabilityInfo ->
+                val nodes = capabilityInfo.nodes
+                Log.d(TAG, "OnSuccess()")
+                for (node in nodes) {
+                    Log.d("Capability", "Connected node with capability: ${node.displayName}")
+                }
+            }
             .await()
-        Log.d(TAG, "Initial capabilityClient: ${initial.nodes}")
-        trySend(initial.nodes)
 
-        capabilityClient.addListener(listener, "my_wearable_capability")
+        Log.d(TAG, "Initial capabilityClient: ${initial.nodes}")
+        trySend(initial.nodes.firstOrNull { it -> it.isNearby }?.displayName)
+        capabilityClient.addListener(listener, CAPABILITY_NAME)
 
         awaitClose {
             capabilityClient.removeListener(listener)

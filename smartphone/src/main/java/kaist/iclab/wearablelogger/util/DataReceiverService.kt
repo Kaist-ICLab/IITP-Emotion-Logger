@@ -1,13 +1,12 @@
 package kaist.iclab.wearablelogger.util
 
 import android.annotation.SuppressLint
-import android.content.Context
 import android.util.Log
-import com.google.android.gms.wearable.DataClient
 import com.google.android.gms.wearable.DataEventBuffer
 import com.google.android.gms.wearable.DataMap
 import com.google.android.gms.wearable.DataMapItem
 import com.google.android.gms.wearable.Wearable
+import com.google.android.gms.wearable.WearableListenerService
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
 import com.google.gson.Strictness
@@ -21,13 +20,12 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
+import org.koin.android.ext.android.inject
+import org.koin.core.qualifier.named
+import org.koin.java.KoinJavaComponent.inject
+import kotlin.getValue
 
-class DataReceiver(
-    val context: Context,
-    val collectorDao: Map<String, DaoWrapper<EntityBase>>,
-    val stateRepository: StateRepository,
-    val dataUploaderRepository: DataUploaderRepository
-) : DataClient.OnDataChangedListener {
+class DataReceiverService: WearableListenerService() {
     companion object {
         private const val TAG = "DataReceiver"
 
@@ -37,6 +35,10 @@ class DataReceiver(
         val recentPpgEntity = MutableSharedFlow<PpgEntity?>()
         val recentSkinTempEntity = MutableSharedFlow<SkinTempEntity?>()
     }
+
+    private val collectorDao by inject<Map<String, DaoWrapper<EntityBase>>>(qualifier = named("collectorDao"))
+    private val stateRepository: StateRepository by inject(StateRepository::class.java)
+    private val dataUploaderRepository: DataUploaderRepository by inject(DataUploaderRepository::class.java)
 
     override fun onDataChanged(dataEventBuffer: DataEventBuffer) {
         dataEventBuffer.forEach { dataEvent ->
@@ -83,7 +85,7 @@ class DataReceiver(
         Log.d(TAG, "unpack($key): $data")
         val asset = data.getAsset("data")!!
 
-        Wearable.getDataClient(context).getFdForAsset(asset)
+        Wearable.getDataClient(this).getFdForAsset(asset)
             .addOnSuccessListener { assetFd ->
                 assetFd.inputStream.use { inputStream ->
                     val json = String(inputStream.readBytes())
