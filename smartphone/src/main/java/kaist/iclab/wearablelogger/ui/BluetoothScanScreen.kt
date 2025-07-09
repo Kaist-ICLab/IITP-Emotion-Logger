@@ -28,22 +28,23 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.core.app.ActivityCompat
+import kaist.iclab.wearablelogger.env.BluetoothConnectStatus
 
 @Composable
 fun BluetoothScanScreen(
     bluetoothViewModel: BluetoothViewModel,
     modifier: Modifier = Modifier
 ) {
-    val context = LocalContext.current
-
-    val isScanning = bluetoothViewModel.isScanning
-    val bluetoothList = bluetoothViewModel.scanResults
+    val isScanning by bluetoothViewModel.isScanning.collectAsState()
+    val bluetoothList by bluetoothViewModel.scanResults.collectAsState()
 
     val enableBLELauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.StartActivityForResult()
@@ -51,7 +52,7 @@ fun BluetoothScanScreen(
         if (result.resultCode == Activity.RESULT_OK) {
             // BLE enabled
             Log.d("BLE", "Bluetooth enabled")
-            bluetoothViewModel.startScan(context)
+            bluetoothViewModel.startScan()
         } else {
             // User denied
             Log.d("BLE", "Bluetooth not enabled")
@@ -69,7 +70,7 @@ fun BluetoothScanScreen(
         ) {
             OutlinedTextField(
                 value = bluetoothViewModel.bluSensorAddress,
-                onValueChange = { it: String -> bluetoothViewModel.changeBluSensorAddress(it) },
+                onValueChange = { bluetoothViewModel.onBluSensorAddressChange(it) },
                 label = { Text("Bluetooth Address", style = MaterialTheme.typography.labelSmall) },
                 placeholder = { Text("XX:XX:XX:XX:XX:XX", style = MaterialTheme.typography.bodySmall) },
                 textStyle = MaterialTheme.typography.bodySmall,
@@ -81,7 +82,7 @@ fun BluetoothScanScreen(
 
             if(isScanning) {
                 Button(
-                    onClick = { bluetoothViewModel.stopScan(context) },
+                    onClick = { bluetoothViewModel.stopScan() },
                     modifier = Modifier.width(90.dp)
                 ) {
                     Text(
@@ -105,16 +106,14 @@ fun BluetoothScanScreen(
         Spacer(modifier = Modifier.height(8.dp))
         BluetoothDeviceList(
             bluetoothList = bluetoothList,
-            connectStatus = bluetoothViewModel.bluetoothConnectStatus,
-            connectDevice = { device -> bluetoothViewModel.connectDevice(device, context) }
+            connectDevice = { device -> bluetoothViewModel.connectDevice(device) }
         )
     }
 }
 
 @Composable
 fun BluetoothDeviceList(
-    bluetoothList: Map<String, BluetoothDevice>,
-    connectStatus: BluetoothConnectStatus,
+    bluetoothList: Map<BluetoothDevice, BluetoothConnectStatus>,
     connectDevice: (device: BluetoothDevice) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -134,32 +133,19 @@ fun BluetoothDeviceList(
     }
 
     val context = LocalContext.current
-    LaunchedEffect(connectStatus) {
-        val message = when(connectStatus){
-            BluetoothConnectStatus.ONGOING -> "Trying to connect to device..."
-            BluetoothConnectStatus.FAIL -> "Connection Failed"
-            BluetoothConnectStatus.SUCCESS -> "Connection successful"
-            else -> ""
-        }
-
-        if(connectStatus != BluetoothConnectStatus.IDLE) Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
-    }
 
     LazyColumn(
         modifier = modifier.padding(8.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ){
         items(bluetoothList.entries.toList()) { entry ->
-            val address = entry.key
-            val device = entry.value
+            val device = entry.key
+            val connectStatus = entry.value
             BluetoothDeviceItem(
                 name = device.name ?: "Unknown",
-                address = address,
+                address = device.address,
                 connectStatus = connectStatus,
-                onClick = {
-                    if(connectStatus != BluetoothConnectStatus.ONGOING) connectDevice(device)
-                    else Toast.makeText(context, "Already trying to connect to other device!", Toast.LENGTH_SHORT).show()
-                }
+                onClick = { connectDevice(device) }
             )
         }
     }
@@ -172,6 +158,18 @@ fun BluetoothDeviceItem(
     connectStatus: BluetoothConnectStatus,
     onClick: () -> Unit
 ) {
+    val context = LocalContext.current
+    LaunchedEffect(connectStatus) {
+        val message = when(connectStatus){
+            BluetoothConnectStatus.ONGOING -> "Trying to connect to device..."
+            BluetoothConnectStatus.FAIL -> "Connection Failed"
+            BluetoothConnectStatus.SUCCESS -> "Connection successful"
+            else -> ""
+        }
+
+        if(connectStatus != BluetoothConnectStatus.IDLE) Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
+    }
+
     Card(modifier = Modifier
         .fillMaxWidth(),
         onClick = onClick

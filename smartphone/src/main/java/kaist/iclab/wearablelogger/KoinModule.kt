@@ -10,6 +10,7 @@ import kaist.iclab.loggerstructure.daowrapper.PpgDaoWrapper
 import kaist.iclab.loggerstructure.daowrapper.SkinTempDaoWrapper
 import kaist.iclab.loggerstructure.daowrapper.StepDaoWrapper
 import kaist.iclab.loggerstructure.util.CollectorType
+import kaist.iclab.wearablelogger.env.BluetoothScanner
 import kaist.iclab.wearablelogger.step.StepCollector
 import kaist.iclab.wearablelogger.ui.BluetoothViewModel
 import kaist.iclab.wearablelogger.ui.DebugViewModel
@@ -122,6 +123,13 @@ val koinModule = module {
         )
     }
 
+    single {
+        BluetoothScanner(
+            context = androidContext(),
+            stateRepository = get()
+        )
+    }
+
     // ViewModel
     viewModel {
         MainViewModel(
@@ -133,7 +141,9 @@ val koinModule = module {
     }
 
     viewModel {
-        BluetoothViewModel()
+        BluetoothViewModel(
+            bluetoothScanner = get()
+        )
     }
 
     viewModel {

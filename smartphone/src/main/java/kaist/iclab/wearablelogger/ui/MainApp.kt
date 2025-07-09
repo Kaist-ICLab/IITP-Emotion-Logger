@@ -82,8 +82,6 @@ fun MainApp(
     val navController = rememberNavController()
     val context = LocalContext.current
 
-    bluetoothViewModel.initBLEAdapter(context)
-
     MaterialTheme {
         Scaffold {
             innerPadding ->

@@ -92,14 +92,14 @@ class MainActivity : ComponentActivity() {
                 true
             }
         }
+
+        // Setup periodic upload worker
+        scheduleSensorUploadWorker()
     }
 
     override fun onResume() {
         super.onResume()
         dataClient.addListener(dataReceiver)
-
-        // Setup periodic upload worker
-        scheduleSensorUploadWorker()
     }
 
     override fun onPause() {
