@@ -1,5 +1,6 @@
 package kaist.iclab.wearablelogger.ui
 
+import android.widget.TextClock
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -34,7 +35,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.remember
@@ -46,6 +46,8 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.content.ContextCompat
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
@@ -64,7 +66,6 @@ import kaist.iclab.loggerstructure.entity.defaultStepEntity
 import kaist.iclab.loggerstructure.util.CollectorType
 import kaist.iclab.wearablelogger.R
 import kaist.iclab.wearablelogger.util.TimeUtil
-import kotlinx.coroutines.delay
 import org.koin.androidx.compose.koinViewModel
 
 enum class ScreenType {
@@ -101,7 +102,6 @@ fun MainApp(
                             isEnvRunning = mainViewModel.isEnvRunning.collectAsState().value,
                             isStepRunning = mainViewModel.isStepRunning.collectAsState().value,
 
-                            currentTime = mainViewModel.currentTime,
                             recentTime = mainViewModel.recentTimestamp.collectAsState().value,
                             syncTime = mainViewModel.syncTime.collectAsState().value,
                             uploadTime = mainViewModel.uploadTime.collectAsState().value,
@@ -113,7 +113,6 @@ fun MainApp(
                             recentStepEntity = mainViewModel.recentStepEntity.collectAsState().value ?: defaultStepEntity,
                             recentEnvEntity = mainViewModel.recentEnvEntity.collectAsState().value ?: defaultEnvEntity,
 
-                            tickTime = { mainViewModel.tickTime() },
                             navigateToBluetoothScan = { navController.navigate(ScreenType.BLUETOOTH_SCAN.name) },
                             navigateToDebug = { navController.navigate(ScreenType.DEBUG.name) },
                             toggleEnvRunning = { mainViewModel.toggleEnvRunning(context) },
@@ -138,7 +137,6 @@ fun MainScreen(
     deviceId: String,
     isEnvRunning: Boolean,
     isStepRunning: Boolean,
-    currentTime: Long,
     recentTime: Long,
     syncTime: Map<CollectorType, Long>,
     uploadTime: Map<CollectorType, Long>,
@@ -148,7 +146,6 @@ fun MainScreen(
     recentSkinTempEntity: SkinTempEntity,
     recentStepEntity: StepEntity,
     recentEnvEntity: EnvEntity,
-    tickTime: () -> Unit,
     navigateToBluetoothScan: () -> Unit,
     navigateToDebug: () -> Unit,
     toggleEnvRunning: () -> Unit,
@@ -156,13 +153,6 @@ fun MainScreen(
     modifier: Modifier = Modifier
 ) {
     val scrollState = rememberScrollState()
-
-    LaunchedEffect(Unit) {
-        while (true) {
-            tickTime()
-            delay(1000L)
-        }
-    }
 
     Column(
         modifier = modifier
@@ -188,15 +178,15 @@ fun MainScreen(
                 Column(
                     modifier = Modifier.padding(vertical = 8.dp, horizontal = 12.dp)
                 ) {
-                    Row {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         Text(
                             "Current Time: ",
                             style = MaterialTheme.typography.titleMedium,
                             fontWeight = FontWeight.Bold
                         )
-                        Text(
-                            TimeUtil.timestampToString(currentTime)
-                        )
+                        TextClockWrapper()
                     }
                     Row {
                         Text(
@@ -470,6 +460,28 @@ fun CollectionToggleButton(
     }
 }
 
+@Composable
+fun TextClockWrapper(
+    modifier: Modifier = Modifier
+) {
+    val mediumTextSize = MaterialTheme.typography.titleMedium.fontSize.value
+
+    Column(
+        modifier = modifier
+    ) {
+        AndroidView(
+            factory = { context ->
+                TextClock(context).apply {
+                    format12Hour = "MM-dd HH:mm:ss"
+                    timeZone = timeZone
+                    textSize = mediumTextSize
+                    setTextColor(ContextCompat.getColor(context, R.color.black))
+                }
+            },
+        )
+    }
+}
+
 @Preview
 @Composable
 fun DeviceInfoPreview() {
@@ -522,7 +534,6 @@ fun MainScreenPreview() {
             deviceId = "1234567890abcdef",
             isEnvRunning = false,
             isStepRunning = false,
-            currentTime =  currentTime,
             recentTime = currentTime,
             syncTime = mapOf(
                 CollectorType.HR to currentTime,
@@ -544,7 +555,6 @@ fun MainScreenPreview() {
             recentSkinTempEntity = defaultSkinTempEntity,
             recentStepEntity = defaultStepEntity,
             recentEnvEntity = defaultEnvEntity,
-            tickTime = {},
             navigateToDebug = {},
             navigateToBluetoothScan = {},
             toggleEnvRunning = {},
