@@ -25,7 +25,7 @@ import kaist.iclab.wearablelogger.step.SamsungHealthPermissionManager
 import kaist.iclab.wearablelogger.step.StepCollectorService
 import kaist.iclab.wearablelogger.ui.MainApp
 import kaist.iclab.wearablelogger.ui.MainViewModel
-import kaist.iclab.wearablelogger.util.DataReceiver
+import kaist.iclab.wearablelogger.util.DataReceiverService
 import kaist.iclab.wearablelogger.util.SensorDataUploadWorker
 import kaist.iclab.wearablelogger.util.StateRepository
 import kotlinx.coroutines.CoroutineScope
@@ -41,8 +41,6 @@ class MainActivity : ComponentActivity() {
         private val TAG = MainActivity::class.simpleName
     }
 
-    private val dataClient by lazy { Wearable.getDataClient(this) }
-    private val dataReceiver: DataReceiver by inject()
     private val stateRepository: StateRepository by inject()
     private lateinit var permissionLauncher: ActivityResultLauncher<Array<String>>
 
@@ -95,16 +93,6 @@ class MainActivity : ComponentActivity() {
 
         // Setup periodic upload worker
         scheduleSensorUploadWorker()
-    }
-
-    override fun onResume() {
-        super.onResume()
-        dataClient.addListener(dataReceiver)
-    }
-
-    override fun onPause() {
-        super.onPause()
-        dataClient.removeListener(dataReceiver)
     }
 
     private fun checkAndRequestPermissions() {

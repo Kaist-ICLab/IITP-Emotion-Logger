@@ -21,7 +21,7 @@ import kaist.iclab.loggerstructure.entity.StepEntity
 import kaist.iclab.loggerstructure.util.CollectorType
 import kaist.iclab.wearablelogger.env.EnvCollectorService
 import kaist.iclab.wearablelogger.step.StepCollectorService
-import kaist.iclab.wearablelogger.util.DataReceiver
+import kaist.iclab.wearablelogger.util.DataReceiverService
 import kaist.iclab.wearablelogger.util.DeviceInfoRepository
 import kaist.iclab.wearablelogger.util.StateRepository
 import kotlinx.coroutines.flow.Flow
@@ -37,10 +37,9 @@ class MainViewModel(
     deviceInfoRepository: DeviceInfoRepository,
     stateRepository: StateRepository,
 ): ViewModel() {
-
     val deviceId = deviceInfoRepository.deviceId
     val bluetoothDeviceAddress = stateRepository.bluetoothAddress
-    val wearables = deviceInfoRepository.getWearablesFlow()
+    val wearables: Flow<String?> = deviceInfoRepository.getWearablesFlow()
 
     var currentTime by mutableLongStateOf(System.currentTimeMillis())
         private set
@@ -54,14 +53,14 @@ class MainViewModel(
     val isStepRunning: StateFlow<Boolean> = getStateFlowFromFlow(stateRepository.isStepCollected, initialValue = false)
     var isEnvRunning: StateFlow<Boolean> = getStateFlowFromFlow(stateRepository.isEnvCollected, initialValue = false)
 
-    val recentTimestamp: StateFlow<Long> = getStateFlowFromFlow(DataReceiver.recentTimestamp, initialValue = -1)
+    val recentTimestamp: StateFlow<Long> = getStateFlowFromFlow(DataReceiverService.recentTimestamp, initialValue = -1)
     val syncTime: StateFlow<Map<CollectorType, Long>> = getStateFlowFromFlow(stateRepository.syncTime, initialValue = mapOf())
     val uploadTime: StateFlow<Map<CollectorType, Long>> = getStateFlowFromFlow(stateRepository.uploadTime, initialValue = mapOf())
 
-    val recentHREntity: StateFlow<HREntity?> = getStateFlowFromFlow(DataReceiver.recentHREntity, initialValue = null)
-    val recentAccEntity: StateFlow<AccEntity?> = getStateFlowFromFlow(DataReceiver.recentAccEntity, initialValue = null)
-    val recentPpgEntity: StateFlow<PpgEntity?> = getStateFlowFromFlow(DataReceiver.recentPpgEntity, initialValue = null)
-    val recentSkinTempEntity: StateFlow<SkinTempEntity?> = getStateFlowFromFlow(DataReceiver.recentSkinTempEntity, initialValue = null)
+    val recentHREntity: StateFlow<HREntity?> = getStateFlowFromFlow(DataReceiverService.recentHREntity, initialValue = null)
+    val recentAccEntity: StateFlow<AccEntity?> = getStateFlowFromFlow(DataReceiverService.recentAccEntity, initialValue = null)
+    val recentPpgEntity: StateFlow<PpgEntity?> = getStateFlowFromFlow(DataReceiverService.recentPpgEntity, initialValue = null)
+    val recentSkinTempEntity: StateFlow<SkinTempEntity?> = getStateFlowFromFlow(DataReceiverService.recentSkinTempEntity, initialValue = null)
 
     val recentStepEntity: StateFlow<StepEntity?> = getStateFlowFromFlow(stepDao.getLastByFlow(), initialValue = null)
     val recentEnvEntity: StateFlow<EnvEntity?> = getStateFlowFromFlow(envDao.getLastByFlow(), initialValue = null)

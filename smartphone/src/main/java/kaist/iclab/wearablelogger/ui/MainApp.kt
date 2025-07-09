@@ -96,7 +96,7 @@ fun MainApp(
                             bluetoothDeviceAddress = mainViewModel.bluetoothDeviceAddress.collectAsState(
                                 "None"
                             ).value,
-                            wearables = mainViewModel.wearables.collectAsState(listOf()).value.map { it.id },
+                            wearable = mainViewModel.wearables.collectAsState(null).value,
                             deviceId = mainViewModel.deviceId,
                             isEnvRunning = mainViewModel.isEnvRunning.collectAsState().value,
                             isStepRunning = mainViewModel.isStepRunning.collectAsState().value,
@@ -134,7 +134,7 @@ fun MainApp(
 @Composable
 fun MainScreen(
     bluetoothDeviceAddress: String,
-    wearables: List<String>,
+    wearable: String?,
     deviceId: String,
     isEnvRunning: Boolean,
     isStepRunning: Boolean,
@@ -173,7 +173,7 @@ fun MainScreen(
         DeviceInfo(
             deviceId = deviceId,
             bluetoothDeviceAddress = bluetoothDeviceAddress,
-            wearables = wearables,
+            wearable = wearable,
             navigateToDebug = navigateToDebug,
             navigateToBluetoothScan = navigateToBluetoothScan,
             modifier = Modifier.padding(16.dp)
@@ -235,7 +235,7 @@ fun MainScreen(
 fun DeviceInfo(
     deviceId: String,
     bluetoothDeviceAddress: String,
-    wearables: List<String>,
+    wearable: String?,
     navigateToBluetoothScan: () -> Unit,
     navigateToDebug: () -> Unit,
     modifier: Modifier = Modifier
@@ -264,7 +264,7 @@ fun DeviceInfo(
 
             Text("Device ID: $deviceId")
             Text("BluSensor Address: $bluetoothDeviceAddress")
-            Text("Wearables: $wearables")
+            Text("Wearable: ${wearable ?: "None"}")
             Spacer(modifier = Modifier.height(8.dp))
 
             Button(
@@ -476,7 +476,7 @@ fun DeviceInfoPreview() {
     MaterialTheme {
         DeviceInfo(
             bluetoothDeviceAddress = "XX:XX:XX:XX:XX:XX",
-            wearables = listOf(),
+            wearable = "None",
             deviceId = "1234567890abcdef",
             navigateToDebug = {},
             navigateToBluetoothScan = {}
@@ -518,7 +518,7 @@ fun MainScreenPreview() {
     MaterialTheme {
         MainScreen(
             bluetoothDeviceAddress = "XX:XX:XX:XX:XX:XX",
-            wearables = listOf(),
+            wearable = "None",
             deviceId = "1234567890abcdef",
             isEnvRunning = false,
             isStepRunning = false,
