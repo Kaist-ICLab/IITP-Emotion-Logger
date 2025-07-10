@@ -7,7 +7,7 @@ import kaist.iclab.loggerstructure.core.EntityBase
 
 @Entity(
     tableName = "stepEvent",
-    indices = [Index(value = ["startTime", "endTime"], unique = true)]
+    indices = [Index(value = ["startTime"], unique = true)]
 )
 data class StepEntity(
     @PrimaryKey(autoGenerate = true)
