@@ -14,19 +14,13 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
-import androidx.work.BackoffPolicy
-import androidx.work.ExistingPeriodicWorkPolicy
-import androidx.work.PeriodicWorkRequestBuilder
-import androidx.work.WorkManager
-import androidx.work.WorkRequest
-import com.google.android.gms.wearable.Wearable
+import kaist.iclab.loggerstructure.core.AlarmScheduler
 import kaist.iclab.wearablelogger.env.EnvCollectorService
 import kaist.iclab.wearablelogger.step.SamsungHealthPermissionManager
 import kaist.iclab.wearablelogger.step.StepCollectorService
 import kaist.iclab.wearablelogger.ui.MainApp
 import kaist.iclab.wearablelogger.ui.MainViewModel
-import kaist.iclab.wearablelogger.util.DataReceiverService
-import kaist.iclab.wearablelogger.util.SensorDataUploadWorker
+import kaist.iclab.wearablelogger.util.AlarmReceiver
 import kaist.iclab.wearablelogger.util.StateRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -34,7 +28,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
-import java.util.concurrent.TimeUnit
 
 class MainActivity : ComponentActivity() {
     companion object {
@@ -92,7 +85,12 @@ class MainActivity : ComponentActivity() {
         }
 
         // Setup periodic upload worker
-        scheduleSensorUploadWorker()
+        AlarmScheduler.scheduleExactAlarm(this, AlarmReceiver::class.java)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        AlarmScheduler.cancelAlarm(this, AlarmReceiver::class.java)
     }
 
     private fun checkAndRequestPermissions() {
@@ -130,21 +128,6 @@ class MainActivity : ComponentActivity() {
         }
 
         mainViewModel.enableEnv()
-    }
-
-    private fun scheduleSensorUploadWorker() {
-        Log.v(TAG, "scheduleSensorUploadWorker()")
-
-        // Minimum period is 15 minutes
-        val workRequest = PeriodicWorkRequestBuilder<SensorDataUploadWorker>(15, TimeUnit.MINUTES)
-            .setBackoffCriteria(BackoffPolicy.LINEAR, WorkRequest.MIN_BACKOFF_MILLIS, TimeUnit.MILLISECONDS)
-            .build()
-
-        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
-            "sensor_data_sync",
-            ExistingPeriodicWorkPolicy.CANCEL_AND_REENQUEUE,
-            workRequest
-        )
     }
 }
 

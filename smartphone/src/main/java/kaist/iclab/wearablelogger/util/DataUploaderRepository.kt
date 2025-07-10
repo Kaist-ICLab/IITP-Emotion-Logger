@@ -57,7 +57,7 @@ class DataUploaderRepository(
         this.addProperty("device_id", deviceId)
         for(prop in TIME_PROPERTY) {
             if(this.has(prop))
-                this.addProperty(prop, toTimestampz(this[prop].asLong))
+                this.addProperty(prop, toZonedTimestamp(this[prop].asLong))
         }
 
         this.remove("id")
@@ -100,7 +100,7 @@ class DataUploaderRepository(
         }
 
         recentEntity.addProperty("device_id", deviceId)
-        recentEntity.addProperty("timestamp", toTimestampz(recentEntity["timestamp"].asLong))
+        recentEntity.addProperty("timestamp", toZonedTimestamp(recentEntity["timestamp"].asLong))
         recentEntity.remove("id")
         uploadJSON(recentEntity.toString(), LogType.RECENT)
     }
@@ -132,6 +132,7 @@ class DataUploaderRepository(
 
                     stateRepository.updateUploadTime(name, System.currentTimeMillis())
                     dao.deleteBefore(threshold)
+                    Log.d(TAG, "Delete $logType Data before ${TimeUtil.timestampToString(threshold)}")
                     chunkIndex++
                 }
             }
@@ -194,7 +195,7 @@ class DataUploaderRepository(
         }
     }
 
-    private fun toTimestampz(timeMillis: Long): String {
+    private fun toZonedTimestamp(timeMillis: Long): String {
         val kstTime = ZonedDateTime.ofInstant(
             java.time.Instant.ofEpochMilli(timeMillis),
             ZoneId.of("Asia/Seoul")
