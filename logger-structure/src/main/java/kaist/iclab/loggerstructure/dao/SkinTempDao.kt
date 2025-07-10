@@ -8,8 +8,11 @@ import kaist.iclab.loggerstructure.entity.SkinTempEntity
 
 @Dao
 interface SkinTempDao {
-    @Query("SELECT * FROM skinTempEvent WHERE timestamp <= :timestamp")
+    @Query("SELECT * FROM skinTempEvent WHERE timestamp <= :timestamp ORDER BY timestamp ASC")
     suspend fun getBefore(timestamp: Long): List<SkinTempEntity>
+
+    @Query("SELECT * FROM skinTempEvent WHERE timestamp <= :timestamp ORDER BY timestamp ASC LIMIT :limit")
+    suspend fun getChunkBefore(timestamp: Long, limit: Int): List<SkinTempEntity>
 
     @Query("SELECT * FROM skinTempEvent")
     suspend fun getAll(): List<SkinTempEntity>

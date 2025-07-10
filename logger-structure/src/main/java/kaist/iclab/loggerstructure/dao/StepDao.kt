@@ -9,8 +9,11 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface StepDao {
-    @Query("SELECT * FROM stepEvent WHERE dataReceived <= :dataReceived")
+    @Query("SELECT * FROM stepEvent WHERE dataReceived <= :dataReceived ORDER BY dataReceived ASC")
     suspend fun getBefore(dataReceived: Long): List<StepEntity>
+
+    @Query("SELECT * FROM stepEvent WHERE dataReceived <= :dataReceived ORDER BY dataReceived ASC LIMIT :limit")
+    suspend fun getChunkBefore(dataReceived: Long, limit: Int): List<StepEntity>
 
     @Query("SELECT * FROM stepEvent")
     suspend fun getAll(): List<StepEntity>

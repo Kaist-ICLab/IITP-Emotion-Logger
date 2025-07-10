@@ -9,8 +9,11 @@ import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface EnvDao {
-    @Query("SELECT * FROM envEvent WHERE timestamp <= :timestamp")
+    @Query("SELECT * FROM envEvent WHERE timestamp <= :timestamp ORDER BY timestamp ASC")
     suspend fun getBefore(timestamp: Long): List<EnvEntity>
+
+    @Query("SELECT * FROM envEvent WHERE timestamp <= :timestamp ORDER BY timestamp ASC LIMIT :limit")
+    suspend fun getChunkBefore(timestamp: Long, limit: Int): List<EnvEntity>
 
     @Query("SELECT * FROM envEvent")
     suspend fun getAll(): List<EnvEntity>

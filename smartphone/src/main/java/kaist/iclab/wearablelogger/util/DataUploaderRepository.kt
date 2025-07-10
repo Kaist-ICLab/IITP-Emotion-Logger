@@ -46,6 +46,7 @@ class DataUploaderRepository(
     companion object {
         private val TAG = DataUploaderRepository::class.simpleName
         private val TIME_PROPERTY = listOf("timestamp", "dataReceived", "startTime", "endTime")
+        private const val CHUNK_SIZE = 2000
     }
 
     private val deviceInfoRepository: DeviceInfoRepository by inject(DeviceInfoRepository::class.java)
@@ -105,37 +106,34 @@ class DataUploaderRepository(
     }
 
     fun uploadFullData() {
-        val chunkSize = 2000
         val gson = GsonBuilder().setStrictness(Strictness.LENIENT).create()
 
         CoroutineScope(Dispatchers.IO).launch {
             for(entry in dataDao){
                 val name = entry.key
                 val dao = entry.value
-
                 val logType = nameToLogType(name)
-                val pair = dao.getBeforeLast()
-                val threshold = pair.first
-                val entries = pair.second
 
-                val data = gson.toJsonTree(entries).asJsonArray
-                data.map { it.asJsonObject.formatForUpload() }
-                val chunks = data.chunked(chunkSize)
+                var chunkIndex = 0
+                for(daoEntry in dao.getBeforeLast(CHUNK_SIZE)) {
+                    val threshold = daoEntry.first
+                    val entries = daoEntry.second
 
-                var chunkIndex = 1
-                for(chunk in chunks) {
+                    val data = gson.toJsonTree(entries).asJsonArray
+                    data.map { it.asJsonObject.formatForUpload() }
+
                     val json = JsonObject()
-                    json.add("data", JsonArray().apply { chunk.forEach { add(it) }})
+                    json.add("data", data)
                     json.addProperty("device_id", deviceId)
 
-                    Log.d(TAG, "Upload full Data ($chunkIndex / ${chunks.size}): $name")
+                    Log.d(TAG, "Upload full Data ($chunkIndex): $name")
                     uploadJSON(json.toString(), logType, retryAtTimeout = true)
                     sleep(7000)
-                    chunkIndex += 1
-                }
 
-                stateRepository.updateUploadTime(name, System.currentTimeMillis())
-                dao.deleteBefore(threshold)
+                    stateRepository.updateUploadTime(name, System.currentTimeMillis())
+                    dao.deleteBefore(threshold)
+                    chunkIndex++
+                }
             }
         }
     }

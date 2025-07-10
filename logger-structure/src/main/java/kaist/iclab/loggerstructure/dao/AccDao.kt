@@ -8,8 +8,11 @@ import kaist.iclab.loggerstructure.entity.AccEntity
 
 @Dao
 interface AccDao {
-    @Query("SELECT * FROM accEvent WHERE timestamp <= :timestamp")
+    @Query("SELECT * FROM accEvent WHERE timestamp <= :timestamp ORDER BY timestamp ASC")
     suspend fun getBefore(timestamp: Long): List<AccEntity>
+
+    @Query("SELECT * FROM accEvent WHERE timestamp <= :timestamp ORDER BY timestamp ASC LIMIT :limit")
+    suspend fun getChunkBefore(timestamp: Long, limit: Int): List<AccEntity>
 
     @Query("SELECT * FROM accEvent")
     suspend fun getAll(): List<AccEntity>

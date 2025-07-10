@@ -5,6 +5,7 @@ import com.google.gson.Gson
 import kaist.iclab.loggerstructure.core.DaoWrapper
 import kaist.iclab.loggerstructure.dao.SkinTempDao
 import kaist.iclab.loggerstructure.entity.SkinTempEntity
+import kotlinx.coroutines.runBlocking
 
 class SkinTempDaoWrapper(
     private val skinTempDao: SkinTempDao
@@ -13,11 +14,18 @@ class SkinTempDaoWrapper(
         private val TAG = SkinTempDaoWrapper::class.simpleName
     }
 
-    override suspend fun getBeforeLast(): Pair<Long, List<SkinTempEntity>> {
-        val lastTimestamp = skinTempDao.getLast()?.timestamp ?: 0
-        val entries = skinTempDao.getBefore(lastTimestamp)
-
-        return Pair(lastTimestamp, entries)
+    override suspend fun getBeforeLast(limit: Int): Sequence<Pair<Long, List<SkinTempEntity>>> = sequence {
+        val lastTimestamp = runBlocking {
+            skinTempDao.getLast()?.timestamp ?: 0
+        }
+        while(true) {
+            val entries = runBlocking {
+                skinTempDao.getChunkBefore(lastTimestamp, limit)
+            }
+            if(entries.isEmpty()) break
+            val maxTime = entries.maxOf { it.timestamp }
+            yield(Pair(maxTime, entries))
+        }
     }
 
     override suspend fun getAll(): List<SkinTempEntity> {

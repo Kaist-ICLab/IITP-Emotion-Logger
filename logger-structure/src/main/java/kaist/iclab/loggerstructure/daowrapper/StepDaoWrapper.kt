@@ -5,6 +5,7 @@ import com.google.gson.Gson
 import kaist.iclab.loggerstructure.core.DaoWrapper
 import kaist.iclab.loggerstructure.dao.StepDao
 import kaist.iclab.loggerstructure.entity.StepEntity
+import kotlinx.coroutines.runBlocking
 
 class StepDaoWrapper(
     private val stepDao: StepDao
@@ -13,11 +14,18 @@ class StepDaoWrapper(
         private val TAG = StepDaoWrapper::class.simpleName
     }
 
-    override suspend fun getBeforeLast(): Pair<Long, List<StepEntity>> {
-        val lastId = stepDao.getLast()?.dataReceived ?: 0
-        val entries = stepDao.getBefore(lastId)
-
-        return Pair(lastId, entries)
+    override suspend fun getBeforeLast(limit: Int): Sequence<Pair<Long, List<StepEntity>>> = sequence {
+        val lastTimestamp = runBlocking {
+            stepDao.getLast()?.dataReceived ?: 0
+        }
+        while(true) {
+            val entries = runBlocking {
+                stepDao.getChunkBefore(lastTimestamp, limit)
+            }
+            if(entries.isEmpty()) break
+            val maxTime = entries.maxOf { it.dataReceived }
+            yield(Pair(maxTime, entries))
+        }
     }
     
     override suspend fun getAll(): List<StepEntity> {

@@ -8,8 +8,11 @@ import kaist.iclab.loggerstructure.entity.HREntity
 
 @Dao
 interface HRDao {
-    @Query("SELECT * FROM hrEvent WHERE timestamp <= :timestamp")
+    @Query("SELECT * FROM hrEvent WHERE timestamp <= :timestamp ORDER BY timestamp ASC")
     suspend fun getBefore(timestamp: Long): List<HREntity>
+
+    @Query("SELECT * FROM hrEvent WHERE timestamp <= :timestamp ORDER BY timestamp ASC LIMIT :limit")
+    suspend fun getChunkBefore(timestamp: Long, limit: Int): List<HREntity>
 
     @Query("SELECT * FROM hrEvent")
     suspend fun getAll(): List<HREntity>

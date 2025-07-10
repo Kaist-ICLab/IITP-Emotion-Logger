@@ -5,6 +5,7 @@ import com.google.gson.Gson
 import kaist.iclab.loggerstructure.core.DaoWrapper
 import kaist.iclab.loggerstructure.dao.PpgDao
 import kaist.iclab.loggerstructure.entity.PpgEntity
+import kotlinx.coroutines.runBlocking
 
 class PpgDaoWrapper(
     private val ppgDao: PpgDao
@@ -13,11 +14,18 @@ class PpgDaoWrapper(
         private val TAG = PpgDaoWrapper::class.simpleName
     }
 
-    override suspend fun getBeforeLast(): Pair<Long, List<PpgEntity>> {
-        val lastTimestamp = ppgDao.getLast()?.timestamp ?: 0
-        val entries = ppgDao.getBefore(lastTimestamp)
-
-        return Pair(lastTimestamp, entries)
+    override suspend fun getBeforeLast(limit: Int): Sequence<Pair<Long, List<PpgEntity>>> = sequence {
+        val lastTimestamp = runBlocking {
+            ppgDao.getLast()?.timestamp ?: 0
+        }
+        while(true) {
+            val entries = runBlocking {
+                ppgDao.getChunkBefore(lastTimestamp, limit)
+            }
+            if(entries.isEmpty()) break
+            val maxTime = entries.maxOf { it.timestamp }
+            yield(Pair(maxTime, entries))
+        }
     }
 
     override suspend fun getAll(): List<PpgEntity> {

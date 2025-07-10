@@ -5,6 +5,7 @@ import com.google.gson.Gson
 import kaist.iclab.loggerstructure.core.DaoWrapper
 import kaist.iclab.loggerstructure.dao.EnvDao
 import kaist.iclab.loggerstructure.entity.EnvEntity
+import kotlinx.coroutines.runBlocking
 
 class EnvDaoWrapper(
     private val envDao: EnvDao
@@ -13,11 +14,18 @@ class EnvDaoWrapper(
         private val TAG = EnvDaoWrapper::class.simpleName
     }
 
-    override suspend fun getBeforeLast(): Pair<Long, List<EnvEntity>> {
-        val lastTimestamp = envDao.getLast()?.timestamp ?: 0
-        val entries = envDao.getBefore(lastTimestamp)
-
-        return Pair(lastTimestamp, entries)
+    override suspend fun getBeforeLast(limit: Int): Sequence<Pair<Long, List<EnvEntity>>> = sequence {
+        val lastTimestamp = runBlocking {
+            envDao.getLast()?.timestamp ?: 0
+        }
+        while(true) {
+            val entries = runBlocking {
+                envDao.getChunkBefore(lastTimestamp, limit)
+            }
+            if(entries.isEmpty()) break
+            val maxTime = entries.maxOf { it.timestamp }
+            yield(Pair(maxTime, entries))
+        }
     }
     
     override suspend fun getAll(): List<EnvEntity> {

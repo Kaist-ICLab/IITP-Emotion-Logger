@@ -8,8 +8,11 @@ import kaist.iclab.loggerstructure.entity.PpgEntity
 
 @Dao
 interface PpgDao {
-    @Query("SELECT * FROM ppgEvent WHERE timestamp <= :timestamp")
+    @Query("SELECT * FROM ppgEvent WHERE timestamp <= :timestamp ORDER BY timestamp ASC")
     suspend fun getBefore(timestamp: Long): List<PpgEntity>
+
+    @Query("SELECT * FROM ppgEvent WHERE timestamp <= :timestamp ORDER BY timestamp ASC LIMIT :limit")
+    suspend fun getChunkBefore(timestamp: Long, limit: Int): List<PpgEntity>
 
     @Query("SELECT * FROM ppgEvent")
     suspend fun getAll(): List<PpgEntity>

@@ -5,6 +5,7 @@ import com.google.gson.Gson
 import kaist.iclab.loggerstructure.core.DaoWrapper
 import kaist.iclab.loggerstructure.dao.HRDao
 import kaist.iclab.loggerstructure.entity.HREntity
+import kotlinx.coroutines.runBlocking
 
 class HRDaoWrapper(
     private val hrDao: HRDao
@@ -13,11 +14,18 @@ class HRDaoWrapper(
         private val TAG = HRDaoWrapper::class.simpleName
     }
 
-    override suspend fun getBeforeLast(): Pair<Long, List<HREntity>> {
-        val lastTimestamp = hrDao.getLast()?.timestamp ?: 0
-        val entries = hrDao.getBefore(lastTimestamp)
-
-        return Pair(lastTimestamp, entries)
+    override suspend fun getBeforeLast(limit: Int): Sequence<Pair<Long, List<HREntity>>> = sequence {
+        val lastTimestamp = runBlocking {
+            hrDao.getLast()?.timestamp ?: 0
+        }
+        while(true) {
+            val entries = runBlocking {
+                hrDao.getChunkBefore(lastTimestamp, limit)
+            }
+            if(entries.isEmpty()) break
+            val maxTime = entries.maxOf { it.timestamp }
+            yield(Pair(maxTime, entries))
+        }
     }
 
     override suspend fun getAll(): List<HREntity> {

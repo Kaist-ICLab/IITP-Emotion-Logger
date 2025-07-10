@@ -5,6 +5,7 @@ import com.google.gson.Gson
 import kaist.iclab.loggerstructure.core.DaoWrapper
 import kaist.iclab.loggerstructure.dao.AccDao
 import kaist.iclab.loggerstructure.entity.AccEntity
+import kotlinx.coroutines.runBlocking
 
 class AccDaoWrapper(
     private val accDao: AccDao
@@ -13,11 +14,18 @@ class AccDaoWrapper(
         private val TAG = AccDaoWrapper::class.simpleName
     }
 
-    override suspend fun getBeforeLast(): Pair<Long, List<AccEntity>> {
-        val lastTimestamp = accDao.getLast()?.timestamp ?: 0
-        val entries = accDao.getBefore(lastTimestamp)
-
-        return Pair(lastTimestamp, entries)
+    override suspend fun getBeforeLast(limit: Int): Sequence<Pair<Long, List<AccEntity>>> = sequence {
+        val lastTimestamp = runBlocking {
+            accDao.getLast()?.timestamp ?: 0
+        }
+        while(true) {
+            val entries = runBlocking {
+                accDao.getChunkBefore(lastTimestamp, limit)
+            }
+            if(entries.isEmpty()) break
+            val maxTime = entries.maxOf { it.timestamp }
+            yield(Pair(maxTime, entries))
+        }
     }
 
     override suspend fun getAll(): List<AccEntity> {
