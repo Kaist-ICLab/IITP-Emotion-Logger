@@ -90,7 +90,7 @@ val koinModule = module {
 
     single {
         DeviceInfoRepository(
-            context = androidContext()
+            context = androidContext(),
         )
     }
 

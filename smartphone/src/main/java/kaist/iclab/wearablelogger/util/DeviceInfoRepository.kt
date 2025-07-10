@@ -12,12 +12,14 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 
 class DeviceInfoRepository(
-    private val context: Context,
+    context: Context,
 ) {
     companion object {
         private val TAG = DeviceInfoRepository::class.simpleName
         private const val CAPABILITY_NAME = "data_collection"
     }
+
+    private val capabilityClient = Wearable.getCapabilityClient(context)
 
     @SuppressLint("HardwareIds")
     val deviceId: String = Settings.Secure.getString(
@@ -26,10 +28,9 @@ class DeviceInfoRepository(
     )
 
     fun getWearablesFlow(): Flow<String?> = callbackFlow {
-        val capabilityClient = Wearable.getCapabilityClient(context)
-
         val listener = CapabilityClient.OnCapabilityChangedListener { capabilityInfo ->
-            trySend(capabilityInfo.nodes.firstOrNull { it -> it.isNearby }?.displayName)
+            val nodes = capabilityInfo.nodes.firstOrNull { it -> it.isNearby }
+            trySend(nodes?.displayName)
             Log.d(TAG, "capabilityChangedListener: ${capabilityInfo.nodes}")
         }
 
@@ -46,7 +47,8 @@ class DeviceInfoRepository(
             .await()
 
         Log.d(TAG, "Initial capabilityClient: ${initial.nodes}")
-        trySend(initial.nodes.firstOrNull { it -> it.isNearby }?.displayName)
+        val nodes = initial.nodes.firstOrNull { it -> it.isNearby }
+        trySend(nodes?.displayName)
         capabilityClient.addListener(listener, CAPABILITY_NAME)
 
         awaitClose {

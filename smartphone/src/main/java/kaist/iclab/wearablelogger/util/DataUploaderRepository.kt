@@ -1,6 +1,7 @@
 package kaist.iclab.wearablelogger.util
 
 import android.util.Log
+import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonArray
 import com.google.gson.JsonObject
@@ -40,7 +41,9 @@ class DataUploaderRepository(
         HR("hr"),
         PPG("ppg"),
         SKINTEMP("skintemp"),
-        STEP("step")
+        STEP("step"),
+        WATCH_CONNECTION("watch_connection"),
+        EXCEPTION("exception"),
     }
 
     companion object {
@@ -52,6 +55,13 @@ class DataUploaderRepository(
     private val deviceInfoRepository: DeviceInfoRepository by inject(DeviceInfoRepository::class.java)
     private val deviceId = deviceInfoRepository.deviceId
 
+    init {
+        CoroutineScope(Dispatchers.IO).launch {
+            deviceInfoRepository.getWearablesFlow().collect { value ->
+                uploadWatchConnectionStatus(value !== null)
+            }
+        }
+    }
 
     private fun JsonObject.formatForUpload() {
         this.addProperty("device_id", deviceId)
@@ -79,7 +89,7 @@ class DataUploaderRepository(
 
     fun uploadRecentData(recentEntity: JsonObject) {
         Log.d(TAG, "Upload recent Data")
-        val gson = GsonBuilder().setStrictness(Strictness.LENIENT).create()
+        val gson = getGson()
 
         // Convert strings to JSON
         val properties = listOf("acc", "ppg", "hr", "skin")
@@ -106,7 +116,7 @@ class DataUploaderRepository(
     }
 
     fun uploadFullData() {
-        val gson = GsonBuilder().setStrictness(Strictness.LENIENT).create()
+        val gson = getGson()
 
         CoroutineScope(Dispatchers.IO).launch {
             for(entry in dataDao){
@@ -115,40 +125,58 @@ class DataUploaderRepository(
                 val logType = nameToLogType(name)
 
                 var chunkIndex = 0
-                for(daoEntry in dao.getBeforeLast(CHUNK_SIZE)) {
-                    val threshold = daoEntry.first
-                    val entries = daoEntry.second
+                try {
+                    for(daoEntry in dao.getBeforeLast(CHUNK_SIZE)) {
+                        val threshold = daoEntry.first
+                        val entries = daoEntry.second
 
-                    val data = gson.toJsonTree(entries).asJsonArray
-                    data.map { it.asJsonObject.formatForUpload() }
+                        val data = gson.toJsonTree(entries).asJsonArray
+                        data.map { it.asJsonObject.formatForUpload() }
 
-                    val json = JsonObject()
-                    json.add("data", data)
-                    json.addProperty("device_id", deviceId)
+                        Log.d(TAG, "Upload full Data ($chunkIndex): $name")
+                        uploadJSON(data.toString(), logType, retryAtTimeout = true)
+                        sleep(7000)
 
-                    Log.d(TAG, "Upload full Data ($chunkIndex): $name")
-                    uploadJSON(json.toString(), logType, retryAtTimeout = true)
-                    sleep(7000)
+                        stateRepository.updateUploadTime(name, System.currentTimeMillis())
+                        dao.deleteBefore(threshold)
 
-                    stateRepository.updateUploadTime(name, System.currentTimeMillis())
-                    dao.deleteBefore(threshold)
-                    Log.d(TAG, "Delete $logType Data before ${TimeUtil.timestampToString(threshold)}")
-                    chunkIndex++
+                        Log.d(TAG, "Delete $logType Data before ${TimeUtil.timestampToString(threshold)}")
+                        chunkIndex++
+                    }
+
+                } catch(e: Exception) {
+                    e.printStackTrace()
+                    uploadException(e.stackTraceToString())
                 }
             }
         }
     }
 
     fun uploadSingleEntity(entity: EntityBase, collectorType: CollectorType) {
-        val gson = GsonBuilder().setStrictness(Strictness.LENIENT).create()
+        val gson = getGson()
         val data = gson.toJsonTree(entity)
         data.asJsonObject.formatForUpload()
 
-        val json = JsonObject()
-        json.add("data", JsonArray().apply{ add(data) })
-        json.addProperty("device_id", deviceId)
-        Log.d(TAG, "Upload test: $json")
-        uploadJSON(json.toString(), nameToLogType(collectorType.name))
+        uploadJSON(data.toString(), nameToLogType(collectorType.name))
+    }
+
+    fun uploadWatchConnectionStatus(isConnected: Boolean) {
+        val data = JsonObject()
+        data.addProperty("is_connected", isConnected)
+        data.addProperty("device_id", deviceId)
+        uploadJSON(getGson().toJson(data), LogType.WATCH_CONNECTION)
+
+    }
+
+    fun uploadException(exception: String) {
+        val data = JsonObject()
+        data.addProperty("exception", exception)
+        data.addProperty("device_id", deviceId)
+        uploadJSON(getGson().toJson(data), LogType.EXCEPTION)
+    }
+
+    private fun getGson(): Gson {
+        return GsonBuilder().setStrictness(Strictness.LENIENT).create()
     }
 
     private fun uploadJSON(jsonString: String, logType: LogType, retryAtTimeout: Boolean = false) {
@@ -188,6 +216,10 @@ class DataUploaderRepository(
             } catch (e: IOException) {
                 Log.e(TAG, "${logType.url}: Upload failed - ${e.message}")
                 e.printStackTrace()
+
+                if(logType !== LogType.EXCEPTION) {
+                    uploadException(e.toString())
+                }
             }
 
             sleep(timeoutMillis)
