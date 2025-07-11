@@ -1,4 +1,4 @@
-package kaist.iclab.wearablelogger.util
+package kaist.iclab.loggerstructure.util
 
 import java.text.SimpleDateFormat
 import java.util.Date

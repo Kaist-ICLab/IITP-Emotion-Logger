@@ -20,7 +20,7 @@ import kaist.iclab.wearablelogger.step.SamsungHealthPermissionManager
 import kaist.iclab.wearablelogger.step.StepCollectorService
 import kaist.iclab.wearablelogger.ui.MainApp
 import kaist.iclab.wearablelogger.ui.MainViewModel
-import kaist.iclab.wearablelogger.util.AlarmReceiver
+import kaist.iclab.wearablelogger.util.UploadAlarmReceiver
 import kaist.iclab.wearablelogger.util.StateRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -28,6 +28,7 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
+import java.util.concurrent.TimeUnit
 
 class MainActivity : ComponentActivity() {
     companion object {
@@ -85,12 +86,12 @@ class MainActivity : ComponentActivity() {
         }
 
         // Setup periodic upload worker
-        AlarmScheduler.scheduleExactAlarm(this, AlarmReceiver::class.java)
+        AlarmScheduler.scheduleExactAlarm(this, UploadAlarmReceiver::class.java, TimeUnit.MINUTES.toMillis(15))
     }
 
     override fun onDestroy() {
         super.onDestroy()
-        AlarmScheduler.cancelAlarm(this, AlarmReceiver::class.java)
+        AlarmScheduler.cancelAlarm(this, UploadAlarmReceiver::class.java)
     }
 
     private fun checkAndRequestPermissions() {

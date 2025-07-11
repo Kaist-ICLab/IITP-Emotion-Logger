@@ -9,6 +9,7 @@ import kaist.iclab.wearablelogger.uploader.UploaderRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 private const val TAG = "CollectorRepository"
 
@@ -49,8 +50,16 @@ class CollectorRepository(
     fun upload(){
         CoroutineScope(Dispatchers.IO).launch {
             collectors.forEach {collector ->
-                uploaderRepository.upload2Phone(collector)
+                runBlocking {
+                    uploaderRepository.uploadFullData(collector)
+                }
             }
+        }
+    }
+    
+    fun uploadRecent() {
+        CoroutineScope(Dispatchers.IO).launch {
+            uploaderRepository.uploadRecentData()
         }
     }
 }

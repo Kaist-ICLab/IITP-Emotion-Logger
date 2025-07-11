@@ -8,18 +8,13 @@ import android.content.Intent
 import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
-import com.google.android.gms.wearable.PutDataMapRequest
-import com.google.android.gms.wearable.Wearable
-import com.google.gson.Gson
 import kaist.iclab.loggerstructure.core.AlarmScheduler
-import kaist.iclab.wearablelogger.MyDataRoomDB
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.coroutines.tasks.await
 import org.koin.android.ext.android.inject
 import java.util.concurrent.TimeUnit
 
@@ -27,11 +22,9 @@ private const val TAG = "CollectorService"
 
 class CollectorService : Service() {
     private val collectorRepository by inject<CollectorRepository>()
-    private val db by inject<MyDataRoomDB>()
     private val channelId = TAG
     private val channelName = "ABCLogger"
     private val channelText = "ABCLogger is collecting your data"
-    private val dataClient by lazy { Wearable.getDataClient(this) }
     private var job: Job? = null
 
     override fun onBind(intent: Intent?): IBinder? = null
@@ -53,21 +46,13 @@ class CollectorService : Service() {
         job = CoroutineScope(Dispatchers.IO).launch {
             while (true) {
                 delay(TimeUnit.SECONDS.toMillis(5))
-                val request = PutDataMapRequest.create("/WEARABLE").apply {
-                    dataMap.putLong("timestamp", System.currentTimeMillis())
-                    dataMap.putString("acc", Gson().toJson(db.accDao().getLast()))
-                    dataMap.putString("hr", Gson().toJson(db.hrDao().getLast()))
-                    dataMap.putString("ppg", Gson().toJson(db.ppgDao().getLast()))
-                    dataMap.putString("skin", Gson().toJson(db.skinTempDao().getLast()))
-                    dataMap.putLong("watch_upload_schedule", AlarmScheduler.nextUploadSchedule)
-                }.asPutDataRequest().setUrgent()
-                val result = dataClient.putDataItem(request).await()
-                Log.d(TAG, "COLLECTOR SEND $result")
+
             }
         }
 
         // Setup periodic upload worker
-        AlarmScheduler.scheduleExactAlarm(this, AlarmReceiver::class.java)
+        AlarmScheduler.scheduleExactAlarm(this, UploadAlarmReceiver::class.java, TimeUnit.MINUTES.toMillis(15))
+        AlarmScheduler.scheduleExactAlarm(this, RecentAlarmReceiver::class.java, TimeUnit.SECONDS.toMillis(10))
 
         val notification: Notification =
             NotificationCompat.Builder(this, channelId)
@@ -96,6 +81,7 @@ class CollectorService : Service() {
         job?.cancel()
         job = null
 
-        AlarmScheduler.cancelAlarm(this, AlarmReceiver::class.java)
+        AlarmScheduler.cancelAlarm(this, UploadAlarmReceiver::class.java)
+        AlarmScheduler.cancelAlarm(this, RecentAlarmReceiver::class.java)
     }
 }

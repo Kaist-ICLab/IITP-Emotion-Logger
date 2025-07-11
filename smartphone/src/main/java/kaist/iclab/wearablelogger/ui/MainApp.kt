@@ -65,7 +65,7 @@ import kaist.iclab.loggerstructure.entity.defaultSkinTempEntity
 import kaist.iclab.loggerstructure.entity.defaultStepEntity
 import kaist.iclab.loggerstructure.util.CollectorType
 import kaist.iclab.wearablelogger.R
-import kaist.iclab.wearablelogger.util.TimeUtil
+import kaist.iclab.loggerstructure.util.TimeUtil
 import org.koin.androidx.compose.koinViewModel
 
 enum class ScreenType {

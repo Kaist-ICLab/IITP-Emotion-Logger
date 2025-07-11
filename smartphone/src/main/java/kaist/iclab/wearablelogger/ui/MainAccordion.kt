@@ -27,7 +27,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import kaist.iclab.wearablelogger.util.TimeUtil
+import kaist.iclab.loggerstructure.util.TimeUtil
 
 @Composable
 fun Accordion(

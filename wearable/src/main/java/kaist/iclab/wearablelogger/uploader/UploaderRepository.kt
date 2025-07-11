@@ -5,42 +5,60 @@ import android.util.Log
 import com.google.android.gms.wearable.Asset
 import com.google.android.gms.wearable.PutDataMapRequest
 import com.google.android.gms.wearable.Wearable
+import com.google.gson.Gson
+import kaist.iclab.loggerstructure.core.AlarmScheduler
 import kaist.iclab.loggerstructure.core.CollectorInterface
-import kotlinx.coroutines.runBlocking
+import kaist.iclab.loggerstructure.util.DataClientPath
+import kaist.iclab.wearablelogger.MyDataRoomDB
+import kaist.iclab.wearablelogger.collector.core.UploadAlarmReceiver
 import kotlinx.coroutines.tasks.await
 
 private const val TAG = "UploaderRepository"
 
 class UploaderRepository(
-    private val androidContext: Context,
+    private val context: Context,
+    private val db: MyDataRoomDB,
 ) {
-    private val dataPath = "/WEARABLE_DATA"
-    fun upload2Phone(collector: CollectorInterface) {
+    private val dataClient by lazy { Wearable.getDataClient(context) }
+
+    suspend fun uploadFullData(collector: CollectorInterface) {
         Log.d(TAG, "sendData2Phone")
-        val dataClient = Wearable.getDataClient(androidContext)
+        val dataClient = Wearable.getDataClient(context)
 
         // Try one at a time
-        runBlocking {
-            try {
-                val stringData = collector.stringifyData()
+        try {
+            val stringData = collector.stringifyData()
 
-                // 15min worth of accelerometer & PPG SQL is very likely to be >100KB
-                // So convert to Asset
-                Log.d(TAG, "${collector.key} data: $stringData")
-                val asset = Asset.createFromBytes(stringData.toByteArray())
+            // 15min worth of accelerometer & PPG SQL is very likely to be >100KB
+            // So convert to Asset
+            Log.d(TAG, "${collector.key} data: $stringData")
+            val asset = Asset.createFromBytes(stringData.toByteArray())
 
-                // Unique dataPath for each collector for individual robustness
-                val request = PutDataMapRequest.create("$dataPath/${collector.key}/${System.currentTimeMillis()}").run {
-                    dataMap.putAsset("data", asset)
-                    asPutDataRequest()
-                }
-
-                dataClient.putDataItem(request).await()
-                Log.d(TAG, "${collector.key} Data has been uploaded")
-
-            } catch (exception: Exception) {
-                Log.e(TAG, "Saving DataItem failed: $exception")
+            // Unique dataPath for each collector for individual robustness
+            val request = PutDataMapRequest.create("${DataClientPath.UPLOAD_DATA}/${collector.key}/${System.currentTimeMillis()}").run {
+                dataMap.putAsset("data", asset)
+                asPutDataRequest()
             }
+
+            dataClient.putDataItem(request).await()
+            Log.d(TAG, "${collector.key} Data has been uploaded")
+
+        } catch (exception: Exception) {
+            Log.e(TAG, "Saving DataItem failed: $exception")
         }
+    }
+
+    suspend fun uploadRecentData() {
+        val request = PutDataMapRequest.create("/WEARABLE").apply {
+            dataMap.putLong("timestamp", System.currentTimeMillis())
+            dataMap.putString("acc", Gson().toJson(db.accDao().getLast()))
+            dataMap.putString("hr", Gson().toJson(db.hrDao().getLast()))
+            dataMap.putString("ppg", Gson().toJson(db.ppgDao().getLast()))
+            dataMap.putString("skin", Gson().toJson(db.skinTempDao().getLast()))
+            dataMap.putLong("watch_upload_schedule", AlarmScheduler.nextAlarmSchedule.value[UploadAlarmReceiver::class.simpleName] ?: 0)
+        }.asPutDataRequest().setUrgent()
+
+        val result = dataClient.putDataItem(request).await()
+        Log.d(TAG, "COLLECTOR SEND $result")
     }
 }

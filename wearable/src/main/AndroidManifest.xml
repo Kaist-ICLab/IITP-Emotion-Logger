@@ -21,7 +21,8 @@
         android:name= ".WearableApplication"
         android:usesCleartextTraffic="true"
         android:theme="@android:style/Theme.DeviceDefault">
-        <receiver android:name="kaist.iclab.wearablelogger.collector.core.AlarmReceiver" />
+        <receiver android:name="kaist.iclab.wearablelogger.collector.core.UploadAlarmReceiver" />
+        <receiver android:name="kaist.iclab.wearablelogger.collector.core.RecentAlarmReceiver" />
         <receiver android:name="kaist.iclab.wearablelogger.collector.core.BatteryStateReceiver" />
         <uses-library
             android:name="com.google.android.wearable"

@@ -14,7 +14,7 @@ import kaist.iclab.loggerstructure.dao.StepDao
 import kaist.iclab.loggerstructure.util.CollectorType
 import kaist.iclab.wearablelogger.util.DeviceInfoRepository
 import kaist.iclab.wearablelogger.util.StateRepository
-import kaist.iclab.wearablelogger.util.TimeUtil
+import kaist.iclab.wearablelogger.util.UploadAlarmReceiver
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -29,7 +29,6 @@ import java.time.Instant
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
-import kotlin.collections.iterator
 
 class DataUploaderRepository(
     private val stepDao: StepDao,
@@ -114,7 +113,7 @@ class DataUploaderRepository(
             recentEntity.add("step", gson.toJsonTree(stepEntity))
             recentEntity.add("env", gson.toJsonTree(envEntity))
         }
-        recentEntity.addProperty("phone_upload_schedule", AlarmScheduler.nextUploadSchedule)
+        recentEntity.addProperty("phone_upload_schedule", AlarmScheduler.nextAlarmSchedule.value[UploadAlarmReceiver::class.simpleName])
         recentEntity.formatForUpload()
 
         uploadJSON(recentEntity.toString(), LogType.RECENT)

@@ -1,7 +1,6 @@
 package kaist.iclab.wearablelogger
 
 import androidx.room.Room
-import kaist.iclab.loggerstructure.core.CollectorInterface
 import kaist.iclab.wearablelogger.collector.AccCollector
 import kaist.iclab.wearablelogger.collector.HRCollector
 import kaist.iclab.wearablelogger.collector.PpgCollector
@@ -60,7 +59,8 @@ val koinModule = module {
 
     single {
         UploaderRepository(
-            androidContext()
+            context = androidContext(),
+            db = get()
         )
     }
 
