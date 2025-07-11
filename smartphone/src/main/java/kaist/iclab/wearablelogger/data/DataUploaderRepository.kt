@@ -15,14 +15,14 @@ import kaist.iclab.wearablelogger.util.DeviceInfoRepository
 import kaist.iclab.wearablelogger.util.StateRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
-import java.io.IOException
+import java.net.ConnectException
+import java.net.SocketTimeoutException
+import java.net.UnknownHostException
 import java.time.Instant
 import java.time.ZoneId
 import java.time.ZonedDateTime
@@ -65,7 +65,6 @@ class DataUploaderRepository(
     }
 
     private fun JsonObject.formatForUpload() {
-        Log.d(TAG, this.toString())
         this.addProperty("device_id", deviceId)
         for(prop in TIME_PROPERTY) {
             if(this.has(prop))
@@ -89,7 +88,7 @@ class DataUploaderRepository(
         return logType
     }
 
-    fun uploadRecentData(recentEntity: JsonObject) {
+    suspend fun uploadRecentData(recentEntity: JsonObject) {
         Log.d(TAG, "Upload recent Data")
         val gson = getGson()
 
@@ -103,14 +102,11 @@ class DataUploaderRepository(
             else recentEntity.add(key, JsonParser.parseString(innerJSON).asJsonObject)
         }
 
-        runBlocking {
-            val stepEntity = stepDao.getLast()
-            val envEntity = envDao.getLast()
-
-            recentEntity.add("step", gson.toJsonTree(stepEntity))
-            recentEntity.add("env", gson.toJsonTree(envEntity))
-            recentEntity.addProperty("phone_upload_schedule", deviceInfoRepository.phoneUploadSchedule.last())
-        }
+        val stepEntity = stepDao.getLast()
+        val envEntity = envDao.getLast()
+        recentEntity.add("step", gson.toJsonTree(stepEntity))
+        recentEntity.add("env", gson.toJsonTree(envEntity))
+        recentEntity.addProperty("phone_upload_schedule", deviceInfoRepository.phoneUploadSchedule.value)
         recentEntity.formatForUpload()
 
         uploadJSON(recentEntity.toString(), LogType.RECENT)
@@ -135,19 +131,21 @@ class DataUploaderRepository(
                         data.map { it.asJsonObject.formatForUpload() }
 
                         Log.d(TAG, "Upload full Data ($chunkIndex): $name")
-                        uploadJSON(data.toString(), logType, retryAtTimeout = true)
+                        val success = uploadJSON(data.toString(), logType, retryAtTimeout = true)
+                        if(success)
+                            CoroutineScope(Dispatchers.IO).launch {
+                                Log.d(TAG, "Delete $logType Data: $idRange")
+                                dao.deleteBetween(idRange.startId, idRange.endId)
+                            }
+
                         Thread.sleep(7000)
-
                         stateRepository.updateUploadTime(name, System.currentTimeMillis())
-                        dao.deleteBetween(idRange.startId, idRange.endId)
-
-                        Log.d(TAG, "Delete $logType Data: $idRange")
                         chunkIndex++
                     }
 
                 } catch(e: Exception) {
                     e.printStackTrace()
-                    uploadException(e.stackTraceToString())
+                    uploadException(e)
                 }
             }
         }
@@ -169,9 +167,9 @@ class DataUploaderRepository(
 
     }
 
-    fun uploadException(exception: String) {
+    fun uploadException(exception: Exception) {
         val data = JsonObject()
-        data.addProperty("exception", exception)
+        data.addProperty("exception", exception.stackTraceToString())
         data.addProperty("device_id", deviceId)
         uploadJSON(getGson().toJson(data), LogType.EXCEPTION)
     }
@@ -180,10 +178,10 @@ class DataUploaderRepository(
         return GsonBuilder().setStrictness(Strictness.LENIENT).create()
     }
 
-    private fun uploadJSON(jsonString: String, logType: LogType, retryAtTimeout: Boolean = false) {
+    private fun uploadJSON(jsonString: String, logType: LogType, retryAtTimeout: Boolean = false): Boolean{
         if(logType == LogType.ERROR) {
             Log.e(TAG, "Invalid LogType")
-            return
+            return false
         }
 
         val client = OkHttpClient()
@@ -196,10 +194,12 @@ class DataUploaderRepository(
             .build()
 
         var shouldTryUpload = true
-        var timeoutMillis = 5000L
-        val maxTimeoutMillis = 20000L
+        var retryCount = 0
+        var timeoutMillis = 4000L
+        val maxRetryCount = 5
+        val maxTimeoutMillis = 32000L
 
-        while(shouldTryUpload) {
+        while(true) {
             try {
                 val response = client.newCall(request).execute()
                 response.use {
@@ -208,24 +208,46 @@ class DataUploaderRepository(
                     } else {
                         Log.d(TAG, "${logType.url}: Upload successful")
                     }
-
-                    shouldTryUpload = retryAtTimeout && !response.isSuccessful
                 }
+                
+                if(response.isSuccessful) return true
 
-                if(!shouldTryUpload) break
-
-            } catch (e: IOException) {
-                Log.e(TAG, "${logType.url}: Upload failed - ${e.message}")
+            } catch(e: Exception) {
                 e.printStackTrace()
 
+                when(e) {
+                    // Internet connection not enabled
+                    is UnknownHostException -> {
+                        Log.e(TAG, "${logType.url}: Unknown Host - ${e.message}")
+                        timeoutMillis = 4000L
+                    }
+                    // ???
+                    is ConnectException -> {
+                        Log.e(TAG, "${logType.url}: Failed to connect - ${e.message}")
+                        timeoutMillis = 4000L
+                    }
+                    // The server might be handling too much data!
+                    is SocketTimeoutException -> {
+                        timeoutMillis = (timeoutMillis * 2).coerceAtMost(maxTimeoutMillis)
+                        Log.e(TAG, "${logType.url}: Timeout - ${e.message}")
+                    }
+                }
+
+
                 if(logType !== LogType.EXCEPTION) {
-                    uploadException(e.toString())
+                    uploadException(e)
                 }
             }
 
+            retryCount++
+            if(retryAtTimeout) Log.d(TAG, "${logType.url}, retryAtTimeout: $retryAtTimeout, retryCount: $retryCount")
+            shouldTryUpload = retryAtTimeout && retryCount <= maxRetryCount
+            if(!shouldTryUpload) break
+
             Thread.sleep(timeoutMillis)
-            timeoutMillis = (timeoutMillis * 2).coerceAtMost(maxTimeoutMillis)
         }
+
+        return false
     }
 
     private fun toZonedTimestamp(timeMillis: Long): String {

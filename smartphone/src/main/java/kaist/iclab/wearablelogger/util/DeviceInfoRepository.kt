@@ -8,10 +8,14 @@ import com.google.android.gms.wearable.CapabilityClient
 import com.google.android.gms.wearable.Wearable
 import kaist.iclab.loggerstructure.core.AlarmScheduler
 import kaist.iclab.wearablelogger.data.UploadAlarmReceiver
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.tasks.await
 
 class DeviceInfoRepository(
@@ -31,6 +35,11 @@ class DeviceInfoRepository(
     )
 
     val phoneUploadSchedule = AlarmScheduler.nextAlarmSchedule.map { it[UploadAlarmReceiver::class.simpleName] ?: 0 }
+        .stateIn(
+            scope = CoroutineScope(Dispatchers.IO),
+            started = SharingStarted.WhileSubscribed(5000L),
+            initialValue = 0,
+        )
 
     fun getWearablesFlow(): Flow<String?> = callbackFlow {
         val listener = CapabilityClient.OnCapabilityChangedListener { capabilityInfo ->

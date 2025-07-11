@@ -83,7 +83,6 @@ class DataReceiverService: WearableListenerService() {
             recentSkinTempEntity.emit(data.getString("skin")?.let { gson.fromJson(it, SkinTempEntity::class.java) })
 
             watchUploadSchedule.emit(data.getLong("watch_upload_schedule"))
-
             dataUploaderRepository.uploadRecentData(entity)
         }
     }
