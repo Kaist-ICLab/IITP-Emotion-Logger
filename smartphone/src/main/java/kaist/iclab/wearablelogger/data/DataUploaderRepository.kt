@@ -6,7 +6,6 @@ import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.google.gson.Strictness
-import kaist.iclab.loggerstructure.core.AlarmScheduler
 import kaist.iclab.loggerstructure.core.DaoWrapper
 import kaist.iclab.loggerstructure.core.EntityBase
 import kaist.iclab.loggerstructure.dao.EnvDao
@@ -14,16 +13,15 @@ import kaist.iclab.loggerstructure.dao.StepDao
 import kaist.iclab.loggerstructure.util.CollectorType
 import kaist.iclab.wearablelogger.util.DeviceInfoRepository
 import kaist.iclab.wearablelogger.util.StateRepository
-import kaist.iclab.wearablelogger.util.UploadAlarmReceiver
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.last
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
-import org.koin.java.KoinJavaComponent
 import java.io.IOException
 import java.time.Instant
 import java.time.ZoneId
@@ -35,6 +33,7 @@ class DataUploaderRepository(
     private val envDao: EnvDao,
     private val dataDao: Map<String, DaoWrapper<EntityBase>>,
     private val stateRepository: StateRepository,
+    private val deviceInfoRepository: DeviceInfoRepository
 ) {
     private enum class LogType(val url: String) {
         ERROR(""),
@@ -55,9 +54,6 @@ class DataUploaderRepository(
         private const val CHUNK_SIZE = 2000L
     }
 
-    private val deviceInfoRepository: DeviceInfoRepository by KoinJavaComponent.inject(
-        DeviceInfoRepository::class.java
-    )
     private val deviceId = deviceInfoRepository.deviceId
 
     init {
@@ -69,6 +65,7 @@ class DataUploaderRepository(
     }
 
     private fun JsonObject.formatForUpload() {
+        Log.d(TAG, this.toString())
         this.addProperty("device_id", deviceId)
         for(prop in TIME_PROPERTY) {
             if(this.has(prop))
@@ -112,8 +109,8 @@ class DataUploaderRepository(
 
             recentEntity.add("step", gson.toJsonTree(stepEntity))
             recentEntity.add("env", gson.toJsonTree(envEntity))
+            recentEntity.addProperty("phone_upload_schedule", deviceInfoRepository.phoneUploadSchedule.last())
         }
-        recentEntity.addProperty("phone_upload_schedule", AlarmScheduler.nextAlarmSchedule.value[UploadAlarmReceiver::class.simpleName])
         recentEntity.formatForUpload()
 
         uploadJSON(recentEntity.toString(), LogType.RECENT)

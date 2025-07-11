@@ -1,7 +1,6 @@
-package kaist.iclab.wearablelogger.util
+package kaist.iclab.wearablelogger.data
 
 import kaist.iclab.loggerstructure.core.AlarmReceiver
-import kaist.iclab.wearablelogger.data.DataUploaderRepository
 import org.koin.java.KoinJavaComponent
 
 class UploadAlarmReceiver: AlarmReceiver() {

@@ -4,7 +4,6 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.content.ContextCompat
@@ -19,9 +18,9 @@ import kaist.iclab.loggerstructure.entity.PpgEntity
 import kaist.iclab.loggerstructure.entity.SkinTempEntity
 import kaist.iclab.loggerstructure.entity.StepEntity
 import kaist.iclab.loggerstructure.util.CollectorType
+import kaist.iclab.wearablelogger.data.DataReceiverService
 import kaist.iclab.wearablelogger.env.EnvCollectorService
 import kaist.iclab.wearablelogger.step.StepCollectorService
-import kaist.iclab.wearablelogger.data.DataReceiverService
 import kaist.iclab.wearablelogger.util.DeviceInfoRepository
 import kaist.iclab.wearablelogger.util.StateRepository
 import kotlinx.coroutines.flow.Flow
@@ -41,9 +40,6 @@ class MainViewModel(
     val bluetoothDeviceAddress = stateRepository.bluetoothAddress
     val wearables: Flow<String?> = deviceInfoRepository.getWearablesFlow()
 
-    var currentTime by mutableLongStateOf(System.currentTimeMillis())
-        private set
-
     var isStepAvailable by mutableStateOf(false)
         private set
 
@@ -57,7 +53,7 @@ class MainViewModel(
     val syncTime: StateFlow<Map<CollectorType, Long>> = getStateFlowFromFlow(stateRepository.syncTime, initialValue = mapOf())
     val uploadTime: StateFlow<Map<CollectorType, Long>> = getStateFlowFromFlow(stateRepository.uploadTime, initialValue = mapOf())
     val watchUploadSchedule: StateFlow<Long> = getStateFlowFromFlow(DataReceiverService.watchUploadSchedule, initialValue = -1)
-    val phoneUploadSchedule: StateFlow<Long> = getStateFlowFromFlow(DataReceiverService.phoneUploadSchedule, initialValue = -1)
+    val phoneUploadSchedule: StateFlow<Long> = getStateFlowFromFlow(deviceInfoRepository.phoneUploadSchedule, initialValue = -1)
 
     val recentHREntity: StateFlow<HREntity?> = getStateFlowFromFlow(DataReceiverService.recentHREntity, initialValue = null)
     val recentAccEntity: StateFlow<AccEntity?> = getStateFlowFromFlow(DataReceiverService.recentAccEntity, initialValue = null)

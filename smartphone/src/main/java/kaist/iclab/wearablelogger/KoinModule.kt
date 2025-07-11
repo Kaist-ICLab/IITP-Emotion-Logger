@@ -113,7 +113,8 @@ val koinModule = module {
                 CollectorType.ENV.name to get<EnvDaoWrapper>(),
                 CollectorType.STEP.name to get<StepDaoWrapper>(),
             ) as Map<String, DaoWrapper<EntityBase>>,
-            stateRepository = get()
+            stateRepository = get(),
+            deviceInfoRepository = get()
         )
     }
 

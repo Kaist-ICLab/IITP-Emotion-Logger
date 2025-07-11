@@ -59,6 +59,11 @@ class EnvDaoWrapper(
 
     override suspend fun insertEventsFromJson(json: String): IdRange {
         val list = Gson().fromJson(json, Array<EnvEntity>::class.java).toList()
+        if(list.isEmpty()) return IdRange(
+            startId = 0,
+            endId = 0,
+        )
+
         insertEvents(list)
         return IdRange(
             startId = list.minOf { it.id },

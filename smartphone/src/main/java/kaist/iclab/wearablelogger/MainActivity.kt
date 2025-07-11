@@ -20,7 +20,7 @@ import kaist.iclab.wearablelogger.step.SamsungHealthPermissionManager
 import kaist.iclab.wearablelogger.step.StepCollectorService
 import kaist.iclab.wearablelogger.ui.MainApp
 import kaist.iclab.wearablelogger.ui.MainViewModel
-import kaist.iclab.wearablelogger.util.UploadAlarmReceiver
+import kaist.iclab.wearablelogger.data.UploadAlarmReceiver
 import kaist.iclab.wearablelogger.util.StateRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

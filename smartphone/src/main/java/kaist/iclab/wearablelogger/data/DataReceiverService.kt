@@ -10,7 +10,6 @@ import com.google.android.gms.wearable.WearableListenerService
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
 import com.google.gson.Strictness
-import kaist.iclab.loggerstructure.core.AlarmScheduler
 import kaist.iclab.loggerstructure.core.DaoWrapper
 import kaist.iclab.loggerstructure.core.EntityBase
 import kaist.iclab.loggerstructure.entity.AccEntity
@@ -19,7 +18,6 @@ import kaist.iclab.loggerstructure.entity.PpgEntity
 import kaist.iclab.loggerstructure.entity.SkinTempEntity
 import kaist.iclab.loggerstructure.util.DataClientPath
 import kaist.iclab.wearablelogger.util.StateRepository
-import kaist.iclab.wearablelogger.util.UploadAlarmReceiver
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
@@ -38,7 +36,6 @@ class DataReceiverService: WearableListenerService() {
         val recentSkinTempEntity = MutableSharedFlow<SkinTempEntity?>()
 
         val watchUploadSchedule = MutableSharedFlow<Long>()
-        val phoneUploadSchedule = MutableSharedFlow<Long>()
     }
 
     private val collectorDao by inject<Map<String, DaoWrapper<EntityBase>>>(qualifier = named("collectorDao"))
@@ -86,7 +83,6 @@ class DataReceiverService: WearableListenerService() {
             recentSkinTempEntity.emit(data.getString("skin")?.let { gson.fromJson(it, SkinTempEntity::class.java) })
 
             watchUploadSchedule.emit(data.getLong("watch_upload_schedule"))
-            phoneUploadSchedule.emit(AlarmScheduler.nextAlarmSchedule.value[UploadAlarmReceiver::class.simpleName] ?: 0)
 
             dataUploaderRepository.uploadRecentData(entity)
         }
@@ -101,6 +97,8 @@ class DataReceiverService: WearableListenerService() {
                 assetFd.inputStream.use { inputStream ->
                     val json = String(inputStream.readBytes())
                     val daoWrapper = collectorDao[key]!!
+
+                    Log.d(TAG, "unpacked data: $json")
 
                     CoroutineScope(Dispatchers.IO).launch {
                         val idRange = daoWrapper.insertEventsFromJson(json)
