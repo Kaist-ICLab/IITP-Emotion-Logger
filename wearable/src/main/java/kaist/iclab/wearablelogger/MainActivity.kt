@@ -7,8 +7,6 @@ import android.os.Build
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import kaist.iclab.loggerstructure.core.PermissionActivity
-import kaist.iclab.loggerstructure.core.AlarmScheduler
-import kaist.iclab.wearablelogger.collector.core.AlarmReceiver
 import kaist.iclab.wearablelogger.collector.core.BatteryStateReceiver
 import kaist.iclab.wearablelogger.ui.SettingsScreen
 import kaist.iclab.wearablelogger.ui.SettingsViewModel
@@ -41,9 +39,6 @@ class MainActivity : PermissionActivity() {
                 settingsViewModel = settingsViewModel
             )
         }
-
-        // Setup periodic upload worker
-        AlarmScheduler.scheduleExactAlarm(this, AlarmReceiver::class.java)
     }
 
     override fun onResume() {
@@ -52,12 +47,6 @@ class MainActivity : PermissionActivity() {
         // (re)start job if it was configured to collect data
         val isCollecting = settingsViewModel.isCollectorState.value
         if(isCollecting) settingsViewModel.startLogging()
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        unregisterReceiver(batteryReceiver)
-        AlarmScheduler.cancelAlarm(this, AlarmReceiver::class.java)
     }
 }
 

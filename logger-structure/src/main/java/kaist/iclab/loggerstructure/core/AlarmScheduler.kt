@@ -12,6 +12,8 @@ object AlarmScheduler {
     private const val REQUEST_CODE = 12345
     private const val ALARM_PERIOD = 15 * 60 * 1000 // 15min
 
+    var nextUploadSchedule = -1L
+
     fun scheduleExactAlarm(context: Context, cls: Class<out BroadcastReceiver>) {
         Log.d(TAG, "scheduleExactAlarm()")
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
@@ -22,10 +24,10 @@ object AlarmScheduler {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        val triggerAt = System.currentTimeMillis() + ALARM_PERIOD
+        nextUploadSchedule = System.currentTimeMillis() + ALARM_PERIOD
         alarmManager.setExactAndAllowWhileIdle(
             AlarmManager.RTC_WAKEUP,
-            triggerAt,
+            nextUploadSchedule,
             pendingIntent
         )
     }
@@ -38,5 +40,6 @@ object AlarmScheduler {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
         alarmManager.cancel(pendingIntent)
+        nextUploadSchedule = -1
     }
 }

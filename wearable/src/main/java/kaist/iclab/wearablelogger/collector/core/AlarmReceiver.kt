@@ -14,9 +14,8 @@ class AlarmReceiver: BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
         Log.d("AlarmReceiver", "Alarm Starting")
-        collectorRepository.upload()
-
         // 다음 알람 예약 (15분 후)
         AlarmScheduler.scheduleExactAlarm(context, this::class.java)
+        collectorRepository.upload()
     }
 }

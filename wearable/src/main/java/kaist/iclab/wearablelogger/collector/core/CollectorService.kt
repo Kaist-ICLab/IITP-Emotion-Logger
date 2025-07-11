@@ -11,6 +11,7 @@ import androidx.core.app.NotificationCompat
 import com.google.android.gms.wearable.PutDataMapRequest
 import com.google.android.gms.wearable.Wearable
 import com.google.gson.Gson
+import kaist.iclab.loggerstructure.core.AlarmScheduler
 import kaist.iclab.wearablelogger.MyDataRoomDB
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -58,11 +59,15 @@ class CollectorService : Service() {
                     dataMap.putString("hr", Gson().toJson(db.hrDao().getLast()))
                     dataMap.putString("ppg", Gson().toJson(db.ppgDao().getLast()))
                     dataMap.putString("skin", Gson().toJson(db.skinTempDao().getLast()))
+                    dataMap.putLong("watch_upload_schedule", AlarmScheduler.nextUploadSchedule)
                 }.asPutDataRequest().setUrgent()
                 val result = dataClient.putDataItem(request).await()
                 Log.d(TAG, "COLLECTOR SEND $result")
             }
         }
+
+        // Setup periodic upload worker
+        AlarmScheduler.scheduleExactAlarm(this, AlarmReceiver::class.java)
 
         val notification: Notification =
             NotificationCompat.Builder(this, channelId)
@@ -90,5 +95,7 @@ class CollectorService : Service() {
         super.onDestroy()
         job?.cancel()
         job = null
+
+        AlarmScheduler.cancelAlarm(this, AlarmReceiver::class.java)
     }
 }

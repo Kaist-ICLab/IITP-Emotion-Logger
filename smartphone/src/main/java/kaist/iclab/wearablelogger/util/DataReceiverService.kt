@@ -1,6 +1,7 @@
 package kaist.iclab.wearablelogger.util
 
 import android.annotation.SuppressLint
+import android.content.Intent
 import android.util.Log
 import com.google.android.gms.wearable.DataEventBuffer
 import com.google.android.gms.wearable.DataMap
@@ -10,6 +11,7 @@ import com.google.android.gms.wearable.WearableListenerService
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
 import com.google.gson.Strictness
+import kaist.iclab.loggerstructure.core.AlarmScheduler
 import kaist.iclab.loggerstructure.core.DaoWrapper
 import kaist.iclab.loggerstructure.core.EntityBase
 import kaist.iclab.loggerstructure.entity.AccEntity
@@ -23,7 +25,6 @@ import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.core.qualifier.named
 import org.koin.java.KoinJavaComponent.inject
-import kotlin.getValue
 
 class DataReceiverService: WearableListenerService() {
     companion object {
@@ -34,11 +35,23 @@ class DataReceiverService: WearableListenerService() {
         val recentAccEntity = MutableSharedFlow<AccEntity?>()
         val recentPpgEntity = MutableSharedFlow<PpgEntity?>()
         val recentSkinTempEntity = MutableSharedFlow<SkinTempEntity?>()
+
+        val watchUploadSchedule = MutableSharedFlow<Long>()
+        val phoneUploadSchedule = MutableSharedFlow<Long>()
     }
 
     private val collectorDao by inject<Map<String, DaoWrapper<EntityBase>>>(qualifier = named("collectorDao"))
     private val stateRepository: StateRepository by inject(StateRepository::class.java)
     private val dataUploaderRepository: DataUploaderRepository by inject(DataUploaderRepository::class.java)
+
+    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
+        Log.v(TAG, "Service Started")
+
+        val notification = ForegroundNotification.getNotification(this)
+        Log.d(TAG, "onStartCommand")
+        startForeground(2, notification)
+        return START_STICKY
+    }
 
     override fun onDataChanged(dataEventBuffer: DataEventBuffer) {
         dataEventBuffer.forEach { dataEvent ->
@@ -67,6 +80,7 @@ class DataReceiverService: WearableListenerService() {
         entity.addProperty("ppg", data.getString("ppg") ?: "null")
         entity.addProperty("hr", data.getString("hr") ?: "null")
         entity.addProperty("skin", data.getString("skin") ?: "null")
+        entity.addProperty("watch_upload_schedule", data.getLong("watch_upload_schedule"))
 
         val gson = GsonBuilder().setStrictness(Strictness.LENIENT).create()
 
@@ -76,6 +90,9 @@ class DataReceiverService: WearableListenerService() {
             recentAccEntity.emit(data.getString("acc")?.let { gson.fromJson(it, AccEntity::class.java) })
             recentPpgEntity.emit(data.getString("ppg")?.let { gson.fromJson(it, PpgEntity::class.java) })
             recentSkinTempEntity.emit(data.getString("skin")?.let { gson.fromJson(it, SkinTempEntity::class.java) })
+
+            watchUploadSchedule.emit(data.getLong("watch_upload_schedule"))
+            phoneUploadSchedule.emit(AlarmScheduler.nextUploadSchedule)
 
             dataUploaderRepository.uploadRecentData(entity)
         }

@@ -3,10 +3,10 @@ package kaist.iclab.wearablelogger.util
 import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
-import com.google.gson.JsonArray
 import com.google.gson.JsonObject
 import com.google.gson.JsonParser
 import com.google.gson.Strictness
+import kaist.iclab.loggerstructure.core.AlarmScheduler
 import kaist.iclab.loggerstructure.core.DaoWrapper
 import kaist.iclab.loggerstructure.core.EntityBase
 import kaist.iclab.loggerstructure.dao.EnvDao
@@ -48,7 +48,7 @@ class DataUploaderRepository(
 
     companion object {
         private val TAG = DataUploaderRepository::class.simpleName
-        private val TIME_PROPERTY = listOf("timestamp", "dataReceived", "startTime", "endTime")
+        private val TIME_PROPERTY = listOf("timestamp", "dataReceived", "startTime", "endTime", "watch_upload_schedule", "phone_upload_schedule")
         private const val CHUNK_SIZE = 2000
     }
 
@@ -108,10 +108,9 @@ class DataUploaderRepository(
             recentEntity.add("step", gson.toJsonTree(stepEntity))
             recentEntity.add("env", gson.toJsonTree(envEntity))
         }
+        recentEntity.addProperty("phone_upload_schedule", AlarmScheduler.nextUploadSchedule)
+        recentEntity.formatForUpload()
 
-        recentEntity.addProperty("device_id", deviceId)
-        recentEntity.addProperty("timestamp", toZonedTimestamp(recentEntity["timestamp"].asLong))
-        recentEntity.remove("id")
         uploadJSON(recentEntity.toString(), LogType.RECENT)
     }
 

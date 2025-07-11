@@ -103,6 +103,8 @@ fun MainApp(
                             isStepRunning = mainViewModel.isStepRunning.collectAsState().value,
 
                             recentTime = mainViewModel.recentTimestamp.collectAsState().value,
+                            watchUploadSchedule = mainViewModel.watchUploadSchedule.collectAsState().value,
+                            phoneUploadSchedule = mainViewModel.phoneUploadSchedule.collectAsState().value,
                             syncTime = mainViewModel.syncTime.collectAsState().value,
                             uploadTime = mainViewModel.uploadTime.collectAsState().value,
 
@@ -140,6 +142,8 @@ fun MainScreen(
     recentTime: Long,
     syncTime: Map<CollectorType, Long>,
     uploadTime: Map<CollectorType, Long>,
+    watchUploadSchedule: Long,
+    phoneUploadSchedule: Long,
     recentHREntity: HREntity,
     recentAccEntity: AccEntity,
     recentPpgEntity: PpgEntity,
@@ -196,6 +200,26 @@ fun MainScreen(
                         )
                         Text(
                             TimeUtil.timestampToString(recentTime)
+                        )
+                    }
+                    Row {
+                        Text(
+                            "Watch Upload Schedule: ",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            TimeUtil.timestampToString(watchUploadSchedule)
+                        )
+                    }
+                    Row {
+                        Text(
+                            "Phone Upload Schedule: ",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text(
+                            TimeUtil.timestampToString(phoneUploadSchedule)
                         )
                     }
                 }
@@ -549,6 +573,8 @@ fun MainScreenPreview() {
                 CollectorType.STEP to currentTime,
                 CollectorType.ENV to currentTime,
             ),
+            watchUploadSchedule = currentTime,
+            phoneUploadSchedule = currentTime,
             recentHREntity = defaultHREntity,
             recentAccEntity = defaultAccEntity,
             recentPpgEntity = defaultPpgEntity,

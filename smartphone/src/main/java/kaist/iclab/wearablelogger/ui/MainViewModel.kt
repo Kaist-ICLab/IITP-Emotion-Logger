@@ -56,6 +56,8 @@ class MainViewModel(
     val recentTimestamp: StateFlow<Long> = getStateFlowFromFlow(DataReceiverService.recentTimestamp, initialValue = -1)
     val syncTime: StateFlow<Map<CollectorType, Long>> = getStateFlowFromFlow(stateRepository.syncTime, initialValue = mapOf())
     val uploadTime: StateFlow<Map<CollectorType, Long>> = getStateFlowFromFlow(stateRepository.uploadTime, initialValue = mapOf())
+    val watchUploadSchedule: StateFlow<Long> = getStateFlowFromFlow(DataReceiverService.watchUploadSchedule, initialValue = -1)
+    val phoneUploadSchedule: StateFlow<Long> = getStateFlowFromFlow(DataReceiverService.phoneUploadSchedule, initialValue = -1)
 
     val recentHREntity: StateFlow<HREntity?> = getStateFlowFromFlow(DataReceiverService.recentHREntity, initialValue = null)
     val recentAccEntity: StateFlow<AccEntity?> = getStateFlowFromFlow(DataReceiverService.recentAccEntity, initialValue = null)
@@ -98,10 +100,6 @@ class MainViewModel(
             ContextCompat.startForegroundService(context, intent)
             Log.d(TAG, "Start EnvCollectorService")
         }
-    }
-
-    fun tickTime() {
-        currentTime += 1000
     }
 
     private fun <T> getStateFlowFromFlow(flow: Flow<T>, initialValue: T): StateFlow<T> {
