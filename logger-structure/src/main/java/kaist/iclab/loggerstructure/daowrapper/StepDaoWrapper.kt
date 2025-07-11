@@ -3,6 +3,7 @@ package kaist.iclab.loggerstructure.daowrapper
 import android.util.Log
 import com.google.gson.Gson
 import kaist.iclab.loggerstructure.core.DaoWrapper
+import kaist.iclab.loggerstructure.core.IdRange
 import kaist.iclab.loggerstructure.dao.StepDao
 import kaist.iclab.loggerstructure.entity.StepEntity
 import kotlinx.coroutines.runBlocking
@@ -14,17 +15,20 @@ class StepDaoWrapper(
         private val TAG = StepDaoWrapper::class.simpleName
     }
 
-    override suspend fun getBeforeLast(limit: Int): Sequence<Pair<Long, List<StepEntity>>> = sequence {
-        val lastTimestamp = runBlocking {
-            stepDao.getLast()?.dataReceived ?: 0
-        }
+    override suspend fun getBeforeLast(startId: Long, limit: Long): Sequence<Pair<IdRange, List<StepEntity>>> = sequence {
+        val lastId = runBlocking { stepDao.getLastId() ?: 0 }
+        var startId = startId
+
         while(true) {
             val entries = runBlocking {
-                stepDao.getChunkBefore(lastTimestamp, limit)
+                stepDao.getChunkBetween(startId, lastId, limit)
             }
             if(entries.isEmpty()) break
-            val maxTime = entries.maxOf { it.dataReceived }
-            yield(Pair(maxTime, entries))
+
+            val idRange = IdRange(startId = entries.minOf{ it.id }, endId = entries.maxOf { it.id  })
+            startId = idRange.endId + 1
+
+            yield(Pair(idRange, entries))
         }
     }
     
@@ -40,8 +44,8 @@ class StepDaoWrapper(
         stepDao.insertEvents(entities)
     }
 
-    override suspend fun deleteBefore(timestamp: Long) {
-        stepDao.deleteBefore(timestamp)
+    override suspend fun deleteBetween(startId: Long, endId: Long) {
+        stepDao.deleteBetween(startId, endId)
     }
 
     override suspend fun deleteAll() {
@@ -53,8 +57,12 @@ class StepDaoWrapper(
         return stepDao.getLast()
     }
 
-    override suspend fun insertEventsFromJson(json: String) {
+    override suspend fun insertEventsFromJson(json: String): IdRange {
         val list = Gson().fromJson(json, Array<StepEntity>::class.java).toList()
         insertEvents(list)
+        return IdRange(
+            startId = list.minOf { it.id },
+            endId = list.maxOf { it.id }
+        )
     }
 }

@@ -39,6 +39,7 @@
             </intent-filter>
         </activity>
         <service android:name="kaist.iclab.wearablelogger.collector.core.CollectorService"/>
+        <service android:name=".uploader.AckReceiverService"/>
     </application>
 
 </manifest>

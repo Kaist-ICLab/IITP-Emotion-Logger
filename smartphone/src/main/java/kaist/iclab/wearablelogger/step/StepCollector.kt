@@ -94,18 +94,17 @@ class StepCollector(
 //        return configRepository.getSensorStatus("Step")
     }
 
-    override suspend fun stringifyData(): Pair<String, Long> {
+    override suspend fun stringifyData(): String {
         val gson = GsonBuilder().setStrictness(Strictness.LENIENT).create()
-        val lastEntity = stepDao.getLast()
-        val lastId = lastEntity?.id ?: 0L
+        val lastId = stepDao.getLastId() ?: 0
 
-        return Pair(gson.toJson(stepDao.getBefore(lastId)), lastId)
+        return gson.toJson(stepDao.getChunkBetween(0, lastId, lastId))
     }
 
-    override fun flushBefore(id: Long) {
+    override fun deleteBetween(startId: Long, endId: Long) {
         CoroutineScope(Dispatchers.IO).launch {
-            stepDao.deleteBefore(id)
-            Log.d(TAG, "Flush Step Data")
+            stepDao.deleteBetween(startId, endId)
+            Log.d(TAG, "Flush $key Data between $startId and $endId")
         }
     }
 

@@ -7,7 +7,7 @@ interface CollectorInterface {
     fun isAvailable():Boolean
     fun startLogging()
     fun stopLogging()
-    suspend fun stringifyData(): Pair<String, Long>
-    fun flushBefore(timestamp: Long)
+    suspend fun stringifyData(): String
+    fun deleteBetween(startId: Long, endId: Long)
     fun flush()
 }

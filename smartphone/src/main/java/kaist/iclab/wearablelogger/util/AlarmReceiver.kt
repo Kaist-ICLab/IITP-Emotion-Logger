@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import kaist.iclab.loggerstructure.core.AlarmScheduler
+import kaist.iclab.wearablelogger.data.DataUploaderRepository
 import org.koin.java.KoinJavaComponent
 
 class AlarmReceiver: BroadcastReceiver() {

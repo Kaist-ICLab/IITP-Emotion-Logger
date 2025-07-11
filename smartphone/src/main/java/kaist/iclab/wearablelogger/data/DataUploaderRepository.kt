@@ -1,4 +1,4 @@
-package kaist.iclab.wearablelogger.util
+package kaist.iclab.wearablelogger.data
 
 import android.util.Log
 import com.google.gson.Gson
@@ -12,6 +12,9 @@ import kaist.iclab.loggerstructure.core.EntityBase
 import kaist.iclab.loggerstructure.dao.EnvDao
 import kaist.iclab.loggerstructure.dao.StepDao
 import kaist.iclab.loggerstructure.util.CollectorType
+import kaist.iclab.wearablelogger.util.DeviceInfoRepository
+import kaist.iclab.wearablelogger.util.StateRepository
+import kaist.iclab.wearablelogger.util.TimeUtil
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -20,12 +23,13 @@ import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
 import okhttp3.Request
 import okhttp3.RequestBody.Companion.toRequestBody
-import org.koin.java.KoinJavaComponent.inject
+import org.koin.java.KoinJavaComponent
 import java.io.IOException
-import java.lang.Thread.sleep
+import java.time.Instant
 import java.time.ZoneId
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
+import kotlin.collections.iterator
 
 class DataUploaderRepository(
     private val stepDao: StepDao,
@@ -49,10 +53,12 @@ class DataUploaderRepository(
     companion object {
         private val TAG = DataUploaderRepository::class.simpleName
         private val TIME_PROPERTY = listOf("timestamp", "dataReceived", "startTime", "endTime", "watch_upload_schedule", "phone_upload_schedule")
-        private const val CHUNK_SIZE = 2000
+        private const val CHUNK_SIZE = 2000L
     }
 
-    private val deviceInfoRepository: DeviceInfoRepository by inject(DeviceInfoRepository::class.java)
+    private val deviceInfoRepository: DeviceInfoRepository by KoinJavaComponent.inject(
+        DeviceInfoRepository::class.java
+    )
     private val deviceId = deviceInfoRepository.deviceId
 
     init {
@@ -125,8 +131,8 @@ class DataUploaderRepository(
 
                 var chunkIndex = 0
                 try {
-                    for(daoEntry in dao.getBeforeLast(CHUNK_SIZE)) {
-                        val threshold = daoEntry.first
+                    for(daoEntry in dao.getBeforeLast(0, CHUNK_SIZE)) {
+                        val idRange = daoEntry.first
                         val entries = daoEntry.second
 
                         val data = gson.toJsonTree(entries).asJsonArray
@@ -134,12 +140,12 @@ class DataUploaderRepository(
 
                         Log.d(TAG, "Upload full Data ($chunkIndex): $name")
                         uploadJSON(data.toString(), logType, retryAtTimeout = true)
-                        sleep(7000)
+                        Thread.sleep(7000)
 
                         stateRepository.updateUploadTime(name, System.currentTimeMillis())
-                        dao.deleteBefore(threshold)
+                        dao.deleteBetween(idRange.startId, idRange.endId)
 
-                        Log.d(TAG, "Delete $logType Data before ${TimeUtil.timestampToString(threshold)}")
+                        Log.d(TAG, "Delete $logType Data: $idRange")
                         chunkIndex++
                     }
 
@@ -221,14 +227,14 @@ class DataUploaderRepository(
                 }
             }
 
-            sleep(timeoutMillis)
+            Thread.sleep(timeoutMillis)
             timeoutMillis = (timeoutMillis * 2).coerceAtMost(maxTimeoutMillis)
         }
     }
 
     private fun toZonedTimestamp(timeMillis: Long): String {
         val kstTime = ZonedDateTime.ofInstant(
-            java.time.Instant.ofEpochMilli(timeMillis),
+            Instant.ofEpochMilli(timeMillis),
             ZoneId.of("Asia/Seoul")
         )
 

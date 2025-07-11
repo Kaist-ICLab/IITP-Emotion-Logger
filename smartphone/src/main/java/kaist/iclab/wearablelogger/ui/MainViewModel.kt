@@ -21,7 +21,7 @@ import kaist.iclab.loggerstructure.entity.StepEntity
 import kaist.iclab.loggerstructure.util.CollectorType
 import kaist.iclab.wearablelogger.env.EnvCollectorService
 import kaist.iclab.wearablelogger.step.StepCollectorService
-import kaist.iclab.wearablelogger.util.DataReceiverService
+import kaist.iclab.wearablelogger.data.DataReceiverService
 import kaist.iclab.wearablelogger.util.DeviceInfoRepository
 import kaist.iclab.wearablelogger.util.StateRepository
 import kotlinx.coroutines.flow.Flow

@@ -4,7 +4,7 @@ import android.util.Log
 import androidx.lifecycle.ViewModel
 import kaist.iclab.loggerstructure.entity.StepEntity
 import kaist.iclab.loggerstructure.util.CollectorType
-import kaist.iclab.wearablelogger.util.DataUploaderRepository
+import kaist.iclab.wearablelogger.data.DataUploaderRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch

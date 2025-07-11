@@ -22,11 +22,9 @@ class UploaderRepository(
         // Try one at a time
         runBlocking {
             try {
-                val pair = collector.stringifyData()
-                val stringData = pair.first
-                val lastTimestamp = pair.second
+                val stringData = collector.stringifyData()
 
-                // 1.5h worth of SQL is very likely to be >100KB
+                // 15min worth of accelerometer & PPG SQL is very likely to be >100KB
                 // So convert to Asset
                 Log.d(TAG, "${collector.key} data: $stringData")
                 val asset = Asset.createFromBytes(stringData.toByteArray())
@@ -39,7 +37,6 @@ class UploaderRepository(
 
                 dataClient.putDataItem(request).await()
                 Log.d(TAG, "${collector.key} Data has been uploaded")
-                collector.flushBefore(lastTimestamp)
 
             } catch (exception: Exception) {
                 Log.e(TAG, "Saving DataItem failed: $exception")

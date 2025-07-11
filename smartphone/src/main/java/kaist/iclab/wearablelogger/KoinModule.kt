@@ -10,13 +10,14 @@ import kaist.iclab.loggerstructure.daowrapper.PpgDaoWrapper
 import kaist.iclab.loggerstructure.daowrapper.SkinTempDaoWrapper
 import kaist.iclab.loggerstructure.daowrapper.StepDaoWrapper
 import kaist.iclab.loggerstructure.util.CollectorType
+import kaist.iclab.wearablelogger.data.AckRepository
 import kaist.iclab.wearablelogger.env.BluetoothScanner
 import kaist.iclab.wearablelogger.step.StepCollector
 import kaist.iclab.wearablelogger.ui.BluetoothViewModel
 import kaist.iclab.wearablelogger.ui.DebugViewModel
 import kaist.iclab.wearablelogger.ui.MainViewModel
-import kaist.iclab.wearablelogger.util.DataReceiverService
-import kaist.iclab.wearablelogger.util.DataUploaderRepository
+import kaist.iclab.wearablelogger.data.DataReceiverService
+import kaist.iclab.wearablelogger.data.DataUploaderRepository
 import kaist.iclab.wearablelogger.util.DeviceInfoRepository
 import kaist.iclab.wearablelogger.util.StateRepository
 import org.koin.android.ext.koin.androidContext
@@ -84,6 +85,12 @@ val koinModule = module {
 
     single {
         StateRepository(
+            androidContext()
+        )
+    }
+
+    single {
+        AckRepository(
             androidContext()
         )
     }

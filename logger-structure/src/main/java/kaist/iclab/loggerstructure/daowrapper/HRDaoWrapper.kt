@@ -3,6 +3,7 @@ package kaist.iclab.loggerstructure.daowrapper
 import android.util.Log
 import com.google.gson.Gson
 import kaist.iclab.loggerstructure.core.DaoWrapper
+import kaist.iclab.loggerstructure.core.IdRange
 import kaist.iclab.loggerstructure.dao.HRDao
 import kaist.iclab.loggerstructure.entity.HREntity
 import kotlinx.coroutines.runBlocking
@@ -14,17 +15,20 @@ class HRDaoWrapper(
         private val TAG = HRDaoWrapper::class.simpleName
     }
 
-    override suspend fun getBeforeLast(limit: Int): Sequence<Pair<Long, List<HREntity>>> = sequence {
-        val lastTimestamp = runBlocking {
-            hrDao.getLast()?.timestamp ?: 0
-        }
+    override suspend fun getBeforeLast(startId: Long, limit: Long): Sequence<Pair<IdRange, List<HREntity>>> = sequence {
+        val lastId = runBlocking { hrDao.getLastId() ?: 0 }
+        var startId = startId
+
         while(true) {
             val entries = runBlocking {
-                hrDao.getChunkBefore(lastTimestamp, limit)
+                hrDao.getChunkBetween(startId, lastId, limit)
             }
             if(entries.isEmpty()) break
-            val maxTime = entries.maxOf { it.timestamp }
-            yield(Pair(maxTime, entries))
+
+            val idRange = IdRange(startId = entries.minOf{ it.id }, endId = entries.maxOf { it.id  })
+            startId = idRange.endId + 1
+
+            yield(Pair(idRange, entries))
         }
     }
 
@@ -40,8 +44,8 @@ class HRDaoWrapper(
         hrDao.insertEvents(entities)
     }
 
-    override suspend fun deleteBefore(timestamp: Long) {
-        hrDao.deleteBefore(timestamp)
+    override suspend fun deleteBetween(startId: Long, endId: Long) {
+        hrDao.deleteBetween(startId, endId)
     }
 
     override suspend fun deleteAll() {
@@ -53,8 +57,12 @@ class HRDaoWrapper(
         return hrDao.getLast()
     }
 
-    override suspend fun insertEventsFromJson(json: String) {
+    override suspend fun insertEventsFromJson(json: String): IdRange {
         val list = Gson().fromJson(json, Array<HREntity>::class.java).toList()
         insertEvents(list)
+        return IdRange(
+            startId = list.minOf { it.id },
+            endId = list.maxOf { it.id }
+        )
     }
 }
