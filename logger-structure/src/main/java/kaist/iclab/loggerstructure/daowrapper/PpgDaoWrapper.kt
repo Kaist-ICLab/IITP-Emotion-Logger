@@ -3,6 +3,7 @@ package kaist.iclab.loggerstructure.daowrapper
 import android.util.Log
 import com.google.gson.Gson
 import kaist.iclab.loggerstructure.core.DaoWrapper
+import kaist.iclab.loggerstructure.core.IdRange
 import kaist.iclab.loggerstructure.dao.PpgDao
 import kaist.iclab.loggerstructure.entity.PpgEntity
 import kotlinx.coroutines.runBlocking
@@ -14,17 +15,20 @@ class PpgDaoWrapper(
         private val TAG = PpgDaoWrapper::class.simpleName
     }
 
-    override suspend fun getBeforeLast(limit: Int): Sequence<Pair<Long, List<PpgEntity>>> = sequence {
-        val lastTimestamp = runBlocking {
-            ppgDao.getLast()?.timestamp ?: 0
-        }
+    override suspend fun getBeforeLast(startId: Long, limit: Long): Sequence<Pair<IdRange, List<PpgEntity>>> = sequence {
+        val lastId = runBlocking { ppgDao.getLastId() ?: 0 }
+        var startId = startId
+
         while(true) {
             val entries = runBlocking {
-                ppgDao.getChunkBefore(lastTimestamp, limit)
+                ppgDao.getChunkBetween(startId, lastId, limit)
             }
             if(entries.isEmpty()) break
-            val maxTime = entries.maxOf { it.timestamp }
-            yield(Pair(maxTime, entries))
+
+            val idRange = IdRange(startId = entries.minOf{ it.id }, endId = entries.maxOf { it.id  })
+            startId = idRange.endId + 1
+
+            yield(Pair(idRange, entries))
         }
     }
 
@@ -40,8 +44,8 @@ class PpgDaoWrapper(
         ppgDao.insertEvents(entities)
     }
 
-    override suspend fun deleteBefore(timestamp: Long) {
-        ppgDao.deleteBefore(timestamp)
+    override suspend fun deleteBetween(startId: Long, endId: Long) {
+        ppgDao.deleteBetween(startId, endId)
     }
 
     override suspend fun deleteAll() {
@@ -53,8 +57,12 @@ class PpgDaoWrapper(
         return ppgDao.getLast()
     }
 
-    override suspend fun insertEventsFromJson(json: String) {
+    override suspend fun insertEventsFromJson(json: String): IdRange {
         val list = Gson().fromJson(json, Array<PpgEntity>::class.java).toList()
         insertEvents(list)
+        return IdRange(
+            startId = list.minOf { it.id },
+            endId = list.maxOf { it.id }
+        )
     }
 }

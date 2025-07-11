@@ -13,6 +13,8 @@ import kaist.iclab.wearablelogger.ui.SettingsViewModel
 import kaist.iclab.wearablelogger.uploader.UploaderRepository
 import org.koin.android.ext.koin.androidContext
 import org.koin.androidx.viewmodel.dsl.viewModel
+import org.koin.core.qualifier.named
+import org.koin.core.qualifier.qualifier
 import org.koin.dsl.module
 
 val koinModule = module {
@@ -47,6 +49,15 @@ val koinModule = module {
         SkinTempCollector(androidContext(), get(), get(), get<MyDataRoomDB>().skinTempDao())
     }
 
+    single(named("collectors")) {
+        listOf(
+            get<PpgCollector>(),
+            get<AccCollector>(),
+            get<HRCollector>(),
+            get<SkinTempCollector>(),
+        )
+    }
+
     single {
         UploaderRepository(
             androidContext()
@@ -55,12 +66,7 @@ val koinModule = module {
 
     single {
         CollectorRepository(
-            listOf<CollectorInterface>(
-                get<PpgCollector>(),
-                get<AccCollector>(),
-                get<HRCollector>(),
-                get<SkinTempCollector>(),
-            ),
+            get(qualifier = qualifier("collectors")),
             get(),
             androidContext()
         )

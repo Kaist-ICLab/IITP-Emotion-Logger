@@ -3,6 +3,7 @@ package kaist.iclab.loggerstructure.daowrapper
 import android.util.Log
 import com.google.gson.Gson
 import kaist.iclab.loggerstructure.core.DaoWrapper
+import kaist.iclab.loggerstructure.core.IdRange
 import kaist.iclab.loggerstructure.dao.SkinTempDao
 import kaist.iclab.loggerstructure.entity.SkinTempEntity
 import kotlinx.coroutines.runBlocking
@@ -14,17 +15,20 @@ class SkinTempDaoWrapper(
         private val TAG = SkinTempDaoWrapper::class.simpleName
     }
 
-    override suspend fun getBeforeLast(limit: Int): Sequence<Pair<Long, List<SkinTempEntity>>> = sequence {
-        val lastTimestamp = runBlocking {
-            skinTempDao.getLast()?.timestamp ?: 0
-        }
+    override suspend fun getBeforeLast(startId: Long, limit: Long): Sequence<Pair<IdRange, List<SkinTempEntity>>> = sequence {
+        val lastId = runBlocking { skinTempDao.getLastId() ?: 0 }
+        var startId = startId
+
         while(true) {
             val entries = runBlocking {
-                skinTempDao.getChunkBefore(lastTimestamp, limit)
+                skinTempDao.getChunkBetween(startId, lastId, limit)
             }
             if(entries.isEmpty()) break
-            val maxTime = entries.maxOf { it.timestamp }
-            yield(Pair(maxTime, entries))
+
+            val idRange = IdRange(startId = entries.minOf{ it.id }, endId = entries.maxOf { it.id  })
+            startId = idRange.endId + 1
+
+            yield(Pair(idRange, entries))
         }
     }
 
@@ -40,8 +44,8 @@ class SkinTempDaoWrapper(
         skinTempDao.insertEvents(entities)
     }
 
-    override suspend fun deleteBefore(timestamp: Long) {
-        return skinTempDao.deleteBefore(timestamp)
+    override suspend fun deleteBetween(startId: Long, endId: Long) {
+        skinTempDao.deleteBetween(startId, endId)
     }
 
     override suspend fun deleteAll() {
@@ -53,8 +57,12 @@ class SkinTempDaoWrapper(
         return skinTempDao.getLast()
     }
 
-    override suspend fun insertEventsFromJson(json: String) {
+    override suspend fun insertEventsFromJson(json: String): IdRange {
         val list = Gson().fromJson(json, Array<SkinTempEntity>::class.java).toList()
         insertEvents(list)
+        return IdRange(
+            startId = list.minOf { it.id },
+            endId = list.maxOf { it.id }
+        )
     }
 }

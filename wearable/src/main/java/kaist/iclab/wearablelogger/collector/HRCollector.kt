@@ -65,18 +65,17 @@ class HRCollector(
         return configRepository.getSensorStatus("Heart Rate")
     }
 
-    override suspend fun stringifyData(): Pair<String, Long>{
+    override suspend fun stringifyData(): String {
         val gson = GsonBuilder().setStrictness(Strictness.LENIENT).create()
-        val lastEntity = hrDao.getLast()
-        val lastTimestamp = lastEntity?.timestamp ?: 0L
+        val lastId = hrDao.getLastId() ?: 0
 
-        return Pair(gson.toJson(hrDao.getBefore(lastTimestamp)), lastTimestamp)
+        return gson.toJson(hrDao.getChunkBetween(0, lastId, lastId))
     }
 
-    override fun flushBefore(timestamp: Long) {
+    override fun deleteBetween(startId: Long, endId: Long) {
         CoroutineScope(Dispatchers.IO).launch {
-            hrDao.deleteBefore(timestamp)
-            Log.d(TAG, "Flush $TAG Data before $timestamp")
+            hrDao.deleteBetween(startId, endId)
+            Log.d(TAG, "Flush $key Data between $startId and $endId")
         }
     }
 

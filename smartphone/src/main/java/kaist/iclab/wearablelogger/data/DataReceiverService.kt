@@ -1,7 +1,6 @@
-package kaist.iclab.wearablelogger.util
+package kaist.iclab.wearablelogger.data
 
 import android.annotation.SuppressLint
-import android.content.Intent
 import android.util.Log
 import com.google.android.gms.wearable.DataEventBuffer
 import com.google.android.gms.wearable.DataMap
@@ -18,17 +17,18 @@ import kaist.iclab.loggerstructure.entity.AccEntity
 import kaist.iclab.loggerstructure.entity.HREntity
 import kaist.iclab.loggerstructure.entity.PpgEntity
 import kaist.iclab.loggerstructure.entity.SkinTempEntity
+import kaist.iclab.loggerstructure.util.DataClientPath
+import kaist.iclab.wearablelogger.util.StateRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.core.qualifier.named
-import org.koin.java.KoinJavaComponent.inject
 
 class DataReceiverService: WearableListenerService() {
     companion object {
-        private const val TAG = "DataReceiver"
+        private val TAG = DataReceiverService::class.simpleName
 
         val recentTimestamp = MutableSharedFlow<Long>()
         val recentHREntity = MutableSharedFlow<HREntity?>()
@@ -41,17 +41,9 @@ class DataReceiverService: WearableListenerService() {
     }
 
     private val collectorDao by inject<Map<String, DaoWrapper<EntityBase>>>(qualifier = named("collectorDao"))
-    private val stateRepository: StateRepository by inject(StateRepository::class.java)
-    private val dataUploaderRepository: DataUploaderRepository by inject(DataUploaderRepository::class.java)
-
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.v(TAG, "Service Started")
-
-        val notification = ForegroundNotification.getNotification(this)
-        Log.d(TAG, "onStartCommand")
-        startForeground(2, notification)
-        return START_STICKY
-    }
+    private val stateRepository: StateRepository by inject()
+    private val dataUploaderRepository: DataUploaderRepository by inject()
+    private val ackRepository: AckRepository by inject()
 
     override fun onDataChanged(dataEventBuffer: DataEventBuffer) {
         dataEventBuffer.forEach { dataEvent ->
@@ -60,9 +52,10 @@ class DataReceiverService: WearableListenerService() {
                 return
 
             val data = DataMapItem.fromDataItem(dataEvent.dataItem).dataMap
-            if(dataType[1] == "WEARABLE"){
+            val basePath = "/${dataType[1]}"
+            if(basePath == DataClientPath.RECENT_DATA){
                 unpackRecentData(data)
-            } else {
+            } else if(basePath == DataClientPath.UPLOAD_DATA) {
                 CoroutineScope(Dispatchers.IO).launch {
                     unpackDataAsset(data, dataType[2])
                 }
@@ -109,8 +102,9 @@ class DataReceiverService: WearableListenerService() {
                     val daoWrapper = collectorDao[key]!!
 
                     CoroutineScope(Dispatchers.IO).launch {
-                        daoWrapper.insertEventsFromJson(json)
+                        val idRange = daoWrapper.insertEventsFromJson(json)
                         stateRepository.updateSyncTime(key, System.currentTimeMillis())
+                        ackRepository.returnAck(key, idRange)
                     }
                 }
             }

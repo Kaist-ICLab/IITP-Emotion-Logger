@@ -1,7 +1,7 @@
 package kaist.iclab.loggerstructure.core
 
 interface DaoWrapper<T: EntityBase> {
-    suspend fun getBeforeLast(limit: Int): Sequence<Pair<Long, List<T>>>
+    suspend fun getBeforeLast(startId: Long, limit: Long): Sequence<Pair<IdRange, List<T>>>
 
     suspend fun getAll(): List<T>
 
@@ -9,15 +9,13 @@ interface DaoWrapper<T: EntityBase> {
 
     suspend fun insertEvents(entities: List<T>)
 
-    suspend fun deleteBefore(timestamp: Long)
+    suspend fun deleteBetween(startId: Long, endId: Long)
 
     suspend fun deleteAll()
 
     suspend fun getLast(): T?
 
-//    suspend fun getLastThreshold(): Long
-
-    suspend fun insertEventsFromJson(json: String)
+    suspend fun insertEventsFromJson(json: String): IdRange
 }
 
 interface EntityBase
