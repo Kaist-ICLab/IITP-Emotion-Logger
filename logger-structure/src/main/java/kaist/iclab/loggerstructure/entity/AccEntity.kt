@@ -1,11 +1,13 @@
 package kaist.iclab.loggerstructure.entity
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import kaist.iclab.loggerstructure.core.EntityBase
 
 @Entity(
     tableName = "accEvent",
+    indices = [Index(value = ["timestamp"], unique = true)]
 )
 data class AccEntity(
     @PrimaryKey(autoGenerate = true)

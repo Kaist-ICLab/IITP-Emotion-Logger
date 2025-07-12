@@ -2,9 +2,7 @@ package kaist.iclab.wearablelogger
 
 import androidx.room.Database
 import androidx.room.RoomDatabase
-import androidx.room.TypeConverter
 import androidx.room.TypeConverters
-import com.google.gson.Gson
 import kaist.iclab.loggerstructure.dao.AccDao
 import kaist.iclab.loggerstructure.dao.HRDao
 import kaist.iclab.loggerstructure.dao.PpgDao
@@ -18,7 +16,7 @@ import kaist.iclab.loggerstructure.entity.TestEntity
 import kaist.iclab.loggerstructure.util.Converter
 
 @Database(
-    version = 15,
+    version = 16,
     entities = [
         TestEntity::class,
         PpgEntity::class,

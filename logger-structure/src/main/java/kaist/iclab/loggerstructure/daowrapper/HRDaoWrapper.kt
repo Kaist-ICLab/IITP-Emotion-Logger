@@ -64,7 +64,7 @@ class HRDaoWrapper(
             endId = 0,
         )
 
-        insertEvents(list)
+        hrDao.upsertEvents(list)
         return IdRange(
             startId = list.minOf { it.id },
             endId = list.maxOf { it.id }

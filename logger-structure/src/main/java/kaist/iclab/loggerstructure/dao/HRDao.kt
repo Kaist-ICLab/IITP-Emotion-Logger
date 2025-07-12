@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Upsert
 import kaist.iclab.loggerstructure.entity.HREntity
 
 @Dao
@@ -25,6 +26,9 @@ interface HRDao {
 
     @Insert(onConflict = OnConflictStrategy.Companion.IGNORE)
     suspend fun insertEvents(accEntities: List<HREntity>)
+
+    @Upsert
+    suspend fun upsertEvents(hrEntities: List<HREntity>)
 
     @Query("DELETE FROM hrEvent WHERE id >= :startId AND id <= :endId")
     suspend fun deleteBetween(startId: Long, endId: Long)
