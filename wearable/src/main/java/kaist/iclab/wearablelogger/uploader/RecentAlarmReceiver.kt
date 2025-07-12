@@ -1,14 +1,15 @@
-package kaist.iclab.wearablelogger.collector.core
+package kaist.iclab.wearablelogger.uploader
 
 import kaist.iclab.loggerstructure.core.AlarmReceiver
+import kaist.iclab.wearablelogger.collector.core.CollectorRepository
 import org.koin.java.KoinJavaComponent
 
-class UploadAlarmReceiver: AlarmReceiver() {
+class RecentAlarmReceiver: AlarmReceiver() {
     private val collectorRepository: CollectorRepository by KoinJavaComponent.inject(
         CollectorRepository::class.java
     )
 
     override fun executeOnAlarm() {
-        collectorRepository.upload()
+        collectorRepository.uploadRecent()
     }
 }

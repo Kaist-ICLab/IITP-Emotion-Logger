@@ -11,7 +11,7 @@ import com.samsung.android.service.health.tracking.data.ValueKey
 import kaist.iclab.loggerstructure.daowrapper.PpgDaoWrapper
 import kaist.iclab.loggerstructure.entity.PpgEntity
 import kaist.iclab.loggerstructure.util.CollectorType
-import kaist.iclab.wearablelogger.collector.core.BatteryStateReceiver
+import kaist.iclab.wearablelogger.config.BatteryStateReceiver
 import kaist.iclab.wearablelogger.collector.core.HealthTrackerCollector
 import kaist.iclab.wearablelogger.config.ConfigRepository
 import kaist.iclab.wearablelogger.healthtracker.AbstractTrackerEventListener

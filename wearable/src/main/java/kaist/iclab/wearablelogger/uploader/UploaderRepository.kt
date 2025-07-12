@@ -10,7 +10,6 @@ import kaist.iclab.loggerstructure.core.AlarmScheduler
 import kaist.iclab.loggerstructure.core.CollectorInterface
 import kaist.iclab.loggerstructure.util.DataClientPath
 import kaist.iclab.wearablelogger.MyDataRoomDB
-import kaist.iclab.wearablelogger.collector.core.UploadAlarmReceiver
 import kotlinx.coroutines.tasks.await
 import java.lang.Thread.sleep
 

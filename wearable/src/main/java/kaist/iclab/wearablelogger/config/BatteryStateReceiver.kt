@@ -1,4 +1,4 @@
-package kaist.iclab.wearablelogger.collector.core
+package kaist.iclab.wearablelogger.config
 
 import android.content.BroadcastReceiver
 import android.content.Context

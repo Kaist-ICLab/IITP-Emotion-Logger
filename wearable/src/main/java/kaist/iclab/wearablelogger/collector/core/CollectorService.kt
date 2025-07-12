@@ -9,6 +9,8 @@ import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import kaist.iclab.loggerstructure.core.AlarmScheduler
+import kaist.iclab.wearablelogger.uploader.RecentAlarmReceiver
+import kaist.iclab.wearablelogger.uploader.UploadAlarmReceiver
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
