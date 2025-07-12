@@ -41,11 +41,10 @@ import androidx.wear.compose.material.ToggleChip
 import androidx.wear.compose.material.Vignette
 import androidx.wear.compose.material.VignettePosition
 import androidx.wear.compose.material.scrollAway
-import org.koin.androidx.compose.koinViewModel
 
 @Composable
 fun SettingsScreen(
-    settingsViewModel: SettingsViewModel = koinViewModel()
+    settingsViewModel: SettingsViewModel
 ) {
     val isCollecting = settingsViewModel.isCollectorState.collectAsState().value
     val uiState = settingsViewModel.uiState.collectAsState().value

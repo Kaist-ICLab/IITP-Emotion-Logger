@@ -2,8 +2,7 @@ package kaist.iclab.wearablelogger.ui
 
 import android.util.Log
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewModelScope
-import kaist.iclab.wearablelogger.collector.CollectorRepository
+import kaist.iclab.wearablelogger.collector.core.CollectorRepository
 import kaist.iclab.wearablelogger.config.ConfigRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

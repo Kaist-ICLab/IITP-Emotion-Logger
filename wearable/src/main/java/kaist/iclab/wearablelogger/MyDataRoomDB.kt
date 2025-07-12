@@ -5,16 +5,17 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverter
 import androidx.room.TypeConverters
 import com.google.gson.Gson
-import kaist.iclab.wearablelogger.collector.ACC.AccDao
-import kaist.iclab.wearablelogger.collector.ACC.AccEntity
-import kaist.iclab.wearablelogger.collector.HR.HRDao
-import kaist.iclab.wearablelogger.collector.HR.HREntity
-import kaist.iclab.wearablelogger.collector.PPGGreen.PpgDao
-import kaist.iclab.wearablelogger.collector.PPGGreen.PpgEntity
-import kaist.iclab.wearablelogger.collector.SkinTemp.SkinTempDao
-import kaist.iclab.wearablelogger.collector.SkinTemp.SkinTempEntity
-import kaist.iclab.wearablelogger.collector.Test.TestDao
-import kaist.iclab.wearablelogger.collector.Test.TestEntity
+import kaist.iclab.loggerstructure.dao.AccDao
+import kaist.iclab.loggerstructure.dao.HRDao
+import kaist.iclab.loggerstructure.dao.PpgDao
+import kaist.iclab.loggerstructure.dao.SkinTempDao
+import kaist.iclab.loggerstructure.dao.TestDao
+import kaist.iclab.loggerstructure.entity.AccEntity
+import kaist.iclab.loggerstructure.entity.HREntity
+import kaist.iclab.loggerstructure.entity.PpgEntity
+import kaist.iclab.loggerstructure.entity.SkinTempEntity
+import kaist.iclab.loggerstructure.entity.TestEntity
+import kaist.iclab.loggerstructure.util.Converter
 
 @Database(
     version = 15,
@@ -27,19 +28,11 @@ import kaist.iclab.wearablelogger.collector.Test.TestEntity
     ],
     exportSchema = false,
 )
-@TypeConverters(Converters::class)
+@TypeConverters(Converter::class)
 abstract class MyDataRoomDB:RoomDatabase() {
     abstract fun testDao(): TestDao
     abstract fun ppgDao(): PpgDao
     abstract fun accDao(): AccDao
     abstract fun hrDao(): HRDao
     abstract fun skinTempDao(): SkinTempDao
-}
-
-class Converters {
-    @TypeConverter
-    fun listToJson(value: List<Int>) = Gson().toJson(value)
-
-    @TypeConverter
-    fun jsonToList(value: String) = Gson().fromJson(value,Array<Int>::class.java).toList()
 }

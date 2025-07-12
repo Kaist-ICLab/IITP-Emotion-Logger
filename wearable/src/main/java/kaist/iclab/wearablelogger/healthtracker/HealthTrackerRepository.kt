@@ -6,10 +6,11 @@ import com.samsung.android.service.health.tracking.ConnectionListener
 import com.samsung.android.service.health.tracking.HealthTrackerException
 import com.samsung.android.service.health.tracking.HealthTrackingService
 
+private const val TAG = "HealthTrackerRepository"
+
 class HealthTrackerRepository(
     androidContext: Context
 ) {
-    private val TAG = javaClass.simpleName
     private val connectionListener: ConnectionListener = object: ConnectionListener {
         override fun onConnectionSuccess() {
             Log.d(TAG, "Connection Success")

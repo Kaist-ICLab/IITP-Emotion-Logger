@@ -1,18 +1,23 @@
 plugins {
-    id("com.android.application")
-    id("org.jetbrains.kotlin.android")
-    id("kotlin-android")
-    id("kotlin-kapt")
+    alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
+//    id("org.jetbrains.kotlin.android")
+//    id("kotlin-android")
+    alias(libs.plugins.google.devtools.ksp)
+
+    // Required by Samsung Health Data SDK
+    id("org.jetbrains.kotlin.plugin.parcelize")
 }
 
 android {
     namespace = "kaist.iclab.wearablelogger"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "kaist.iclab.wearablelogger"
-        minSdk = 24
-        targetSdk = 34
+        minSdk = 29
+        targetSdk = 35
         versionCode = 1
         versionName = "1.0"
 
@@ -41,9 +46,7 @@ android {
     buildFeatures {
         compose = true
     }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.4.3"
-    }
+
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -52,27 +55,43 @@ android {
 }
 
 dependencies {
+    implementation(fileTree("libs"))
+    implementation(project(":logger-structure"))
 
-    implementation("androidx.core:core-ktx:1.12.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
-    implementation("androidx.activity:activity-compose:1.8.2")
-    implementation(platform("androidx.compose:compose-bom:2024.02.02"))
-    implementation("androidx.compose.ui:ui")
-    implementation("androidx.compose.ui:ui-graphics")
-    implementation("androidx.compose.ui:ui-tooling-preview")
-    implementation("androidx.compose.material3:material3")
-    implementation("com.google.android.gms:play-services-wearable:18.1.0")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    implementation(libs.android.ktx)
+    implementation(libs.lifecycle.runtime.ktx)
 
-    val room_version = "2.6.1"
-    implementation("androidx.room:room-runtime:${room_version}")
-    implementation("androidx.room:room-ktx:${room_version}")
-    annotationProcessor("androidx.room:room-compiler:${room_version}")
-    // To use Kotlin annotation processing tool (kapt)
-    kapt("androidx.room:room-compiler:${room_version}")
+    // Compose
+    implementation(libs.activity.compose)
+    implementation(platform(libs.compose.bom))
+    debugImplementation(libs.androidx.ui.tooling)
+    implementation(libs.androidx.ui.tooling.preview)
+    implementation(libs.androidx.material.icons.extended)
+    implementation(libs.androidx.navigation.compose)
+    implementation(libs.ui)
+    implementation(libs.ui.graphics)
+    implementation(libs.ui.tooling.preview)
+    implementation(libs.material3)
 
-    val koin_version = "3.5.0"
-    implementation("io.insert-koin:koin-android:${koin_version}")
-    implementation("io.insert-koin:koin-androidx-compose:${koin_version}")
+    implementation(libs.play.services.wearable)
+    implementation(libs.kotlinx.coroutines.play.services)
+    implementation(libs.kotlinx.coroutines.android)
+
+    // For saving preferences
+    implementation(libs.datastore.preferences)
+    implementation(libs.datastore.preferences.core)
+
+    // For periodic upload
+    implementation(libs.work.runtime.ktx)
+
+    implementation(libs.okhttp)
+
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    ksp(libs.room.compiler)
+
+    implementation(libs.koin.android)
+    implementation(libs.koin.androidx.compose)
+
+    implementation(libs.gson)
 }

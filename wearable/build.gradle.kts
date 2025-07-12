@@ -1,13 +1,13 @@
 plugins {
-    id("com.android.application")
-    id("org.jetbrains.kotlin.android")
-    id("kotlin-android")
-    id("kotlin-kapt")
+    alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.android.application)
+    alias(libs.plugins.kotlin.android)
+    alias(libs.plugins.google.devtools.ksp)
 }
 
 android {
     namespace = "kaist.iclab.wearablelogger"
-    compileSdk = 34
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "kaist.iclab.wearablelogger"
@@ -15,7 +15,7 @@ android {
         targetSdk = 30
         versionCode = 1
         versionName = "2023-11-08"
-        vectorDrawables {3334
+        vectorDrawables {
             useSupportLibrary = true
         }
 
@@ -40,9 +40,6 @@ android {
     buildFeatures {
         compose = true
     }
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.4.3"
-    }
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
@@ -53,60 +50,61 @@ android {
 dependencies {
 
 //  Default libraries for use of Android and Kotlin.
-    implementation("androidx.core:core-ktx:1.12.0")
-    implementation("com.google.android.gms:play-services-wearable:18.1.0")
-    implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
-    implementation("androidx.activity:activity-compose:1.8.2")
+    implementation(libs.android.ktx)
+    implementation(libs.play.services.wearable)
+    implementation(libs.lifecycle.runtime.ktx)
+    implementation(libs.activity.compose)
+    implementation(project(":logger-structure"))
 
 //  Include privileged SDK
     implementation(fileTree("libs"))
 
 //  Jetpack Compose is a modern declarative UI Toolkit for Android
-    implementation(platform("androidx.compose:compose-bom:2024.02.02"))
-    implementation("androidx.compose.ui:ui")
-    implementation("androidx.compose.ui:ui-tooling-preview")
-    implementation("androidx.wear.compose:compose-material:1.3.0")
-    implementation("androidx.wear.compose:compose-foundation:1.3.0")
-    implementation("androidx.compose.material:material-icons-extended")
+    implementation(platform(libs.compose.bom))
+    implementation(libs.ui)
+    implementation(libs.ui.tooling.preview)
+    implementation(libs.compose.material)
+    implementation(libs.compose.foundation)
+    implementation(libs.material.icons.extended)
 
 //  Horologist is a group of libraries that aim to supplement Wear OS developers with features that are commonly required by developers but not yet available.
 //  https://github.com/google/horologist
-    implementation("com.google.android.horologist:horologist-compose-tools:0.1.5")
+    implementation(libs.horologist.compose.tools)
 
 //  Dependency for Koin Library
 //  https://insert-koin.io/
-    implementation("io.insert-koin:koin-android:3.5.0")
-    implementation("io.insert-koin:koin-androidx-compose:3.5.0")
-    implementation("com.google.firebase:firebase-crashlytics-buildtools:2.9.9")
+    implementation(libs.koin.android)
+    implementation(libs.koin.androidx.compose)
+    implementation(libs.firebase.crashlytics.buildtools)
 
+    implementation(libs.datastore.preferences)
+    implementation(libs.datastore.preferences.core)
 
-    implementation("androidx.datastore:datastore-preferences:1.0.0")
-    implementation("androidx.datastore:datastore-preferences-core:1.0.0")
-
-    val room_version = "2.6.1"
     // RoomDB
-    implementation("androidx.room:room-runtime:${room_version}")
-    implementation("androidx.room:room-ktx:${room_version}")
-    annotationProcessor("androidx.room:room-compiler:${room_version}")
-    // To use Kotlin annotation processing tool (kapt)
-    kapt("androidx.room:room-compiler:${room_version}")
+    implementation(libs.room.runtime)
+    implementation(libs.room.ktx)
+    annotationProcessor(libs.room.compiler)
+    ksp(libs.room.compiler)
+
 //  Dependency for testing.
 //  2023-11-08: It is not required for current development progress, but should be added for future testing.
 //    androidTestImplementation(platform("androidx.compose:compose-bom:2022.10.00"))
 //    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
 //    debugImplementation("androidx.compose.ui:ui-tooling")
 //    debugImplementation("androidx.compose.ui:ui-test-manifest")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.7.3")
-    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
+    implementation(libs.kotlinx.coroutines.play.services)
+    implementation(libs.kotlinx.coroutines.android)
 
+    // For periodic upload
+    implementation(libs.work.runtime.ktx)
 
-// Retrofit
-    implementation("com.squareup.retrofit2:retrofit:2.9.0")
-    implementation("com.squareup.retrofit2:converter-gson:2.9.0")
+    // Retrofit
+    implementation(libs.retrofit)
+    implementation(libs.converter.gson)
 
     // OkHttp
-    implementation("com.squareup.okhttp3:okhttp:4.10.0")
-    implementation("com.squareup.okhttp3:logging-interceptor:4.10.0")
+    implementation(libs.okhttp)
+    implementation(libs.logging.interceptor)
 
     //    implementation("com.google.android.horologist:horologist-tiles:0.1.5")
 //    implementation("androidx.wear.watchface:watchface-complications-data-source-ktx:1.1.1")
@@ -115,5 +113,5 @@ dependencies {
     //    implementation("androidx.percentlayout:percentlayout:1.0.0")
 //    implementation("androidx.legacy:legacy-support-v4:1.0.0")
 //    implementation("androidx.recyclerview:recyclerview:1.3.2")
-    implementation("com.google.code.gson:gson:2.10")
+    implementation(libs.gson)
 }

@@ -17,18 +17,22 @@ class ConfigRepository(private val androidContext: Context) {
         .map { preferences ->
             listOf(
                 SensorState("Skin Temperature",
-                    preferences[booleanPreferencesKey("Skin Temperature")] ?: false),
+                    preferences[booleanPreferencesKey("Skin Temperature")] == true
+                ),
                 SensorState("PPG Green",
-                    preferences[booleanPreferencesKey("PPG Green")] ?: false),
+                    preferences[booleanPreferencesKey("PPG Green")] == true
+                ),
                 SensorState("Heart Rate",
-                    preferences[booleanPreferencesKey("Heart Rate")] ?: false),
+                    preferences[booleanPreferencesKey("Heart Rate")] == true
+                ),
                 SensorState("Accelerometer",
-                    preferences[booleanPreferencesKey("Accelerometer")] ?: false),
+                    preferences[booleanPreferencesKey("Accelerometer")] == true
+                ),
             )
         }
     val isCollectingFlow: Flow<Boolean> = androidContext.dataStore.data
         .map{ preferences ->
-            preferences[booleanPreferencesKey("isCollecting")] ?: false
+            preferences[booleanPreferencesKey("isCollecting")] == true
         }
     suspend fun updateSensorStatus(sensorName: String, status: Boolean) {
         androidContext.dataStore.edit { preferences ->
@@ -43,6 +47,6 @@ class ConfigRepository(private val androidContext: Context) {
 
     suspend fun getSensorStatus(sensorName: String):Boolean{
         val preferences = androidContext.dataStore.data.first()
-        return preferences[booleanPreferencesKey(sensorName)] ?: false
+        return preferences[booleanPreferencesKey(sensorName)] == true
     }
 }
