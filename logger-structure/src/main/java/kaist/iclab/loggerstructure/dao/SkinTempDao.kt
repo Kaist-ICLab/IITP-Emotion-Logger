@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Upsert
 import kaist.iclab.loggerstructure.entity.SkinTempEntity
 
 @Dao
@@ -25,6 +26,9 @@ interface SkinTempDao {
 
     @Insert(onConflict = OnConflictStrategy.Companion.IGNORE)
     suspend fun insertEvents(accEntities: List<SkinTempEntity>)
+
+    @Upsert
+    suspend fun upsertEvents(skinTempEntities: List<SkinTempEntity>)
 
     @Query("DELETE FROM skinTempEvent WHERE id >= :startId AND id <= :endId")
     suspend fun deleteBetween(startId: Long, endId: Long)

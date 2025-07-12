@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Upsert
 import kaist.iclab.loggerstructure.entity.PpgEntity
 
 @Dao
@@ -25,6 +26,9 @@ interface PpgDao {
 
     @Insert(onConflict = OnConflictStrategy.Companion.IGNORE)
     suspend fun insertEvents(accEntities: List<PpgEntity>)
+
+    @Upsert
+    suspend fun upsertEvents(ppgEntities: List<PpgEntity>)
 
     @Query("DELETE FROM ppgEvent WHERE id >= :startId AND id <= :endId")
     suspend fun deleteBetween(startId: Long, endId: Long)

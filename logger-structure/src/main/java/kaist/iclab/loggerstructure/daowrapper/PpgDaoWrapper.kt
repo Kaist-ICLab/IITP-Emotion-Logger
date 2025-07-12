@@ -64,7 +64,7 @@ class PpgDaoWrapper(
             endId = 0,
         )
 
-        insertEvents(list)
+        ppgDao.upsertEvents(list)
         return IdRange(
             startId = list.minOf { it.id },
             endId = list.maxOf { it.id }

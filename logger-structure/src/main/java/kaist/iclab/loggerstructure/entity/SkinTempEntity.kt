@@ -1,11 +1,13 @@
 package kaist.iclab.loggerstructure.entity
 
 import androidx.room.Entity
+import androidx.room.Index
 import androidx.room.PrimaryKey
 import kaist.iclab.loggerstructure.core.EntityBase
 
 @Entity(
     tableName = "skinTempEvent",
+    indices = [Index(value = ["timestamp"], unique = true)]
 )
 data class SkinTempEntity(
     @PrimaryKey(autoGenerate = true)

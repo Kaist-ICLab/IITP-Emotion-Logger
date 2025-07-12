@@ -64,7 +64,7 @@ class AccDaoWrapper(
             endId = 0,
         )
 
-        insertEvents(list)
+        accDao.upsertEvents(list)
         return IdRange(
             startId = list.minOf { it.id },
             endId = list.maxOf { it.id }
