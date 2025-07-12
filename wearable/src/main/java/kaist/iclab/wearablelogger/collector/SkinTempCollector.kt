@@ -7,7 +7,7 @@ import com.google.gson.Strictness
 import com.samsung.android.service.health.tracking.data.DataPoint
 import com.samsung.android.service.health.tracking.data.HealthTrackerType
 import com.samsung.android.service.health.tracking.data.ValueKey
-import kaist.iclab.loggerstructure.dao.SkinTempDao
+import kaist.iclab.loggerstructure.daowrapper.SkinTempDaoWrapper
 import kaist.iclab.loggerstructure.entity.SkinTempEntity
 import kaist.iclab.loggerstructure.util.CollectorType
 import kaist.iclab.wearablelogger.collector.core.BatteryStateReceiver
@@ -23,7 +23,7 @@ class SkinTempCollector(
     context: Context,
     private val healthTrackerRepository: HealthTrackerRepository,
     private val configRepository: ConfigRepository,
-    private val skinTempDao: SkinTempDao
+    private val skinTempDaoWrapper: SkinTempDaoWrapper
 ) : HealthTrackerCollector(context) {
     companion object {
         private val TAG = SkinTempCollector::class.simpleName
@@ -60,27 +60,28 @@ class SkinTempCollector(
             Log.d(TAG, "insert ${skinTempData.size} entities")
 
             CoroutineScope(Dispatchers.IO).launch {
-                skinTempDao.insertEvents(skinTempData)
+                skinTempDaoWrapper.insertEvents(skinTempData)
             }
         }
     }
-    override suspend fun stringifyData(): String {
-        val gson = GsonBuilder().setStrictness(Strictness.LENIENT).create()
-        val lastId = skinTempDao.getLastId() ?: 0
 
-        return gson.toJson(skinTempDao.getChunkBetween(0, lastId, lastId))
+    override suspend fun getBeforeLast(startId: Long, limit: Long): Sequence<String> {
+        val gson = GsonBuilder().setStrictness(Strictness.LENIENT).create()
+        return skinTempDaoWrapper.getBeforeLast(startId, limit).map { it ->
+            gson.toJson(it.second)
+        }
     }
 
     override fun deleteBetween(startId: Long, endId: Long) {
         CoroutineScope(Dispatchers.IO).launch {
-            skinTempDao.deleteBetween(startId, endId)
+            skinTempDaoWrapper.deleteBetween(startId, endId)
             Log.d(TAG, "Flush $key Data between $startId and $endId")
         }
     }
 
     override fun flush() {
         CoroutineScope(Dispatchers.IO).launch {
-            skinTempDao.deleteAll()
+            skinTempDaoWrapper.deleteAll()
             Log.d(TAG, "Flush $TAG Data")
         }
     }

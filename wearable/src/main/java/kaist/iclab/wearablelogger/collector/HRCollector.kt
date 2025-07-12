@@ -7,7 +7,7 @@ import com.google.gson.Strictness
 import com.samsung.android.service.health.tracking.data.DataPoint
 import com.samsung.android.service.health.tracking.data.HealthTrackerType
 import com.samsung.android.service.health.tracking.data.ValueKey
-import kaist.iclab.loggerstructure.dao.HRDao
+import kaist.iclab.loggerstructure.daowrapper.HRDaoWrapper
 import kaist.iclab.loggerstructure.entity.HREntity
 import kaist.iclab.loggerstructure.util.CollectorType
 import kaist.iclab.wearablelogger.collector.core.BatteryStateReceiver
@@ -23,7 +23,8 @@ class HRCollector(
     context: Context,
     private val healthTrackerRepository: HealthTrackerRepository,
     private val configRepository: ConfigRepository,
-    private val hrDao: HRDao,
+    private val hrDaoWrapper: HRDaoWrapper
+    ,
 ) : HealthTrackerCollector(context) {
     companion object {
         private val TAG = HRCollector::class.simpleName
@@ -51,7 +52,7 @@ class HRCollector(
             Log.d(TAG, "insert ${hrEntities.size} entities")
 
             CoroutineScope(Dispatchers.IO).launch {
-                hrDao.insertEvents(hrEntities)
+                hrDaoWrapper.insertEvents(hrEntities)
             }
         }
     }
@@ -65,23 +66,23 @@ class HRCollector(
         return configRepository.getSensorStatus("Heart Rate")
     }
 
-    override suspend fun stringifyData(): String {
+    override suspend fun getBeforeLast(startId: Long, limit: Long): Sequence<String> {
         val gson = GsonBuilder().setStrictness(Strictness.LENIENT).create()
-        val lastId = hrDao.getLastId() ?: 0
-
-        return gson.toJson(hrDao.getChunkBetween(0, lastId, lastId))
+        return hrDaoWrapper.getBeforeLast(startId, limit).map { it ->
+            gson.toJson(it.second)
+        }
     }
 
     override fun deleteBetween(startId: Long, endId: Long) {
         CoroutineScope(Dispatchers.IO).launch {
-            hrDao.deleteBetween(startId, endId)
+            hrDaoWrapper.deleteBetween(startId, endId)
             Log.d(TAG, "Flush $key Data between $startId and $endId")
         }
     }
 
     override fun flush() {
         CoroutineScope(Dispatchers.IO).launch {
-            hrDao.deleteAll()
+            hrDaoWrapper.deleteAll()
             Log.d(TAG, "Flush $TAG Data")
         }
     }

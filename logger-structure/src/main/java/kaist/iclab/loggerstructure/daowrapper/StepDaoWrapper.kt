@@ -40,6 +40,10 @@ class StepDaoWrapper(
         stepDao.insertEvent(entity)
     }
 
+    suspend fun upsertEvent(entity: StepEntity) {
+        stepDao.upsertEvent(entity)
+    }
+
     override suspend fun insertEvents(entities: List<StepEntity>) {
         stepDao.insertEvents(entities)
     }

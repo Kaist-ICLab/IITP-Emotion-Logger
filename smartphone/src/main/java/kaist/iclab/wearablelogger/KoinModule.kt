@@ -80,7 +80,7 @@ val koinModule = module {
 
     // Others
     single{
-        StepCollector(androidContext(),get<RoomDB>().stepDao())
+        StepCollector(androidContext(), get())
     }
 
     single {

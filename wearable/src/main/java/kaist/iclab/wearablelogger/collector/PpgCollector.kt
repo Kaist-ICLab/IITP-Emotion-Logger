@@ -8,7 +8,7 @@ import com.samsung.android.service.health.tracking.data.DataPoint
 import com.samsung.android.service.health.tracking.data.HealthTrackerType
 import com.samsung.android.service.health.tracking.data.PpgType
 import com.samsung.android.service.health.tracking.data.ValueKey
-import kaist.iclab.loggerstructure.dao.PpgDao
+import kaist.iclab.loggerstructure.daowrapper.PpgDaoWrapper
 import kaist.iclab.loggerstructure.entity.PpgEntity
 import kaist.iclab.loggerstructure.util.CollectorType
 import kaist.iclab.wearablelogger.collector.core.BatteryStateReceiver
@@ -24,7 +24,7 @@ class PpgCollector(
     context: Context,
     private val healthTrackerRepository: HealthTrackerRepository,
     private val configRepository: ConfigRepository,
-    private val ppgDao: PpgDao,
+    private val ppgDaoWrapper: PpgDaoWrapper,
 ): HealthTrackerCollector(context) {
     companion object {
         private val TAG = PpgCollector::class.simpleName
@@ -50,7 +50,7 @@ class PpgCollector(
             Log.d(TAG, "insert ${ppgEntities.size} entities")
 
             CoroutineScope(Dispatchers.IO).launch {
-                ppgDao.insertEvents(ppgEntities)
+                ppgDaoWrapper.insertEvents(ppgEntities)
             }
         }
     }
@@ -65,23 +65,22 @@ class PpgCollector(
         return configRepository.getSensorStatus("PPG Green")
     }
 
-    override suspend fun stringifyData(): String{
+    override suspend fun getBeforeLast(startId: Long, limit: Long): Sequence<String> {
         val gson = GsonBuilder().setStrictness(Strictness.LENIENT).create()
-        val lastId = ppgDao.getLastId() ?: 0
-
-        return gson.toJson(ppgDao.getChunkBetween(0, lastId, lastId))
+        return ppgDaoWrapper.getBeforeLast(startId, limit).map { it ->
+            gson.toJson(it.second)
+        }
     }
-
     override fun deleteBetween(startId: Long, endId: Long) {
         CoroutineScope(Dispatchers.IO).launch {
-            ppgDao.deleteBetween(startId, endId)
+            ppgDaoWrapper.deleteBetween(startId, endId)
             Log.d(TAG, "Flush $key Data between $startId and $endId")
         }
     }
 
     override fun flush() {
         CoroutineScope(Dispatchers.IO).launch {
-            ppgDao.deleteAll()
+            ppgDaoWrapper.deleteAll()
             Log.d(TAG, "Flush $TAG Data")
         }
     }

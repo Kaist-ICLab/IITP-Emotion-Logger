@@ -11,7 +11,7 @@ import com.samsung.android.sdk.health.data.request.LocalTimeFilter
 import com.samsung.android.sdk.health.data.request.LocalTimeGroup
 import com.samsung.android.sdk.health.data.request.LocalTimeGroupUnit
 import com.samsung.android.sdk.health.data.request.Ordering
-import kaist.iclab.loggerstructure.dao.StepDao
+import kaist.iclab.loggerstructure.daowrapper.StepDaoWrapper
 import kaist.iclab.loggerstructure.entity.StepEntity
 import kaist.iclab.loggerstructure.util.CollectorType
 import kotlinx.coroutines.CoroutineScope
@@ -26,7 +26,7 @@ private const val TAG = "StepCollector"
 
 class StepCollector(
     context: Context,
-    private val stepDao: StepDao,
+    private val stepDaoWrapper: StepDaoWrapper,
 ): HealthDataCollector(context) {
     override val key = CollectorType.STEP.name
     // Start from 64 days before
@@ -59,7 +59,7 @@ class StepCollector(
 
         var maxTime:Long = since
         resList.forEach{ it ->
-            stepDao.upsertEvent(
+            stepDaoWrapper.upsertEvent(
                 StepEntity(
                     dataReceived = System.currentTimeMillis(),
                     startTime = it.startTime.toEpochMilli(),
@@ -94,23 +94,23 @@ class StepCollector(
 //        return configRepository.getSensorStatus("Step")
     }
 
-    override suspend fun stringifyData(): String {
+    override suspend fun getBeforeLast(startId: Long, limit: Long): Sequence<String> {
         val gson = GsonBuilder().setStrictness(Strictness.LENIENT).create()
-        val lastId = stepDao.getLastId() ?: 0
-
-        return gson.toJson(stepDao.getChunkBetween(0, lastId, lastId))
+        return stepDaoWrapper.getBeforeLast(startId, limit).map { it ->
+            gson.toJson(it.second)
+        }
     }
 
     override fun deleteBetween(startId: Long, endId: Long) {
         CoroutineScope(Dispatchers.IO).launch {
-            stepDao.deleteBetween(startId, endId)
+            stepDaoWrapper.deleteBetween(startId, endId)
             Log.d(TAG, "Flush $key Data between $startId and $endId")
         }
     }
 
     override fun flush() {
         CoroutineScope(Dispatchers.IO).launch {
-            stepDao.deleteAll()
+            stepDaoWrapper.deleteAll()
             Log.d(TAG, "Flush Step Data")
         }
     }

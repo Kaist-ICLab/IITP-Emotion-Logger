@@ -1,6 +1,10 @@
 package kaist.iclab.wearablelogger
 
 import androidx.room.Room
+import kaist.iclab.loggerstructure.daowrapper.AccDaoWrapper
+import kaist.iclab.loggerstructure.daowrapper.HRDaoWrapper
+import kaist.iclab.loggerstructure.daowrapper.PpgDaoWrapper
+import kaist.iclab.loggerstructure.daowrapper.SkinTempDaoWrapper
 import kaist.iclab.wearablelogger.collector.AccCollector
 import kaist.iclab.wearablelogger.collector.HRCollector
 import kaist.iclab.wearablelogger.collector.PpgCollector
@@ -36,16 +40,16 @@ val koinModule = module {
     }
 
     single {
-        PpgCollector(androidContext(), get(), get(), get<MyDataRoomDB>().ppgDao())
+        PpgCollector(androidContext(), get(), get(), PpgDaoWrapper(get<MyDataRoomDB>().ppgDao()))
     }
     single {
-        AccCollector(androidContext(), get(), get(), get<MyDataRoomDB>().accDao())
+        AccCollector(androidContext(), get(), get(), AccDaoWrapper(get<MyDataRoomDB>().accDao()))
     }
     single {
-        HRCollector(androidContext(), get(), get(), get<MyDataRoomDB>().hrDao())
+        HRCollector(androidContext(), get(), get(), HRDaoWrapper(get<MyDataRoomDB>().hrDao()))
     }
     single {
-        SkinTempCollector(androidContext(), get(), get(), get<MyDataRoomDB>().skinTempDao())
+        SkinTempCollector(androidContext(), get(), get(), SkinTempDaoWrapper(get<MyDataRoomDB>().skinTempDao()))
     }
 
     single(named("collectors")) {
