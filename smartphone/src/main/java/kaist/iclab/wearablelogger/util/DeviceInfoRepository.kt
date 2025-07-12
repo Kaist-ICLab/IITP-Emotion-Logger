@@ -38,11 +38,7 @@ class DeviceInfoRepository(
     )
 
     private val _watchUploadSchedule = MutableStateFlow<Long>(0L)
-    val watchUploadSchedule = _watchUploadSchedule.asStateFlow().stateIn(
-        scope = CoroutineScope(Dispatchers.IO),
-        started = SharingStarted.WhileSubscribed(5000L),
-        initialValue = 0,
-    )
+    val watchUploadSchedule = _watchUploadSchedule.asStateFlow()
 
     val phoneUploadSchedule = AlarmScheduler.nextAlarmSchedule.map { it[UploadAlarmReceiver::class.simpleName] ?: 0 }
         .stateIn(
@@ -50,6 +46,12 @@ class DeviceInfoRepository(
             started = SharingStarted.WhileSubscribed(5000L),
             initialValue = 0,
         )
+
+    private val _isWearableCharging = MutableStateFlow(false)
+    val isWearableCharging = _isWearableCharging.asStateFlow()
+
+    private val _wearableBatteryLevel = MutableStateFlow(-1)
+    val wearableBatteryLevel = _wearableBatteryLevel.asStateFlow()
 
     fun getWearablesFlow(): StateFlow<String?> = callbackFlow {
         val listener = CapabilityClient.OnCapabilityChangedListener { capabilityInfo ->
@@ -86,5 +88,10 @@ class DeviceInfoRepository(
 
     fun updateWatchUploadSchedule(timestamp: Long) {
         _watchUploadSchedule.value = timestamp
+    }
+
+    fun updateWatchBatteryState(isCharging: Boolean, batteryLevel: Int) {
+        _isWearableCharging.value = isCharging
+        _wearableBatteryLevel.value = batteryLevel
     }
 }

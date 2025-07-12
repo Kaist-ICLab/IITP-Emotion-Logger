@@ -55,7 +55,7 @@ class UploaderRepository(
     }
 
     suspend fun uploadRecentData() {
-        val request = PutDataMapRequest.create("/WEARABLE").apply {
+        val request = PutDataMapRequest.create(DataClientPath.RECENT_DATA).apply {
             dataMap.putLong("timestamp", System.currentTimeMillis())
             dataMap.putString("acc", Gson().toJson(db.accDao().getLast()))
             dataMap.putString("hr", Gson().toJson(db.hrDao().getLast()))
@@ -65,6 +65,16 @@ class UploaderRepository(
         }.asPutDataRequest().setUrgent()
 
         val result = dataClient.putDataItem(request).await()
-        Log.d(TAG, "COLLECTOR SEND $result")
+        Log.d(TAG, "Send recent data: $result")
+    }
+
+    suspend fun uploadBatteryData(isCharging: Boolean, batteryLevel: Int) {
+        val request = PutDataMapRequest.create(DataClientPath.WEARABLE_CHARGE_STATUS).apply {
+            dataMap.putBoolean("is_charging", isCharging)
+            dataMap.putInt("battery_level", batteryLevel)
+        }.asPutDataRequest().setUrgent()
+
+        val result = dataClient.putDataItem(request).await()
+        Log.d(TAG, "Send battery data: $result")
     }
 }

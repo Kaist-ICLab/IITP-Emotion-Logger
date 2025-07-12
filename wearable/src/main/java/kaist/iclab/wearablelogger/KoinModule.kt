@@ -77,6 +77,7 @@ val koinModule = module {
         CollectorRepository(
             get(qualifier = qualifier("collectors")),
             get(),
+            get(),
             androidContext()
         )
     }

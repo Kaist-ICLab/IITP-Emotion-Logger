@@ -45,7 +45,7 @@ class DataUploaderRepository(
         PPG("ppg"),
         SKINTEMP("skintemp"),
         STEP("step"),
-        WATCH_CONNECTION("watch_connection"),
+        DEVICE_STATUS("device_status"),
         EXCEPTION("exception"),
     }
 
@@ -59,14 +59,18 @@ class DataUploaderRepository(
     private val wearables = deviceInfoRepository.getWearablesFlow()
     private val phoneUploadSchedule = deviceInfoRepository.phoneUploadSchedule
     private val watchUploadSchedule = deviceInfoRepository.watchUploadSchedule
+    private val isWearableCharging = deviceInfoRepository.isWearableCharging
+    private val wearableBatteryLevel = deviceInfoRepository.wearableBatteryLevel
 
     init {
         CoroutineScope(Dispatchers.IO).launch {
             combine(
                 wearables,
                 phoneUploadSchedule,
-                watchUploadSchedule
-            ) { _, _, _ -> }
+                watchUploadSchedule,
+                isWearableCharging,
+                wearableBatteryLevel
+            ) { _, _, _ , _, _-> }
                 .collect {
                     uploadDeviceStatus()
                 }
@@ -173,8 +177,10 @@ class DataUploaderRepository(
         data.addProperty("is_connected", wearables.value !== null)
         data.addProperty("watch_upload_schedule", watchUploadSchedule.value)
         data.addProperty("phone_upload_schedule", phoneUploadSchedule.value)
+        data.addProperty("wearable_is_charging", isWearableCharging.value)
+        data.addProperty("wearable_battery_level", wearableBatteryLevel.value)
         data.formatForUpload()
-        uploadJSON(getGson().toJson(data), LogType.WATCH_CONNECTION)
+        uploadJSON(getGson().toJson(data), LogType.DEVICE_STATUS)
     }
 
     fun uploadException(exception: Exception) {

@@ -51,8 +51,11 @@ class DataReceiverService: WearableListenerService() {
 
             val data = DataMapItem.fromDataItem(dataEvent.dataItem).dataMap
             val basePath = "/${dataType[1]}"
+
             if(basePath == DataClientPath.RECENT_DATA){
                 unpackRecentData(data)
+            } else if(basePath == DataClientPath.WEARABLE_CHARGE_STATUS) {
+                unpackBatteryData(data)
             } else if(basePath == DataClientPath.UPLOAD_DATA) {
                 CoroutineScope(Dispatchers.IO).launch {
                     unpackDataAsset(data, dataType[2])
@@ -102,5 +105,13 @@ class DataReceiverService: WearableListenerService() {
                     }
                 }
             }
+    }
+
+    private fun unpackBatteryData(data: DataMap) {
+        val isCharging = data.getBoolean("is_charging")
+        val batteryLevel = data.getInt("battery_level")
+
+        deviceInfoRepository.updateWatchBatteryState(isCharging, batteryLevel)
+        Log.d(TAG, "received wearable charge status: isCharging = $isCharging, batteryLevel = $batteryLevel")
     }
 }
