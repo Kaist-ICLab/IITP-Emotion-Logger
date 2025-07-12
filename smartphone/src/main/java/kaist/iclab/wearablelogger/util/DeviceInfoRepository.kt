@@ -11,9 +11,12 @@ import kaist.iclab.wearablelogger.data.UploadAlarmReceiver
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.channels.awaitClose
-import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.tasks.await
@@ -34,6 +37,13 @@ class DeviceInfoRepository(
         Settings.Secure.ANDROID_ID
     )
 
+    private val _watchUploadSchedule = MutableStateFlow<Long>(0L)
+    val watchUploadSchedule = _watchUploadSchedule.asStateFlow().stateIn(
+        scope = CoroutineScope(Dispatchers.IO),
+        started = SharingStarted.WhileSubscribed(5000L),
+        initialValue = 0,
+    )
+
     val phoneUploadSchedule = AlarmScheduler.nextAlarmSchedule.map { it[UploadAlarmReceiver::class.simpleName] ?: 0 }
         .stateIn(
             scope = CoroutineScope(Dispatchers.IO),
@@ -41,7 +51,7 @@ class DeviceInfoRepository(
             initialValue = 0,
         )
 
-    fun getWearablesFlow(): Flow<String?> = callbackFlow {
+    fun getWearablesFlow(): StateFlow<String?> = callbackFlow {
         val listener = CapabilityClient.OnCapabilityChangedListener { capabilityInfo ->
             val nodes = capabilityInfo.nodes.firstOrNull { it -> it.isNearby }
             trySend(nodes?.displayName)
@@ -68,5 +78,13 @@ class DeviceInfoRepository(
         awaitClose {
             capabilityClient.removeListener(listener)
         }
+    }.distinctUntilChanged().stateIn(
+        scope = CoroutineScope(Dispatchers.IO),
+        started = SharingStarted.Companion.WhileSubscribed(5_000L),
+        initialValue = null
+    )
+
+    fun updateWatchUploadSchedule(timestamp: Long) {
+        _watchUploadSchedule.value = timestamp
     }
 }

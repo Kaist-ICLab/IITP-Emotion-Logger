@@ -15,6 +15,7 @@ import kaist.iclab.wearablelogger.util.DeviceInfoRepository
 import kaist.iclab.wearablelogger.util.StateRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -33,7 +34,7 @@ class DataUploaderRepository(
     private val envDao: EnvDao,
     private val dataDao: Map<String, DaoWrapper<EntityBase>>,
     private val stateRepository: StateRepository,
-    private val deviceInfoRepository: DeviceInfoRepository
+    deviceInfoRepository: DeviceInfoRepository
 ) {
     private enum class LogType(val url: String) {
         ERROR(""),
@@ -55,12 +56,20 @@ class DataUploaderRepository(
     }
 
     private val deviceId = deviceInfoRepository.deviceId
+    private val wearables = deviceInfoRepository.getWearablesFlow()
+    private val phoneUploadSchedule = deviceInfoRepository.phoneUploadSchedule
+    private val watchUploadSchedule = deviceInfoRepository.watchUploadSchedule
 
     init {
         CoroutineScope(Dispatchers.IO).launch {
-            deviceInfoRepository.getWearablesFlow().collect { value ->
-                uploadWatchConnectionStatus(value !== null)
-            }
+            combine(
+                wearables,
+                phoneUploadSchedule,
+                watchUploadSchedule
+            ) { _, _, _ -> }
+                .collect {
+                    uploadDeviceStatus()
+                }
         }
     }
 
@@ -106,7 +115,6 @@ class DataUploaderRepository(
         val envEntity = envDao.getLast()
         recentEntity.add("step", gson.toJsonTree(stepEntity))
         recentEntity.add("env", gson.toJsonTree(envEntity))
-        recentEntity.addProperty("phone_upload_schedule", deviceInfoRepository.phoneUploadSchedule.value)
         recentEntity.formatForUpload()
 
         uploadJSON(recentEntity.toString(), LogType.RECENT)
@@ -159,12 +167,14 @@ class DataUploaderRepository(
         uploadJSON(data.toString(), nameToLogType(collectorType.name))
     }
 
-    fun uploadWatchConnectionStatus(isConnected: Boolean) {
+    fun uploadDeviceStatus() {
         val data = JsonObject()
-        data.addProperty("is_connected", isConnected)
         data.addProperty("device_id", deviceId)
+        data.addProperty("is_connected", wearables.value !== null)
+        data.addProperty("watch_upload_schedule", watchUploadSchedule.value)
+        data.addProperty("phone_upload_schedule", phoneUploadSchedule.value)
+        data.formatForUpload()
         uploadJSON(getGson().toJson(data), LogType.WATCH_CONNECTION)
-
     }
 
     fun uploadException(exception: Exception) {
