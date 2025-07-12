@@ -10,8 +10,8 @@ import com.samsung.android.service.health.tracking.data.ValueKey
 import kaist.iclab.loggerstructure.daowrapper.HRDaoWrapper
 import kaist.iclab.loggerstructure.entity.HREntity
 import kaist.iclab.loggerstructure.util.CollectorType
-import kaist.iclab.wearablelogger.config.BatteryStateReceiver
 import kaist.iclab.wearablelogger.collector.core.HealthTrackerCollector
+import kaist.iclab.wearablelogger.config.BatteryStateRepository
 import kaist.iclab.wearablelogger.config.ConfigRepository
 import kaist.iclab.wearablelogger.healthtracker.AbstractTrackerEventListener
 import kaist.iclab.wearablelogger.healthtracker.HealthTrackerRepository
@@ -22,6 +22,7 @@ import kotlinx.coroutines.launch
 class HRCollector(
     context: Context,
     private val healthTrackerRepository: HealthTrackerRepository,
+    private val batteryStateRepository: BatteryStateRepository,
     private val configRepository: ConfigRepository,
     private val hrDaoWrapper: HRDaoWrapper
     ,
@@ -46,7 +47,7 @@ class HRCollector(
                     ibiStatus = it.getValue(ValueKey.HeartRateSet.IBI_STATUS_LIST),
                 )
             }.filter {
-                (!BatteryStateReceiver.isCharging || it.timestamp <= BatteryStateReceiver.chargeStartTimestamp)
+                (!batteryStateRepository.isCharging.value || it.timestamp <= batteryStateRepository.chargeStartTimestamp.value)
             }
 
             Log.d(TAG, "insert ${hrEntities.size} entities")

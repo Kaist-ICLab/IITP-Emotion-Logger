@@ -11,8 +11,8 @@ import com.samsung.android.service.health.tracking.data.ValueKey
 import kaist.iclab.loggerstructure.daowrapper.AccDaoWrapper
 import kaist.iclab.loggerstructure.entity.AccEntity
 import kaist.iclab.loggerstructure.util.CollectorType
-import kaist.iclab.wearablelogger.config.BatteryStateReceiver
 import kaist.iclab.wearablelogger.collector.core.HealthTrackerCollector
+import kaist.iclab.wearablelogger.config.BatteryStateRepository
 import kaist.iclab.wearablelogger.config.ConfigRepository
 import kaist.iclab.wearablelogger.healthtracker.AbstractTrackerEventListener
 import kaist.iclab.wearablelogger.healthtracker.HealthTrackerRepository
@@ -23,6 +23,7 @@ import kotlinx.coroutines.launch
 class AccCollector(
     context: Context,
     private val healthTrackerRepository: HealthTrackerRepository,
+    private val batteryStateRepository: BatteryStateRepository,
     private val configRepository: ConfigRepository,
     private val accDaoWrapper: AccDaoWrapper,
 ) : HealthTrackerCollector(context){
@@ -46,7 +47,7 @@ class AccCollector(
                     z = convert2SIUnit(it.getValue(ValueKey.AccelerometerSet.ACCELEROMETER_Z))
                 )
             }.filter {
-                (!BatteryStateReceiver.isCharging || it.timestamp <= BatteryStateReceiver.chargeStartTimestamp)
+                (!batteryStateRepository.isCharging.value || it.timestamp <= batteryStateRepository.chargeStartTimestamp.value)
             }
 
             Log.d(TAG, "insert ${accEntities.size} entities")

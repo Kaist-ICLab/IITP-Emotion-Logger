@@ -10,6 +10,7 @@ import kaist.iclab.wearablelogger.collector.HRCollector
 import kaist.iclab.wearablelogger.collector.PpgCollector
 import kaist.iclab.wearablelogger.collector.SkinTempCollector
 import kaist.iclab.wearablelogger.collector.core.CollectorRepository
+import kaist.iclab.wearablelogger.config.BatteryStateRepository
 import kaist.iclab.wearablelogger.config.ConfigRepository
 import kaist.iclab.wearablelogger.healthtracker.HealthTrackerRepository
 import kaist.iclab.wearablelogger.ui.SettingsViewModel
@@ -31,6 +32,10 @@ val koinModule = module {
             .build()
     }
 
+    single {
+        BatteryStateRepository()
+    }
+
     single{
         ConfigRepository(androidContext())
     }
@@ -40,16 +45,16 @@ val koinModule = module {
     }
 
     single {
-        PpgCollector(androidContext(), get(), get(), PpgDaoWrapper(get<MyDataRoomDB>().ppgDao()))
+        PpgCollector(androidContext(), get(), get(), get(), PpgDaoWrapper(get<MyDataRoomDB>().ppgDao()))
     }
     single {
-        AccCollector(androidContext(), get(), get(), AccDaoWrapper(get<MyDataRoomDB>().accDao()))
+        AccCollector(androidContext(), get(), get(), get(), AccDaoWrapper(get<MyDataRoomDB>().accDao()))
     }
     single {
-        HRCollector(androidContext(), get(), get(), HRDaoWrapper(get<MyDataRoomDB>().hrDao()))
+        HRCollector(androidContext(), get(), get(), get(), HRDaoWrapper(get<MyDataRoomDB>().hrDao()))
     }
     single {
-        SkinTempCollector(androidContext(), get(), get(), SkinTempDaoWrapper(get<MyDataRoomDB>().skinTempDao()))
+        SkinTempCollector(androidContext(), get(), get(), get(), SkinTempDaoWrapper(get<MyDataRoomDB>().skinTempDao()))
     }
 
     single(named("collectors")) {

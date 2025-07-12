@@ -10,8 +10,8 @@ import com.samsung.android.service.health.tracking.data.ValueKey
 import kaist.iclab.loggerstructure.daowrapper.SkinTempDaoWrapper
 import kaist.iclab.loggerstructure.entity.SkinTempEntity
 import kaist.iclab.loggerstructure.util.CollectorType
-import kaist.iclab.wearablelogger.config.BatteryStateReceiver
 import kaist.iclab.wearablelogger.collector.core.HealthTrackerCollector
+import kaist.iclab.wearablelogger.config.BatteryStateRepository
 import kaist.iclab.wearablelogger.config.ConfigRepository
 import kaist.iclab.wearablelogger.healthtracker.AbstractTrackerEventListener
 import kaist.iclab.wearablelogger.healthtracker.HealthTrackerRepository
@@ -22,6 +22,7 @@ import kotlinx.coroutines.launch
 class SkinTempCollector(
     context: Context,
     private val healthTrackerRepository: HealthTrackerRepository,
+    private val batteryStateRepository: BatteryStateRepository,
     private val configRepository: ConfigRepository,
     private val skinTempDaoWrapper: SkinTempDaoWrapper
 ) : HealthTrackerCollector(context) {
@@ -54,7 +55,7 @@ class SkinTempCollector(
                     status = it.getValue(ValueKey.SkinTemperatureSet.STATUS)
                 )
             }.filter {
-                (!BatteryStateReceiver.isCharging || it.timestamp <= BatteryStateReceiver.chargeStartTimestamp)
+                (!batteryStateRepository.isCharging.value || it.timestamp <= batteryStateRepository.chargeStartTimestamp.value)
             }
 
             Log.d(TAG, "insert ${skinTempData.size} entities")
