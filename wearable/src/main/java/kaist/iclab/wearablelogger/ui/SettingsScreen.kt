@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Upload
 import androidx.compose.material.icons.rounded.PlayArrow
@@ -113,8 +112,8 @@ fun SettingController(
             onClick = upload,
             contentDescription = "Upload data",
             backgroundColor = MaterialTheme.colors.secondary,
-            buttonSize = 32.dp,
-            iconSize = 20.dp
+            buttonSize = 48.dp,
+            iconSize = 36.dp
         )
         IconButton(
             icon = if (isCollecting) Icons.Rounded.Stop else Icons.Rounded.PlayArrow,
@@ -124,14 +123,14 @@ fun SettingController(
             buttonSize = 48.dp,
             iconSize = 36.dp,
         )
-        IconButton(
-            icon = Icons.Default.Delete,
-            onClick = flush,
-            contentDescription = "Reset icon",
-            backgroundColor = MaterialTheme.colors.secondary,
-            buttonSize = 32.dp,
-            iconSize = 20.dp
-        )
+//        IconButton(
+//            icon = Icons.Default.Delete,
+//            onClick = flush,
+//            contentDescription = "Reset icon",
+//            backgroundColor = MaterialTheme.colors.secondary,
+//            buttonSize = 32.dp,
+//            iconSize = 20.dp
+//        )
     }
 }
 
