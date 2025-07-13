@@ -150,7 +150,6 @@ class DataUploaderRepository(
                                 dao.deleteBetween(idRange.startId, idRange.endId)
                             }
 
-                        Thread.sleep(7000)
                         stateRepository.updateUploadTime(name, System.currentTimeMillis())
                         chunkIndex++
                     }
@@ -159,6 +158,7 @@ class DataUploaderRepository(
                     e.printStackTrace()
                     uploadException(e)
                 }
+                Thread.sleep(7000)
             }
         }
     }
@@ -186,7 +186,8 @@ class DataUploaderRepository(
     fun uploadException(exception: Exception) {
         val data = JsonObject()
         data.addProperty("exception", exception.stackTraceToString())
-        data.addProperty("device_id", deviceId)
+        data.addProperty("timestamp", System.currentTimeMillis())
+        data.formatForUpload()
         uploadJSON(getGson().toJson(data), LogType.EXCEPTION)
     }
 
