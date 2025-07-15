@@ -41,7 +41,9 @@ class PpgCollector(
                 PpgEntity(
                     dataReceived = dataReceived,
                     timestamp = it.timestamp,
-                    ppg = it.getValue(ValueKey.PpgSet.PPG_GREEN), //ADC value: might require DAC
+                    ppgGreen = it.getValue(ValueKey.PpgSet.PPG_GREEN), //ADC value: might require DAC
+                    ppgRed = it.getValue(ValueKey.PpgSet.PPG_RED), //ADC value: might require DAC
+                    ppgIR = it.getValue(ValueKey.PpgSet.PPG_IR), //ADC value: might require DAC
                     status = it.getValue(ValueKey.PpgSet.GREEN_STATUS)
                 )
             }.filter {
@@ -58,12 +60,12 @@ class PpgCollector(
 
     override fun initHealthTracker() {
         tracker = healthTrackerRepository.healthTrackingService
-            .getHealthTracker(HealthTrackerType.PPG_CONTINUOUS, setOf(PpgType.GREEN))
+            .getHealthTracker(HealthTrackerType.PPG_CONTINUOUS, setOf(PpgType.GREEN, PpgType.IR, PpgType.RED))
         Log.v(TAG, tracker.toString())
     }
 
     override suspend fun getStatus(): Boolean {
-        return configRepository.getSensorStatus("PPG Green")
+        return configRepository.getSensorStatus("PPG")
     }
 
     override suspend fun getBeforeLast(startId: Long, limit: Long): Sequence<String> {
