@@ -194,7 +194,7 @@ class DataUploaderRepository(
         return GsonBuilder().setStrictness(Strictness.LENIENT).create()
     }
 
-    private fun uploadJSON(jsonString: String, logType: LogType, retryAtTimeout: Boolean = false): Boolean{
+    private fun uploadJSON(jsonString: String, logType: LogType, retryAtTimeout: Boolean = false): Boolean {
         if(logType == LogType.ERROR) {
             Log.e(TAG, "Invalid LogType")
             return false
@@ -212,7 +212,7 @@ class DataUploaderRepository(
         var shouldTryUpload = true
         var retryCount = 0
         var timeoutMillis = 4000L
-        val maxRetryCount = 5
+        val maxRetryCount = 3
         val maxTimeoutMillis = 32000L
 
         while(true) {
@@ -247,11 +247,6 @@ class DataUploaderRepository(
                         timeoutMillis = (timeoutMillis * 2).coerceAtMost(maxTimeoutMillis)
                         Log.e(TAG, "${logType.url}: Timeout - ${e.message}")
                     }
-                }
-
-
-                if(logType !== LogType.EXCEPTION) {
-                    uploadException(e)
                 }
             }
 
