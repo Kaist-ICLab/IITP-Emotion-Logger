@@ -19,8 +19,8 @@ class ConfigRepository(private val androidContext: Context) {
                 SensorState("Skin Temperature",
                     preferences[booleanPreferencesKey("Skin Temperature")] == true
                 ),
-                SensorState("PPG Green",
-                    preferences[booleanPreferencesKey("PPG Green")] == true
+                SensorState("PPG",
+                    preferences[booleanPreferencesKey("PPG")] == true
                 ),
                 SensorState("Heart Rate",
                     preferences[booleanPreferencesKey("Heart Rate")] == true
