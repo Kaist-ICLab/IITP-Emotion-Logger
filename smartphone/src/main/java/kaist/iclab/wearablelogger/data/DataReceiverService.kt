@@ -39,7 +39,6 @@ class DataReceiverService: WearableListenerService() {
 
     private val collectorDao by inject<Map<String, DaoWrapper<EntityBase>>>(qualifier = named("collectorDao"))
     private val stateRepository: StateRepository by inject()
-    private val dataUploaderRepository: DataUploaderRepository by inject()
     private val ackRepository: AckRepository by inject()
     private val deviceInfoRepository: DeviceInfoRepository by inject()
 
@@ -83,8 +82,7 @@ class DataReceiverService: WearableListenerService() {
             recentAccEntity.emit(data.getString("acc")?.let { gson.fromJson(it, AccEntity::class.java) })
             recentPpgEntity.emit(data.getString("ppg")?.let { gson.fromJson(it, PpgEntity::class.java) })
             recentSkinTempEntity.emit(data.getString("skin")?.let { gson.fromJson(it, SkinTempEntity::class.java) })
-
-            dataUploaderRepository.uploadRecentData(entity)
+//            dataUploaderRepository.uploadRecentData(entity)
         }
     }
 

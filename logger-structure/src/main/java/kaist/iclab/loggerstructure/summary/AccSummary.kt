@@ -1,0 +1,15 @@
+package kaist.iclab.loggerstructure.summary
+
+import com.google.gson.annotations.SerializedName
+import java.io.Serializable
+
+data class AccSummary(
+    @SerializedName("bucket_start")
+    val bucketStart: Long,
+
+    @SerializedName("count")
+    val count: Int,
+
+    @SerializedName("avg_speed_square")
+    val avgSpeedSquare: Double
+) : Serializable

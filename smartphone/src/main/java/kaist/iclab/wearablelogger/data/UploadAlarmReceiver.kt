@@ -9,6 +9,6 @@ class UploadAlarmReceiver: AlarmReceiver() {
     )
 
     override fun executeOnAlarm() {
-        dataUploaderRepository.uploadFullData()
+        dataUploaderRepository.uploadSummaryData()
     }
 }

@@ -39,4 +39,7 @@ interface StepDao {
 
     @Query("DELETE FROM stepEvent WHERE 1")
     suspend fun deleteAll()
+
+    @Query("SELECT * FROM stepEvent WHERE startTime >= :timestamp")
+    fun getSummary(timestamp: Long): List<StepEntity>
 }

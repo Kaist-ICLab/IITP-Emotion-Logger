@@ -6,6 +6,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Upsert
 import kaist.iclab.loggerstructure.entity.AccEntity
+import kaist.iclab.loggerstructure.summary.AccSummary
 
 @Dao
 interface AccDao {
@@ -35,4 +36,16 @@ interface AccDao {
 
     @Query("DELETE FROM accEvent")
     suspend fun deleteAll()
+
+    @Query("""
+        SELECT 
+            (timestamp / 600000) * 600000 AS bucketStart,
+            COUNT(*) AS count,
+            AVG(x * x + y * y + z * z) AS avgSpeedSquare
+        FROM accEvent
+        WHERE bucketStart >= :timestamp
+        GROUP BY bucketStart
+        ORDER BY bucketStart
+    """)
+    fun getSummary(timestamp: Long): List<AccSummary>
 }

@@ -6,6 +6,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Upsert
 import kaist.iclab.loggerstructure.entity.HREntity
+import kaist.iclab.loggerstructure.summary.HRSummary
 
 @Dao
 interface HRDao {
@@ -35,4 +36,17 @@ interface HRDao {
 
     @Query("DELETE FROM hrEvent")
     suspend fun deleteAll()
+
+    @Query("""
+        SELECT 
+            (timestamp / 600000) * 600000 AS bucketStart,
+            COUNT(*) AS count,
+            AVG(hr) AS avgHR,
+            SUM(CASE WHEN hrStatus != 1 THEN 1 ELSE 0 END) AS hrBadStatusCount
+        FROM hrEvent
+        WHERE bucketStart >= :timestamp
+        GROUP BY bucketStart
+        ORDER BY bucketStart
+    """)
+    fun getSummary(timestamp: Long): List<HRSummary>
 }

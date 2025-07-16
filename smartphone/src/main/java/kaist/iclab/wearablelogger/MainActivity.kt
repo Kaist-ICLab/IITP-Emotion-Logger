@@ -15,6 +15,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
 import kaist.iclab.loggerstructure.core.AlarmScheduler
+import kaist.iclab.wearablelogger.data.DataUploaderRepository
 import kaist.iclab.wearablelogger.env.EnvCollectorService
 import kaist.iclab.wearablelogger.step.SamsungHealthPermissionManager
 import kaist.iclab.wearablelogger.step.StepCollectorService
@@ -36,6 +37,7 @@ class MainActivity : ComponentActivity() {
     }
 
     private val stateRepository: StateRepository by inject()
+    private val dataUploaderRepository: DataUploaderRepository by inject()
     private lateinit var permissionLauncher: ActivityResultLauncher<Array<String>>
 
     private val mainViewModel: MainViewModel by viewModel()
@@ -86,7 +88,10 @@ class MainActivity : ComponentActivity() {
         }
 
         // Setup periodic upload worker
-        AlarmScheduler.scheduleExactAlarm(this, UploadAlarmReceiver::class.java, TimeUnit.MINUTES.toMillis(15))
+        AlarmScheduler.scheduleExactAlarm(this, UploadAlarmReceiver::class.java, TimeUnit.MINUTES.toMillis(10))
+        CoroutineScope(Dispatchers.IO).launch {
+            dataUploaderRepository.uploadSummaryData()
+        }
     }
 
     override fun onDestroy() {

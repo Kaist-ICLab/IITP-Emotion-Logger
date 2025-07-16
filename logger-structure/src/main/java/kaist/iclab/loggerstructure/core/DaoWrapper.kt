@@ -1,7 +1,11 @@
 package kaist.iclab.loggerstructure.core
 
+import com.google.gson.JsonArray
+
 interface DaoWrapper<T: EntityBase> {
     suspend fun getBeforeLast(startId: Long, limit: Long): Sequence<Pair<IdRange, List<T>>>
+
+    suspend fun getSummary(): JsonArray
 
     suspend fun getAll(): List<T>
 

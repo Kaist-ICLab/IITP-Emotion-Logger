@@ -6,6 +6,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Upsert
 import kaist.iclab.loggerstructure.entity.SkinTempEntity
+import kaist.iclab.loggerstructure.summary.SkinTempSummary
 
 @Dao
 interface SkinTempDao {
@@ -35,4 +36,18 @@ interface SkinTempDao {
 
     @Query("DELETE FROM skinTempEvent WHERE 1")
     suspend fun deleteAll()
+
+    @Query("""
+        SELECT 
+            (timestamp / 600000) * 600000 AS bucketStart,
+            COUNT(*) AS count,
+            AVG(objectTemp) AS avgObjectTemp,
+            AVG(ambientTemp) AS avgAmbientTemp,
+            SUM(CASE WHEN status != 0 THEN 1 ELSE 0 END) AS skinTempBadStatusCount
+        FROM skinTempEvent
+        WHERE bucketStart >= :timestamp
+        GROUP BY bucketStart
+        ORDER BY bucketStart
+    """)
+    fun getSummary(timestamp: Long): List<SkinTempSummary>
 }

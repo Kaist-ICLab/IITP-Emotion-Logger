@@ -2,11 +2,13 @@ package kaist.iclab.loggerstructure.daowrapper
 
 import android.util.Log
 import com.google.gson.Gson
+import com.google.gson.JsonArray
 import kaist.iclab.loggerstructure.core.DaoWrapper
 import kaist.iclab.loggerstructure.core.IdRange
 import kaist.iclab.loggerstructure.dao.PpgDao
 import kaist.iclab.loggerstructure.entity.PpgEntity
 import kotlinx.coroutines.runBlocking
+import java.util.concurrent.TimeUnit
 
 class PpgDaoWrapper(
     private val ppgDao: PpgDao
@@ -69,5 +71,9 @@ class PpgDaoWrapper(
             startId = list.minOf { it.id },
             endId = list.maxOf { it.id }
         )
+    }
+
+    override suspend fun getSummary(): JsonArray {
+        return Gson().toJsonTree(ppgDao.getSummary(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(1))).asJsonArray
     }
 }
