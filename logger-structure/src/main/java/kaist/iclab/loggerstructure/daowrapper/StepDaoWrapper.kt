@@ -2,11 +2,13 @@ package kaist.iclab.loggerstructure.daowrapper
 
 import android.util.Log
 import com.google.gson.Gson
+import com.google.gson.JsonArray
 import kaist.iclab.loggerstructure.core.DaoWrapper
 import kaist.iclab.loggerstructure.core.IdRange
 import kaist.iclab.loggerstructure.dao.StepDao
 import kaist.iclab.loggerstructure.entity.StepEntity
 import kotlinx.coroutines.runBlocking
+import java.util.concurrent.TimeUnit
 
 class StepDaoWrapper(
     private val stepDao: StepDao
@@ -73,5 +75,9 @@ class StepDaoWrapper(
             startId = list.minOf { it.id },
             endId = list.maxOf { it.id }
         )
+    }
+
+    override suspend fun getSummary(): JsonArray {
+        return Gson().toJsonTree(stepDao.getSummary(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(1))).asJsonArray
     }
 }

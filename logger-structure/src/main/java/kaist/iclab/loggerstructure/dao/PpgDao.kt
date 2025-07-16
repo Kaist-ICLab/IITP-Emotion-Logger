@@ -6,6 +6,7 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Upsert
 import kaist.iclab.loggerstructure.entity.PpgEntity
+import kaist.iclab.loggerstructure.summary.PpgSummary
 
 @Dao
 interface PpgDao {
@@ -35,4 +36,19 @@ interface PpgDao {
 
     @Query("DELETE FROM ppgEvent")
     suspend fun deleteAll()
+
+    @Query("""
+        SELECT 
+            (timestamp / 600000) * 600000 AS bucketStart,
+            COUNT(*) AS count,
+            AVG(ppgGreen) AS avgPpgGreen,
+            AVG(ppgIR) AS avgPpgIR,
+            AVG(ppgRed) AS avgPpgRed,
+            SUM(CASE WHEN status != 0 THEN 1 ELSE 0 END) AS ppgBadStatusCount
+        FROM ppgEvent
+        WHERE bucketStart >= :timestamp
+        GROUP BY bucketStart
+        ORDER BY bucketStart
+    """)
+    fun getSummary(timestamp: Long): List<PpgSummary>
 }

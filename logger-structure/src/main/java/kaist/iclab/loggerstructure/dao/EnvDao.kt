@@ -5,6 +5,7 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import kaist.iclab.loggerstructure.entity.EnvEntity
+import kaist.iclab.loggerstructure.summary.EnvSummary
 import kotlinx.coroutines.flow.Flow
 
 @Dao
@@ -35,4 +36,20 @@ interface EnvDao {
 
     @Query("DELETE FROM envEvent")
     suspend fun deleteAll()
+
+    @Query("""
+        SELECT 
+            (timestamp / 600000) * 600000 AS bucketStart,
+            COUNT(*) AS count,
+            AVG(temperature) AS avgTemperature,
+            AVG(humidity) AS avgHumidity,
+            AVG(co2) AS avgCo2,
+            AVG(tvoc) AS avgTvoc,
+            AVG(tvoc * tvoc) - AVG(tvoc) * AVG(tvoc) AS varTvoc
+        FROM envEvent
+        WHERE bucketStart >= :timestamp
+        GROUP BY bucketStart
+        ORDER BY bucketStart
+    """)
+    fun getSummary(timestamp: Long): List<EnvSummary>
 }

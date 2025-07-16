@@ -11,11 +11,6 @@ import androidx.core.app.NotificationCompat
 import kaist.iclab.loggerstructure.core.AlarmScheduler
 import kaist.iclab.wearablelogger.uploader.RecentAlarmReceiver
 import kaist.iclab.wearablelogger.uploader.UploadAlarmReceiver
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import org.koin.android.ext.android.inject
 import java.util.concurrent.TimeUnit
@@ -27,8 +22,6 @@ class CollectorService : Service() {
     private val channelId = TAG
     private val channelName = "ABCLogger"
     private val channelText = "ABCLogger is collecting your data"
-    private var job: Job? = null
-
     override fun onBind(intent: Intent?): IBinder? = null
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         createNotificationChannel()
@@ -41,19 +34,8 @@ class CollectorService : Service() {
             }
         }
 
-        // Cancel existing job
-        if(job != null) job?.cancel()
-
-        // Periodically send last data collected
-        job = CoroutineScope(Dispatchers.IO).launch {
-            while (true) {
-                delay(TimeUnit.SECONDS.toMillis(5))
-
-            }
-        }
-
         // Setup periodic upload worker
-        AlarmScheduler.scheduleExactAlarm(this, UploadAlarmReceiver::class.java, TimeUnit.MINUTES.toMillis(15))
+        AlarmScheduler.scheduleExactAlarm(this, UploadAlarmReceiver::class.java, TimeUnit.MINUTES.toMillis(10))
         AlarmScheduler.scheduleExactAlarm(this, RecentAlarmReceiver::class.java, TimeUnit.SECONDS.toMillis(10))
 
         val notification: Notification =
@@ -80,8 +62,6 @@ class CollectorService : Service() {
 
     override fun onDestroy() {
         super.onDestroy()
-        job?.cancel()
-        job = null
 
         AlarmScheduler.cancelAlarm(this, UploadAlarmReceiver::class.java)
         AlarmScheduler.cancelAlarm(this, RecentAlarmReceiver::class.java)

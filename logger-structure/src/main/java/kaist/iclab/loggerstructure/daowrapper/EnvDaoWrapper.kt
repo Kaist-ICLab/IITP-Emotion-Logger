@@ -2,11 +2,13 @@ package kaist.iclab.loggerstructure.daowrapper
 
 import android.util.Log
 import com.google.gson.Gson
+import com.google.gson.JsonArray
 import kaist.iclab.loggerstructure.core.DaoWrapper
 import kaist.iclab.loggerstructure.core.IdRange
 import kaist.iclab.loggerstructure.dao.EnvDao
 import kaist.iclab.loggerstructure.entity.EnvEntity
 import kotlinx.coroutines.runBlocking
+import java.util.concurrent.TimeUnit
 
 class EnvDaoWrapper(
     private val envDao: EnvDao
@@ -69,5 +71,9 @@ class EnvDaoWrapper(
             startId = list.minOf { it.id },
             endId = list.maxOf { it.id }
         )
+    }
+
+    override suspend fun getSummary(): JsonArray {
+        return Gson().toJsonTree(envDao.getSummary(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(1))).asJsonArray
     }
 }

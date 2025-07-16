@@ -4,12 +4,9 @@ import android.util.Log
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
-import com.google.gson.JsonParser
 import com.google.gson.Strictness
 import kaist.iclab.loggerstructure.core.DaoWrapper
 import kaist.iclab.loggerstructure.core.EntityBase
-import kaist.iclab.loggerstructure.dao.EnvDao
-import kaist.iclab.loggerstructure.dao.StepDao
 import kaist.iclab.loggerstructure.util.CollectorType
 import kaist.iclab.wearablelogger.util.DeviceInfoRepository
 import kaist.iclab.wearablelogger.util.StateRepository
@@ -30,15 +27,13 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
 class DataUploaderRepository(
-    private val stepDao: StepDao,
-    private val envDao: EnvDao,
     private val dataDao: Map<String, DaoWrapper<EntityBase>>,
     private val stateRepository: StateRepository,
     deviceInfoRepository: DeviceInfoRepository
 ) {
     private enum class LogType(val url: String) {
         ERROR(""),
-        RECENT("recent"),
+//        RECENT("recent"),
         ACC("acc"),
         ENV("env"),
         HR("hr"),
@@ -51,7 +46,7 @@ class DataUploaderRepository(
 
     companion object {
         private val TAG = DataUploaderRepository::class.simpleName
-        private val TIME_PROPERTY = listOf("timestamp", "dataReceived", "startTime", "endTime", "watch_upload_schedule", "phone_upload_schedule")
+        private val TIME_PROPERTY = listOf("timestamp", "dataReceived", "startTime", "endTime", "watch_upload_schedule", "phone_upload_schedule", "bucket_start")
         private const val CHUNK_SIZE = 2000L
     }
 
@@ -101,27 +96,50 @@ class DataUploaderRepository(
         return logType
     }
 
-    suspend fun uploadRecentData(recentEntity: JsonObject) {
-        Log.d(TAG, "Upload recent Data")
+//    suspend fun uploadRecentData(recentEntity: JsonObject) {
+//        Log.d(TAG, "Upload recent Data")
+//        val gson = getGson()
+//
+//        // Convert strings to JSON
+//        val properties = listOf("acc", "ppg", "hr", "skin")
+//        for(key in properties) {
+//            val rawInnerJSON = recentEntity.get(key).toString()
+//            val innerJSON = rawInnerJSON.replace("\\", "").trim('"')
+//
+//            if(innerJSON == "null") recentEntity.add(key, null)
+//            else recentEntity.add(key, JsonParser.parseString(innerJSON).asJsonObject)
+//        }
+//
+//        val stepEntity = stepDao.getLast()
+//        val envEntity = envDao.getLast()
+//        recentEntity.add("step", gson.toJsonTree(stepEntity))
+//        recentEntity.add("env", gson.toJsonTree(envEntity))
+//        recentEntity.formatForUpload()
+//
+//        uploadJSON(recentEntity.toString(), LogType.RECENT)
+//    }
+
+    fun uploadSummaryData() {
         val gson = getGson()
+        for(entry in dataDao){
+            val name = entry.key
+            val dao = entry.value
+            val logType = nameToLogType(name)
 
-        // Convert strings to JSON
-        val properties = listOf("acc", "ppg", "hr", "skin")
-        for(key in properties) {
-            val rawInnerJSON = recentEntity.get(key).toString()
-            val innerJSON = rawInnerJSON.replace("\\", "").trim('"')
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    val data = gson.toJsonTree(dao.getSummary()).asJsonArray
+                    data.map { it.asJsonObject.formatForUpload() }
+                    uploadJSON(data.toString(), logType, isSummary = true)
 
-            if(innerJSON == "null") recentEntity.add(key, null)
-            else recentEntity.add(key, JsonParser.parseString(innerJSON).asJsonObject)
+                    Log.d(TAG, "Upload summary Data: $name")
+                } catch(e: Exception) {
+                    e.printStackTrace()
+                    uploadException(e)
+                }
+            }
+            Thread.sleep(7000)
         }
-
-        val stepEntity = stepDao.getLast()
-        val envEntity = envDao.getLast()
-        recentEntity.add("step", gson.toJsonTree(stepEntity))
-        recentEntity.add("env", gson.toJsonTree(envEntity))
-        recentEntity.formatForUpload()
-
-        uploadJSON(recentEntity.toString(), LogType.RECENT)
     }
 
     fun uploadFullData() {
@@ -152,13 +170,13 @@ class DataUploaderRepository(
 
                         stateRepository.updateUploadTime(name, System.currentTimeMillis())
                         chunkIndex++
+                        Thread.sleep(7000)
                     }
 
                 } catch(e: Exception) {
                     e.printStackTrace()
                     uploadException(e)
                 }
-                Thread.sleep(7000)
             }
         }
     }
@@ -195,7 +213,7 @@ class DataUploaderRepository(
         return GsonBuilder().setStrictness(Strictness.LENIENT).create()
     }
 
-    private fun uploadJSON(jsonString: String, logType: LogType, retryAtTimeout: Boolean = false): Boolean {
+    private fun uploadJSON(jsonString: String, logType: LogType, retryAtTimeout: Boolean = false, isSummary: Boolean = false): Boolean {
         if(logType == LogType.ERROR) {
             Log.e(TAG, "Invalid LogType")
             return false
@@ -205,8 +223,9 @@ class DataUploaderRepository(
         val jsonMediaType = "application/json; charset=utf-8".toMediaType()
         val requestBody = jsonString.toRequestBody(jsonMediaType)
 
+        val url = logType.url + (if(isSummary) "_summary" else "")
         val request = Request.Builder()
-            .url("http://logging.iclab.dev/${logType.url}")
+            .url("http://logging.iclab.dev/${url}")
             .post(requestBody)
             .build()
 
