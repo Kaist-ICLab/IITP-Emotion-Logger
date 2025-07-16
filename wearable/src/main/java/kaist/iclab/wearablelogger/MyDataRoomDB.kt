@@ -16,7 +16,7 @@ import kaist.iclab.loggerstructure.entity.TestEntity
 import kaist.iclab.loggerstructure.util.Converter
 
 @Database(
-    version = 16,
+    version = 17,
     entities = [
         TestEntity::class,
         PpgEntity::class,

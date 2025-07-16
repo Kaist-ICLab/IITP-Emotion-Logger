@@ -367,7 +367,9 @@ fun AccordionGroup(
             Column {
                 TagValueText("Data Received", TimeUtil.timestampToString(recentPpgEntity.dataReceived))
                 TagValueText("Timestamp", TimeUtil.timestampToString(recentPpgEntity.timestamp))
-                TagValueText("PPG value", "${recentPpgEntity.ppg}")
+                TagValueText("PPG green", "${recentPpgEntity.ppgGreen}")
+                TagValueText("PPG red", "${recentPpgEntity.ppgRed}")
+                TagValueText("PPG IR", "${recentPpgEntity.ppgIR}")
                 TagValueText("PPG status", "${recentPpgEntity.status}")
             }
         }
