@@ -30,6 +30,12 @@ class DebugViewModel(
         }
     }
 
+    fun uploadSummary() {
+        CoroutineScope(Dispatchers.IO).launch {
+            uploaderRepository.uploadSummaryData()
+        }
+    }
+
     fun flush() {
         Log.d(TAG, "flush()")
         CoroutineScope(Dispatchers.IO).launch {

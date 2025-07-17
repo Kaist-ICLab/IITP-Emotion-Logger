@@ -9,6 +9,7 @@ import kaist.iclab.loggerstructure.dao.EnvDao
 import kaist.iclab.loggerstructure.entity.EnvEntity
 import kotlinx.coroutines.runBlocking
 import java.util.concurrent.TimeUnit
+import kotlin.math.sqrt
 
 class EnvDaoWrapper(
     private val envDao: EnvDao
@@ -74,6 +75,14 @@ class EnvDaoWrapper(
     }
 
     override suspend fun getSummary(): JsonArray {
-        return Gson().toJsonTree(envDao.getSummary(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(1))).asJsonArray
+        val jsonArray = Gson().toJsonTree(envDao.getSummary(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(1))).asJsonArray
+        jsonArray.map {
+            val elem = it.asJsonObject
+            val varTvoc = elem.get("var_tvoc").asDouble
+            elem.addProperty("std_dev_tvoc", sqrt(varTvoc))
+            elem.remove("var_tvoc")
+        }
+
+        return jsonArray
     }
 }

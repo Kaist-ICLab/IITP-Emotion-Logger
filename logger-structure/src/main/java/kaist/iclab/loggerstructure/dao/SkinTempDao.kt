@@ -43,7 +43,8 @@ interface SkinTempDao {
             COUNT(*) AS count,
             AVG(objectTemp) AS avgObjectTemp,
             AVG(ambientTemp) AS avgAmbientTemp,
-            SUM(CASE WHEN status != 0 THEN 1 ELSE 0 END) AS skinTempBadStatusCount
+            AVG(objectTemp * objectTemp) - AVG(objectTemp) * AVG(objectTemp) AS varObjectTemp,
+            SUM(CASE WHEN status != 0 THEN 1 ELSE 0 END) AS badStatusCount
         FROM skinTempEvent
         WHERE bucketStart >= :timestamp
         GROUP BY bucketStart

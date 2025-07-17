@@ -9,6 +9,7 @@ import kaist.iclab.loggerstructure.dao.PpgDao
 import kaist.iclab.loggerstructure.entity.PpgEntity
 import kotlinx.coroutines.runBlocking
 import java.util.concurrent.TimeUnit
+import kotlin.math.sqrt
 
 class PpgDaoWrapper(
     private val ppgDao: PpgDao
@@ -74,6 +75,15 @@ class PpgDaoWrapper(
     }
 
     override suspend fun getSummary(): JsonArray {
-        return Gson().toJsonTree(ppgDao.getSummary(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(1))).asJsonArray
+        val jsonArray = Gson().toJsonTree(ppgDao.getSummary(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(1))).asJsonArray
+
+        jsonArray.map {
+            val elem = it.asJsonObject
+            val variance = elem.get("var_ppg_red").asDouble
+            elem.addProperty("std_dev_ppg_red", sqrt(variance))
+            elem.remove("var_ppg_red")
+        }
+
+        return jsonArray
     }
 }

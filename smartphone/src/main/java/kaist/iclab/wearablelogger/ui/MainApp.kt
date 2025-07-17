@@ -124,6 +124,7 @@ fun MainApp(
                     composable(ScreenType.BLUETOOTH_SCAN.name) { BluetoothScanScreen(bluetoothViewModel) }
                     composable(ScreenType.DEBUG.name) { DebugScreen(
                         uploadSingleStepEntity = { debugViewModel.uploadSingleStepEntity() },
+                        uploadSummary = { debugViewModel.uploadSummary() },
                         flush = { debugViewModel.flush() }
                     ) }
                 }

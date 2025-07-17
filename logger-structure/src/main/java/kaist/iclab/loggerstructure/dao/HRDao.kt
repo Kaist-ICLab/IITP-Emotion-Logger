@@ -41,8 +41,9 @@ interface HRDao {
         SELECT 
             (timestamp / 600000) * 600000 AS bucketStart,
             COUNT(*) AS count,
-            AVG(hr) AS avgHR,
-            SUM(CASE WHEN hrStatus != 1 THEN 1 ELSE 0 END) AS hrBadStatusCount
+            AVG(hr) AS avg,
+            AVG(hr * hr) - AVG(hr) * AVG(hr) AS variance,
+            SUM(CASE WHEN hrStatus != 1 THEN 1 ELSE 0 END) AS badStatusCount
         FROM hrEvent
         WHERE bucketStart >= :timestamp
         GROUP BY bucketStart

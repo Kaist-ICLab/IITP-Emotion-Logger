@@ -10,6 +10,9 @@ data class AccSummary(
     @SerializedName("count")
     val count: Int,
 
-    @SerializedName("avg_speed_square")
-    val avgSpeedSquare: Double
+    @SerializedName("avg")
+    val avg: Double,
+
+    @SerializedName("variance")
+    val variance: Double
 ) : Serializable

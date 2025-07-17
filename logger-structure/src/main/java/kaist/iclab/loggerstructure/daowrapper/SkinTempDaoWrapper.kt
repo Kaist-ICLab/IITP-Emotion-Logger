@@ -9,6 +9,7 @@ import kaist.iclab.loggerstructure.dao.SkinTempDao
 import kaist.iclab.loggerstructure.entity.SkinTempEntity
 import kotlinx.coroutines.runBlocking
 import java.util.concurrent.TimeUnit
+import kotlin.math.sqrt
 
 class SkinTempDaoWrapper(
     private val skinTempDao: SkinTempDao
@@ -74,6 +75,15 @@ class SkinTempDaoWrapper(
     }
 
     override suspend fun getSummary(): JsonArray {
-        return Gson().toJsonTree(skinTempDao.getSummary(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(1))).asJsonArray
+        val jsonArray = Gson().toJsonTree(skinTempDao.getSummary(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(1))).asJsonArray
+
+        jsonArray.map {
+            val elem = it.asJsonObject
+            val variance = elem.get("var_object_temp").asDouble
+            elem.addProperty("std_dev_object_temp", sqrt(variance))
+            elem.remove("var_object_temp")
+        }
+
+        return jsonArray
     }
 }

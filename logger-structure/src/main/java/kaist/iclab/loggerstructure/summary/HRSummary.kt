@@ -10,9 +10,12 @@ data class HRSummary(
     @SerializedName("count")
     val count: Int,
 
-    @SerializedName("avg_hr")
-    val avgHR: Double,
+    @SerializedName("avg")
+    val avg: Double,
 
-    @SerializedName("hr_bad_status_count")
-    val hrBadStatusCount: Int
+    @SerializedName("variance")
+    val variance: Double,
+
+    @SerializedName("bad_status_count")
+    val badStatusCount: Int,
 ) : Serializable

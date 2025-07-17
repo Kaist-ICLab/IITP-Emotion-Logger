@@ -9,6 +9,7 @@ import kaist.iclab.loggerstructure.dao.HRDao
 import kaist.iclab.loggerstructure.entity.HREntity
 import kotlinx.coroutines.runBlocking
 import java.util.concurrent.TimeUnit
+import kotlin.math.sqrt
 
 class HRDaoWrapper(
     private val hrDao: HRDao
@@ -74,6 +75,14 @@ class HRDaoWrapper(
     }
 
     override suspend fun getSummary(): JsonArray {
-        return Gson().toJsonTree(hrDao.getSummary(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(1))).asJsonArray
+        val jsonArray = Gson().toJsonTree(hrDao.getSummary(System.currentTimeMillis() - TimeUnit.DAYS.toMillis(1))).asJsonArray
+        jsonArray.map {
+            val elem = it.asJsonObject
+            val variance = elem.get("variance").asDouble
+            elem.addProperty("std_dev", sqrt(variance))
+            elem.remove("variance")
+        }
+
+        return jsonArray
     }
 }

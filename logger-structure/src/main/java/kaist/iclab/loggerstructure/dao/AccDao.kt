@@ -41,7 +41,8 @@ interface AccDao {
         SELECT 
             (timestamp / 600000) * 600000 AS bucketStart,
             COUNT(*) AS count,
-            AVG(x * x + y * y + z * z) AS avgSpeedSquare
+            AVG(x * x + y * y + z * z) AS avg,
+            AVG((x * x + y * y + z * z) * (x * x + y * y + z * z)) - AVG(x * x + y * y + z * z) * AVG(x * x + y * y + z * z) AS variance
         FROM accEvent
         WHERE bucketStart >= :timestamp
         GROUP BY bucketStart

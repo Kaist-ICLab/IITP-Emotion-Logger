@@ -19,6 +19,9 @@ data class PpgSummary(
     @SerializedName("avg_ppg_red")
     val avgPpgRed: Double,
 
-    @SerializedName("ppg_bad_status_count")
-    val ppgBadStatusCount: Int
+    @SerializedName("var_ppg_red")
+    val varPpgRed: Double,
+
+    @SerializedName("bad_status_count")
+    val badStatusCount: Int
 ) : Serializable

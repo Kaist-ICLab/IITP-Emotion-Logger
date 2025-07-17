@@ -44,7 +44,8 @@ interface PpgDao {
             AVG(ppgGreen) AS avgPpgGreen,
             AVG(ppgIR) AS avgPpgIR,
             AVG(ppgRed) AS avgPpgRed,
-            SUM(CASE WHEN status != 0 THEN 1 ELSE 0 END) AS ppgBadStatusCount
+            AVG(ppgRed * ppgRed) - AVG(ppgRed) * AVG(ppgRed) AS varPpgRed,
+            SUM(CASE WHEN status != 0 THEN 1 ELSE 0 END) AS badStatusCount
         FROM ppgEvent
         WHERE bucketStart >= :timestamp
         GROUP BY bucketStart

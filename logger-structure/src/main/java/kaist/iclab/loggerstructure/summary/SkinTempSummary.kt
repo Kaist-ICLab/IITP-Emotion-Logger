@@ -13,9 +13,12 @@ data class SkinTempSummary(
     @SerializedName("avg_object_temp")
     val avgObjectTemp: Double,
 
+    @SerializedName("var_object_temp")
+    val varObjectTemp: Double,
+
     @SerializedName("avg_ambient_temp")
     val avgAmbientTemp: Double,
 
-    @SerializedName("skintemp_bad_status_count")
-    val skinTempBadStatusCount: Int
+    @SerializedName("bad_status_count")
+    val badStatusCount: Int
 ) : Serializable
