@@ -1,6 +1,9 @@
 package kaist.iclab.wearablelogger.data
 
+import android.content.Context
+import android.content.Intent
 import android.util.Log
+import androidx.core.content.ContextCompat
 import com.google.gson.Gson
 import com.google.gson.GsonBuilder
 import com.google.gson.JsonObject
@@ -27,6 +30,9 @@ import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
 
 class DataUploaderRepository(
+    private val context: Context,
+    private val stepDao: StepDao,
+    private val envDao: EnvDao,
     private val dataDao: Map<String, DaoWrapper<EntityBase>>,
     private val stateRepository: StateRepository,
     deviceInfoRepository: DeviceInfoRepository
@@ -140,6 +146,20 @@ class DataUploaderRepository(
             }
             Thread.sleep(7000)
         }
+    }
+
+    fun start() {
+        val intent = Intent(context, DataUploaderService::class.java)
+        ContextCompat.startForegroundService(context, intent)
+        CoroutineScope(Dispatchers.IO).launch { stateRepository.updateIsDataUploading(true) }
+        Log.d(TAG, "start")
+    }
+
+    fun stop() {
+        val intent = Intent(context, DataUploaderService::class.java)
+        context.stopService(intent)
+        CoroutineScope(Dispatchers.IO).launch { stateRepository.updateIsDataUploading(false) }
+        Log.d(TAG, "stop")
     }
 
     fun uploadFullData() {

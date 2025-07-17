@@ -101,6 +101,7 @@ fun MainApp(
                             deviceId = mainViewModel.deviceId,
                             isEnvRunning = mainViewModel.isEnvRunning.collectAsState().value,
                             isStepRunning = mainViewModel.isStepRunning.collectAsState().value,
+                            isDataUploading = mainViewModel.isDataUploading.collectAsState().value,
 
                             recentTime = mainViewModel.recentTimestamp.collectAsState().value,
                             watchUploadSchedule = mainViewModel.watchUploadSchedule.collectAsState().value,
@@ -119,6 +120,7 @@ fun MainApp(
                             navigateToDebug = { navController.navigate(ScreenType.DEBUG.name) },
                             toggleEnvRunning = { mainViewModel.toggleEnvRunning(context) },
                             toggleStepRunning = { mainViewModel.toggleStepRunning(context)},
+                            toggleDataUploading = { mainViewModel.toggleDataUploaderRunning() }
                         )
                     }
                     composable(ScreenType.BLUETOOTH_SCAN.name) { BluetoothScanScreen(bluetoothViewModel) }
@@ -140,6 +142,7 @@ fun MainScreen(
     deviceId: String,
     isEnvRunning: Boolean,
     isStepRunning: Boolean,
+    isDataUploading: Boolean,
     recentTime: Long,
     syncTime: Map<CollectorType, Long>,
     uploadTime: Map<CollectorType, Long>,
@@ -155,6 +158,7 @@ fun MainScreen(
     navigateToDebug: () -> Unit,
     toggleEnvRunning: () -> Unit,
     toggleStepRunning: () -> Unit,
+    toggleDataUploading: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val scrollState = rememberScrollState()
@@ -177,55 +181,13 @@ fun MainScreen(
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
-            Card(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(
-                    modifier = Modifier.padding(vertical = 8.dp, horizontal = 12.dp)
-                ) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            "Current Time: ",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                        TextClockWrapper()
-                    }
-                    Row {
-                        Text(
-                            "Recent Entity Update: ",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            TimeUtil.timestampToString(recentTime)
-                        )
-                    }
-                    Row {
-                        Text(
-                            "Watch Upload Schedule: ",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            TimeUtil.timestampToString(watchUploadSchedule)
-                        )
-                    }
-                    Row {
-                        Text(
-                            "Phone Upload Schedule: ",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
-                        )
-                        Text(
-                            TimeUtil.timestampToString(phoneUploadSchedule)
-                        )
-                    }
-                }
-
-            }
+            SyncInfo(
+                recentTime = recentTime,
+                watchUploadSchedule = watchUploadSchedule,
+                phoneUploadSchedule = phoneUploadSchedule,
+                isDataUploading = isDataUploading,
+                toggleDataUploading = toggleDataUploading,
+            )
             Spacer(modifier = Modifier.height(8.dp))
             AccordionGroup(
                 syncTime = syncTime,
@@ -296,6 +258,87 @@ fun DeviceInfo(
                 Text("Debug")
             }
         }
+    }
+}
+
+@Composable
+fun SyncInfo(
+    recentTime: Long,
+    watchUploadSchedule: Long,
+    phoneUploadSchedule: Long,
+    isDataUploading: Boolean,
+    toggleDataUploading: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth()
+    ) {
+        Column(
+            modifier = Modifier.padding(vertical = 8.dp, horizontal = 12.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    "Current Time: ",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                TextClockWrapper()
+            }
+            Row {
+                Text(
+                    "Recent Entity Update: ",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    TimeUtil.timestampToString(recentTime)
+                )
+            }
+            Row {
+                Text(
+                    "Watch Upload Schedule: ",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    TimeUtil.timestampToString(watchUploadSchedule)
+                )
+            }
+            Row {
+                Text(
+                    "Phone Upload Schedule: ",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    TimeUtil.timestampToString(phoneUploadSchedule)
+                )
+            }
+            Spacer(modifier = Modifier.height(8.dp))
+            Button(
+                onClick = toggleDataUploading,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                if(isDataUploading) {
+                    Icon(
+                        imageVector = Icons.Default.Stop,
+                        contentDescription = "Stop data upload"
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Stop data upload")
+                } else {
+                    Icon(
+                        imageVector = Icons.Default.PlayArrow,
+                        contentDescription = "Start data upload"
+                    )
+                    Spacer(modifier = Modifier.width(4.dp))
+                    Text("Start data upload")
+                }
+            }
+        }
+
     }
 }
 
@@ -548,8 +591,6 @@ fun AccordionGroupPreview() {
     }
 }
 
-// Started around 2:30PM
-
 @Preview(
     showBackground = true,
 )
@@ -563,6 +604,7 @@ fun MainScreenPreview() {
             deviceId = "1234567890abcdef",
             isEnvRunning = false,
             isStepRunning = false,
+            isDataUploading = true,
             recentTime = currentTime,
             syncTime = mapOf(
                 CollectorType.HR to currentTime,
@@ -590,6 +632,7 @@ fun MainScreenPreview() {
             navigateToBluetoothScan = {},
             toggleEnvRunning = {},
             toggleStepRunning = {},
+            toggleDataUploading = {},
         )
     }
 }

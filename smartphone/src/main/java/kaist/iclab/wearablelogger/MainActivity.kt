@@ -14,14 +14,12 @@ import androidx.activity.compose.setContent
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.core.content.ContextCompat
-import kaist.iclab.loggerstructure.core.AlarmScheduler
-import kaist.iclab.wearablelogger.data.DataUploaderRepository
+import kaist.iclab.wearablelogger.data.DataUploaderService
 import kaist.iclab.wearablelogger.env.EnvCollectorService
 import kaist.iclab.wearablelogger.step.SamsungHealthPermissionManager
 import kaist.iclab.wearablelogger.step.StepCollectorService
 import kaist.iclab.wearablelogger.ui.MainApp
 import kaist.iclab.wearablelogger.ui.MainViewModel
-import kaist.iclab.wearablelogger.data.UploadAlarmReceiver
 import kaist.iclab.wearablelogger.util.StateRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -29,7 +27,6 @@ import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
 import org.koin.androidx.viewmodel.ext.android.viewModel
-import java.util.concurrent.TimeUnit
 
 class MainActivity : ComponentActivity() {
     companion object {
@@ -37,7 +34,6 @@ class MainActivity : ComponentActivity() {
     }
 
     private val stateRepository: StateRepository by inject()
-    private val dataUploaderRepository: DataUploaderRepository by inject()
     private lateinit var permissionLauncher: ActivityResultLauncher<Array<String>>
 
     private val mainViewModel: MainViewModel by viewModel()
@@ -85,18 +81,14 @@ class MainActivity : ComponentActivity() {
                 }
                 true
             }
+            stateRepository.isDataUploading.first { isUploading ->
+                if(isUploading) {
+                    val intent = Intent(context, DataUploaderService::class.java)
+                    ContextCompat.startForegroundService(context, intent)
+                }
+                true
+            }
         }
-
-        // Setup periodic upload worker
-        AlarmScheduler.scheduleExactAlarm(this, UploadAlarmReceiver::class.java, TimeUnit.MINUTES.toMillis(10))
-        CoroutineScope(Dispatchers.IO).launch {
-            dataUploaderRepository.uploadSummaryData()
-        }
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        AlarmScheduler.cancelAlarm(this, UploadAlarmReceiver::class.java)
     }
 
     private fun checkAndRequestPermissions() {
