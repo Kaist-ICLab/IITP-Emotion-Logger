@@ -104,8 +104,6 @@ val koinModule = module {
     single {
         DataUploaderRepository(
             context = androidContext(),
-            stepDao = get<RoomDB>().stepDao(),
-            envDao = get<RoomDB>().envDao(),
             dataDao = mapOf(
                 CollectorType.ACC.name to get<AccDaoWrapper>(),
                 CollectorType.PPG.name to get<PpgDaoWrapper>(),

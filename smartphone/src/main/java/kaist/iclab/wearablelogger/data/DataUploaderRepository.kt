@@ -31,8 +31,6 @@ import java.time.format.DateTimeFormatter
 
 class DataUploaderRepository(
     private val context: Context,
-    private val stepDao: StepDao,
-    private val envDao: EnvDao,
     private val dataDao: Map<String, DaoWrapper<EntityBase>>,
     private val stateRepository: StateRepository,
     deviceInfoRepository: DeviceInfoRepository

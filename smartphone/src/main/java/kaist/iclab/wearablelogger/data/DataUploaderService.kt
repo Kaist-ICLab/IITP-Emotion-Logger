@@ -16,7 +16,7 @@ class DataUploaderService: Service() {
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         // Setup periodic upload worker
-        AlarmScheduler.scheduleExactAlarm(this, UploadAlarmReceiver::class.java, TimeUnit.MINUTES.toMillis(15))
+        AlarmScheduler.scheduleExactAlarm(this, UploadAlarmReceiver::class.java, TimeUnit.MINUTES.toMillis(10))
 
         val notification = ForegroundNotification.getNotification(this)
         Log.d(TAG, "onStartCommand")
