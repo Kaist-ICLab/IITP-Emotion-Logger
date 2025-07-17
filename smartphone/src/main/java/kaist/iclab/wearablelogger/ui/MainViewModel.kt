@@ -19,6 +19,7 @@ import kaist.iclab.loggerstructure.entity.SkinTempEntity
 import kaist.iclab.loggerstructure.entity.StepEntity
 import kaist.iclab.loggerstructure.util.CollectorType
 import kaist.iclab.wearablelogger.data.DataReceiverService
+import kaist.iclab.wearablelogger.data.DataUploaderRepository
 import kaist.iclab.wearablelogger.env.EnvCollectorService
 import kaist.iclab.wearablelogger.step.StepCollectorService
 import kaist.iclab.wearablelogger.util.DeviceInfoRepository
@@ -35,6 +36,7 @@ class MainViewModel(
     envDao: EnvDao,
     deviceInfoRepository: DeviceInfoRepository,
     stateRepository: StateRepository,
+    private val dataUploaderRepository: DataUploaderRepository,
 ): ViewModel() {
     val deviceId = deviceInfoRepository.deviceId
     val bluetoothDeviceAddress = stateRepository.bluetoothAddress
@@ -48,6 +50,7 @@ class MainViewModel(
 
     val isStepRunning: StateFlow<Boolean> = getStateFlowFromFlow(stateRepository.isStepCollected, initialValue = false)
     var isEnvRunning: StateFlow<Boolean> = getStateFlowFromFlow(stateRepository.isEnvCollected, initialValue = false)
+    var isDataUploading: StateFlow<Boolean> = getStateFlowFromFlow(stateRepository.isDataUploading, initialValue = false)
 
     val recentTimestamp: StateFlow<Long> = getStateFlowFromFlow(DataReceiverService.recentTimestamp, initialValue = -1)
     val syncTime: StateFlow<Map<CollectorType, Long>> = getStateFlowFromFlow(stateRepository.syncTime, initialValue = mapOf())
@@ -74,6 +77,11 @@ class MainViewModel(
 
     fun enableEnv() {
         isEnvAvailable = true
+    }
+
+    fun toggleDataUploaderRunning() {
+        if(isDataUploading.value) dataUploaderRepository.stop()
+        else dataUploaderRepository.start()
     }
 
     fun toggleStepRunning(context: Context) {

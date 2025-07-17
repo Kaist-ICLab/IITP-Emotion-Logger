@@ -4,6 +4,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_HEALTH"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_CONNECTED_DEVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC" />
     <uses-permission android:name="android.permission.BODY_SENSORS" />
 
     <!-- Manual Permission Required-->
@@ -45,6 +46,10 @@
         <service
             android:name="kaist.iclab.wearablelogger.env.EnvCollectorService"
             android:foregroundServiceType="connectedDevice"
+            />
+        <service
+            android:name="kaist.iclab.wearablelogger.data.DataUploaderService"
+            android:foregroundServiceType="dataSync"
             />
         <service android:name="kaist.iclab.wearablelogger.data.DataReceiverService" android:exported="true" tools:ignore="ExportedService" >
             <intent-filter>
