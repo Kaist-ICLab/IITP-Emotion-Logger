@@ -1,30 +1,26 @@
 package kaist.iclab.wearablelogger
 
 import android.Manifest
-import android.content.Intent
-import android.content.IntentFilter
 import android.os.Build
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.compose.setContent
 import kaist.iclab.loggerstructure.core.PermissionActivity
-import kaist.iclab.wearablelogger.config.BatteryStateReceiver
+import kaist.iclab.wearablelogger.config.ConfigRepository
 import kaist.iclab.wearablelogger.ui.SettingsScreen
 import kaist.iclab.wearablelogger.ui.SettingsViewModel
-import org.koin.androidx.viewmodel.ext.android.viewModel
-import android.util.Log
-import kaist.iclab.wearablelogger.config.ConfigRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import org.koin.android.ext.android.inject
+import org.koin.androidx.viewmodel.ext.android.viewModel
 
 private const val TAG = "MainActivity"
 
 class MainActivity : PermissionActivity() {
     private val settingsViewModel: SettingsViewModel by viewModel()
     private val configRepository: ConfigRepository by inject()
-    private lateinit var batteryReceiver: BatteryStateReceiver
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -38,9 +34,6 @@ class MainActivity : PermissionActivity() {
             Manifest.permission.ACTIVITY_RECOGNITION
         )
         requestPermissions.launch(permissionList.toTypedArray())
-
-        batteryReceiver = BatteryStateReceiver()
-        registerReceiver(batteryReceiver, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
 
         setContent {
             SettingsScreen(
