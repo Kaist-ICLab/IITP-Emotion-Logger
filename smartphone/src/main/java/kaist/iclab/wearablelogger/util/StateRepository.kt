@@ -18,6 +18,7 @@ class StateRepository(private val context: Context) {
         private const val BLUETOOTH_ADDRESS = "BLUETOOTH_ADDRESS"
         private const val IS_STEP_COLLECTED = "IS_STEP_COLLECTED"
         private const val IS_ENV_COLLECTED = "IS_ENV_COLLECTED"
+        private const val IS_DATA_UPLOADING = "IS_DATA_UPLOADING"
         private const val SYNC_TIME = "SYNC_TIME"
         private const val UPLOAD_TIME = "UPLOAD_TIME"
     }
@@ -26,6 +27,7 @@ class StateRepository(private val context: Context) {
     val bluetoothAddress: Flow<String> = context.dataStore.data.map { it[stringPreferencesKey(BLUETOOTH_ADDRESS)] ?: "None"}
     val isStepCollected: Flow<Boolean> = context.dataStore.data.map { it[booleanPreferencesKey(IS_STEP_COLLECTED)] == true }
     val isEnvCollected: Flow<Boolean> = context.dataStore.data.map { it[booleanPreferencesKey(IS_ENV_COLLECTED)] == true }
+    val isDataUploading: Flow<Boolean> = context.dataStore.data.map { it[booleanPreferencesKey(IS_DATA_UPLOADING)] == true }
 
     val syncTime: Flow<Map<CollectorType, Long>> = context.dataStore.data
         .map { pref ->
@@ -69,6 +71,12 @@ class StateRepository(private val context: Context) {
     suspend fun updateUploadTime(collectorName: String, time: Long) {
         context.dataStore.edit { pref ->
             pref[longPreferencesKey("${UPLOAD_TIME}_$collectorName")] = time
+        }
+    }
+
+    suspend fun updateIsDataUploading(isDataUploading: Boolean) {
+        context.dataStore.edit { pref ->
+            pref[booleanPreferencesKey(IS_DATA_UPLOADING)] = isDataUploading
         }
     }
 }
