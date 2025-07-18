@@ -137,6 +137,7 @@ class DataUploaderRepository(
                     uploadJSON(data.toString(), logType, isSummary = true)
 
                     Log.d(TAG, "Upload summary Data: $name")
+                    stateRepository.updateUploadTime(name, System.currentTimeMillis())
                 } catch(e: Exception) {
                     e.printStackTrace()
                     uploadException(e)
