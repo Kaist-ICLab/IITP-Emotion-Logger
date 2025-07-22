@@ -21,9 +21,6 @@
         android:name= ".WearableApplication"
         android:usesCleartextTraffic="true"
         android:theme="@android:style/Theme.DeviceDefault">
-        <receiver android:name="kaist.iclab.wearablelogger.uploader.UploadAlarmReceiver" />
-        <receiver android:name="kaist.iclab.wearablelogger.uploader.RecentAlarmReceiver" />
-        <receiver android:name="kaist.iclab.wearablelogger.config.BatteryStateReceiver" />
         <uses-library
             android:name="com.google.android.wearable"
             android:required="true" />
@@ -41,12 +38,6 @@
             </intent-filter>
         </activity>
         <service android:name="kaist.iclab.wearablelogger.collector.core.CollectorService"/>
-        <service android:name=".uploader.AckReceiverService" android:exported="true" tools:ignore="ExportedService" >
-            <intent-filter>
-                <action android:name="com.google.android.gms.wearable.DATA_CHANGED" />
-                <data android:scheme="wear" android:host="*" android:path="/WEARABLE_DATA_ACK"/>
-            </intent-filter>
-        </service>
     </application>
 
 </manifest>

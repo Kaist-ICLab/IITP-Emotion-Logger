@@ -34,12 +34,12 @@ abstract class HealthTrackerCollector(
             initHealthTracker()
             tracker?.setEventListener(trackerEventListener)
         }catch(e: Exception){
-            Log.e(TAG, "SkinTempCollector startLogging: $e")
+            Log.e(TAG, "HealthTracker startLogging: $e")
         }
     }
+
     override fun stopLogging() {
         Log.d(TAG, "stopLogging")
         tracker?.unsetEventListener()
     }
-
 }

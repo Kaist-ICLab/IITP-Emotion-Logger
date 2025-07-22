@@ -64,6 +64,7 @@ dependencies {
     implementation(libs.ui)
     implementation(libs.ui.tooling.preview)
     implementation(libs.compose.material)
+    implementation(libs.material3)
     implementation(libs.compose.foundation)
     implementation(libs.material.icons.extended)
 
