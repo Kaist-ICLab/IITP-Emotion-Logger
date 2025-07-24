@@ -66,6 +66,7 @@ class AccCollector(
     override fun initHealthTracker() {
         tracker = healthTrackerRepository.healthTrackingService
             .getHealthTracker(HealthTrackerType.ACCELEROMETER_CONTINUOUS)
+        Log.d(TAG, "initHealthTracker: $tracker")
     }
 
     override fun deleteBetween(startId: Long, endId: Long) {

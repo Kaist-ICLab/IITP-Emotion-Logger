@@ -30,8 +30,8 @@ abstract class HealthTrackerCollector(
             )
     }
     override fun startLogging() {
+        initHealthTracker()
         try{
-            initHealthTracker()
             tracker?.setEventListener(trackerEventListener)
         }catch(e: Exception){
             Log.e(TAG, "HealthTracker startLogging: $e")
