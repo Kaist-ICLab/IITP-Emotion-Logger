@@ -102,6 +102,7 @@ val koinModule = module {
     }
 
     single {
+        @Suppress("UNCHECKED_CAST")
         DataUploaderRepository(
             context = androidContext(),
             stepDao = get<RoomDB>().stepDao(),
@@ -120,6 +121,7 @@ val koinModule = module {
     }
 
     single(named("collectorDao")) {
+        @Suppress("UNCHECKED_CAST")
         mapOf(
             CollectorType.ACC.name to get<AccDaoWrapper>(),
             CollectorType.PPG.name to get<PpgDaoWrapper>(),
