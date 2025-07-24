@@ -158,7 +158,8 @@ val koinModule = module {
 
     viewModel {
         DebugViewModel(
-            uploaderRepository = get()
+            uploaderRepository = get(),
+            stepCollector = get()
         )
     }
 }

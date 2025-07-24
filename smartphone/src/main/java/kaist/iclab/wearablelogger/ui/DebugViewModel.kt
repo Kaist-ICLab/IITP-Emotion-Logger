@@ -5,12 +5,14 @@ import androidx.lifecycle.ViewModel
 import kaist.iclab.loggerstructure.entity.StepEntity
 import kaist.iclab.loggerstructure.util.CollectorType
 import kaist.iclab.wearablelogger.data.DataUploaderRepository
+import kaist.iclab.wearablelogger.step.StepCollector
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class DebugViewModel(
     private val uploaderRepository: DataUploaderRepository,
+    private val stepCollector: StepCollector,
 ): ViewModel() {
     companion object {
         private val TAG = DebugViewModel::class.simpleName
@@ -28,6 +30,10 @@ class DebugViewModel(
         CoroutineScope(Dispatchers.IO).launch {
             uploaderRepository.uploadSingleEntity(stepEntity, CollectorType.STEP)
         }
+    }
+
+    fun readPastStpes() {
+        stepCollector.readBunchOfPastData()
     }
 
     fun flush() {

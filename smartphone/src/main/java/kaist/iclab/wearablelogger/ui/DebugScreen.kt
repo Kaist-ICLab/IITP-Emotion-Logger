@@ -15,6 +15,7 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun DebugScreen(
     uploadSingleStepEntity: () -> Unit,
+    readPastSteps: () -> Unit,
     flush: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -28,6 +29,13 @@ fun DebugScreen(
             modifier = Modifier.fillMaxWidth()
         ) {
             Text("Send dummy Step entity")
+        }
+
+        Button(
+            onClick = readPastSteps,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Read past 30 days' step data")
         }
 
         Button(
@@ -47,6 +55,7 @@ fun DebugScreenPreview() {
     MaterialTheme {
         DebugScreen(
             uploadSingleStepEntity = {},
+            readPastSteps = {},
             flush = {}
         )
     }
