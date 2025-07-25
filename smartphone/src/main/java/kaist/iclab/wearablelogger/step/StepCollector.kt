@@ -21,6 +21,7 @@ import java.time.Instant
 import java.time.LocalDateTime
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
+import java.util.concurrent.TimeUnit
 
 private const val TAG = "StepCollector"
 
@@ -33,7 +34,7 @@ class StepCollector(
     private val syncPastLimitDays:Long = 7
 //    private val syncUnitTimeMinutes:Long = 1
 
-    private var lastSynced:Long = System.currentTimeMillis() - syncPastLimitDays*24L*3600L*1000L
+    private var lastSynced:Long = System.currentTimeMillis() -  TimeUnit.DAYS.toMillis(syncPastLimitDays)
 
     private suspend fun readAllDataByGroup(store: HealthDataStore, since: Long): Long {
         // We want to collect recent steps, so grouped in several minutes unit
@@ -73,6 +74,22 @@ class StepCollector(
         }
 
         return maxTime
+    }
+
+    fun readBunchOfPastData() {
+        Log.v(TAG, "Read bunch of data")
+        if(super.store == null) setup()
+        val store = super.store!!
+        val time = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(30)
+
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                readAllDataByGroup(store, time)
+            } catch (e: PlatformInternalException) {
+                Log.e(TAG, "Sync Error at : $time")
+                Log.e(TAG, Log.getStackTraceString(e))
+            }
+        }
     }
 
     override suspend fun CoroutineScope.logData() {
