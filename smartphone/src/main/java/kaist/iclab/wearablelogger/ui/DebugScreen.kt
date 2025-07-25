@@ -16,6 +16,7 @@ import androidx.compose.ui.unit.dp
 fun DebugScreen(
     uploadSingleStepEntity: () -> Unit,
     uploadSummary: () -> Unit,
+    readPastSteps: () -> Unit,
     flush: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -39,6 +40,13 @@ fun DebugScreen(
         }
 
         Button(
+            onClick = readPastSteps,
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text("Read past 30 days' step data")
+        }
+
+        Button(
             onClick = flush,
             modifier = Modifier.fillMaxWidth()
         ) {
@@ -56,6 +64,7 @@ fun DebugScreenPreview() {
         DebugScreen(
             uploadSingleStepEntity = {},
             uploadSummary = {},
+            readPastSteps = {},
             flush = {}
         )
     }

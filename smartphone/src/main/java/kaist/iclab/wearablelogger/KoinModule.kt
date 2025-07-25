@@ -102,6 +102,7 @@ val koinModule = module {
     }
 
     single {
+        @Suppress("UNCHECKED_CAST")
         DataUploaderRepository(
             context = androidContext(),
             dataDao = mapOf(
@@ -118,6 +119,7 @@ val koinModule = module {
     }
 
     single(named("collectorDao")) {
+        @Suppress("UNCHECKED_CAST")
         mapOf(
             CollectorType.ACC.name to get<AccDaoWrapper>(),
             CollectorType.PPG.name to get<PpgDaoWrapper>(),
@@ -156,7 +158,8 @@ val koinModule = module {
 
     viewModel {
         DebugViewModel(
-            uploaderRepository = get()
+            uploaderRepository = get(),
+            stepCollector = get()
         )
     }
 }

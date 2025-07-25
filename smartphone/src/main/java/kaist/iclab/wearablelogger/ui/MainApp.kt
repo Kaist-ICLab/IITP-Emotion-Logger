@@ -127,6 +127,7 @@ fun MainApp(
                     composable(ScreenType.DEBUG.name) { DebugScreen(
                         uploadSingleStepEntity = { debugViewModel.uploadSingleStepEntity() },
                         uploadSummary = { debugViewModel.uploadSummary() },
+                        readPastSteps = { debugViewModel.readPastStpes() },
                         flush = { debugViewModel.flush() }
                     ) }
                 }
