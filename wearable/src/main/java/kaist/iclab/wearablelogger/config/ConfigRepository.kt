@@ -18,7 +18,7 @@ class ConfigRepository(private val androidContext: Context) {
         }
 
     val pidFlow: Flow<String> = androidContext.dataStore.data
-        .map { it[stringPreferencesKey("pid")] ?: "오은" }
+        .map { it[stringPreferencesKey("pid")] ?: "박규연" }
 
     val labelFlow: Flow<String> = androidContext.dataStore.data
         .map { it[stringPreferencesKey("label")] ?: "A" }

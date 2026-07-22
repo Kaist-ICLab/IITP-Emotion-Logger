@@ -29,7 +29,7 @@ class SettingsViewModel(
             .stateIn(
                 scope = CoroutineScope(Dispatchers.IO),
                 started = SharingStarted.WhileSubscribed(5_000L),
-                initialValue = "오은"
+                initialValue = "박규연"
             )
 
     val labelState: StateFlow<String> =

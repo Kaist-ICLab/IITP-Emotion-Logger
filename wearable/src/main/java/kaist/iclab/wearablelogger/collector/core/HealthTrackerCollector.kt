@@ -40,6 +40,6 @@ abstract class HealthTrackerCollector(
 
     override fun stopLogging() {
         Log.d(TAG, "stopLogging")
-        tracker?.unsetEventListener()
+        tracker?.flush()
     }
 }

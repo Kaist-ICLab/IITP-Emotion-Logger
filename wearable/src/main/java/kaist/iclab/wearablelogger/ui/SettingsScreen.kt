@@ -170,7 +170,7 @@ fun SettingController(
 
             if (showNameDialog) {
                 DropdownSelectDialog(
-                    options = listOf("오은", "신재윤", "김지환", "김민기"),
+                    options = listOf("박규연", "윤재원", "최명원"),
                     onSelect = updatePid,
                     onDismiss = { showNameDialog = false }
                 )

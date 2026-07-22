@@ -58,6 +58,11 @@ class AccCollector(
             }
         }
 
+        override fun onFlushCompleted() {
+            super.onFlushCompleted()
+            tracker?.unsetEventListener()
+        }
+
         private fun convert2SIUnit(value: Int): Float {
             return (9.81f / (16383.75f / 4.0f)) * value.toFloat()
         }

@@ -1,6 +1,6 @@
 [versions]
 activityCompose = "1.10.1"
-androidGradePlugin = "8.9.3"
+androidGradePlugin = "8.13.2"
 appcompat = "1.7.1"
 composeBom = "2025.06.01"
 composeMaterial = "1.4.1"
